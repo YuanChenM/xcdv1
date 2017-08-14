@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151426Logic">
+
+    <sql id="conditionfindPage">
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(housekeepingId)">
+            AND(SOO.SELLERS = #{housekeepingId}
+            OR
+            EXISTS
+            (
+            SELECT
+            1
+            FROM
+            SO_ORDER SO
+            LEFT JOIN SO_ORDER_RELATION SOR
+            ON SOR.CHILD_ORDER_ID = SO.ORDER_ID
+            WHERE SO.SELLERS = #{housekeepingId}
+            AND SOO.ORDER_ID = SOR.MAIN_ORDER_ID))
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(inputParam)">
+            AND (SOO.order_id LIKE "%${inputParam}%"
+            OR
+            EXISTS (SELECT 1 FROM
+            (SELECT DISTINCT
+            CASE
+            WHEN sorr.CHILD_ORDER_ID IS NULL
+            THEN sod.ORDER_ID
+            ELSE sorr.MAIN_ORDER_ID
+            END AS orderId
+            FROM
+            so_order_detail sod
+            LEFT JOIN so_order_relation sorr
+            ON sod.ORDER_ID = sorr.CHILD_ORDER_ID
+            WHERE sod.PD_NAME LIKE "%${inputParam}%")
+            sor WHERE sor.orderId = soo.order_id))
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderStatus)">
+            <if test="orderStatus == 1">
+                AND (SOO.ORDER_STATUS = 2 OR SOO.ORDER_STATUS = 1)
+            </if>
+            <if test="orderStatus == 2">
+                AND (SOO.ORDER_STATUS = 3 OR SOO.ORDER_STATUS = 4 OR SOO.ORDER_STATUS = 5 OR SOO.ORDER_STATUS = 6 OR SOO.ORDER_STATUS = 7 OR SOO.ORDER_STATUS = 8 OR SOO.ORDER_STATUS = 9 OR SOO.ORDER_STATUS = 14 )
+            </if>
+            <if test="orderStatus == 3">
+                AND (SOO.ORDER_STATUS = 10 OR SOO.ORDER_STATUS = 12)
+            </if>
+            <if test="orderStatus == 4">
+                AND  (SOO.ORDER_STATUS = 1 OR SOO.ORDER_STATUS = 13)
+            </if>
+            <if test="orderStatus == 5">
+                AND SOO.ORDER_STATUS = 99
+            </if>
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(beginDate)">
+            AND <![CDATA[SOO.CRT_TIME >= #{beginDate}]]>
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(endDate)">
+            AND <![CDATA[SOO.CRT_TIME <= #{endDate}]]>
+        </if>
+        AND NOT EXISTS (SELECT 1 FROM so_order_relation soor WHERE SOO.order_id = soor.CHILD_ORDER_ID)
+    </sql>
+
+    <select id="findPageList" resultType="com.msk.so.bean.ISO151426OrderRsResult" parameterType="BaseParam">
+        SELECT
+        DISTINCT
+        DATE_FORMAT(SOO.CRT_TIME,"%Y-%m-%d %T") AS orderDate,
+        SOO.ORDER_ID AS orderId,
+        SOO.ORDER_CODE AS orderCode,
+        SOO.ORDER_AMOUNT AS realPayment,
+        CASE WHEN (SOO.ORDER_STATUS = 2 OR SOO.ORDER_STATUS = 1) THEN 1
+        WHEN (SOO.ORDER_STATUS = 3 OR SOO.ORDER_STATUS = 4 OR SOO.ORDER_STATUS = 5 OR SOO.ORDER_STATUS = 6 OR SOO.ORDER_STATUS = 7 OR SOO.ORDER_STATUS = 8 OR SOO.ORDER_STATUS = 9 OR SOO.ORDER_STATUS = 14 ) THEN 2
+        WHEN (SOO.ORDER_STATUS = 10 OR SOO.ORDER_STATUS = 12) THEN 3
+        WHEN (SOO.ORDER_STATUS = 11 OR SOO.ORDER_STATUS = 13) THEN 4
+        WHEN SOO.ORDER_STATUS = 99 THEN 5
+        END AS orderStatus
+        FROM
+        SO_ORDER AS SOO
+        WHERE
+        1=1
+        AND soo.DEL_FLG = 0
+        <include refid="conditionfindPage"/>
+        <if test="paging == true">
+            LIMIT #{startPos},#{pageCount}
+        </if>
+    </select>
+
+    <select id="getPageCount" resultType="Integer" parameterType="BaseParam">
+        SELECT
+        count(DISTINCT SOO.ORDER_ID)
+        FROM
+        SO_ORDER AS SOO
+        WHERE
+        1=1
+        AND soo.DEL_FLG = 0
+        <include refid="conditionfindPage"/>
+    </select>
+
+    <select id="getDetailInfoById" resultType="com.msk.so.bean.ISO151426PruductRsResult" parameterType="BaseParam">
+        SELECT
+         sod.PD_CODE AS productId
+        ,sod.PD_NAME AS productName
+        ,sod.ORDER_QTY AS number
+        ,sod.PD_PRICE AS pdPrice
+        FROM
+          so_order_detail sod
+          LEFT JOIN so_order so
+            ON sod.ORDER_ID = so.ORDER_ID
+        WHERE sod.ORDER_ID = #{filterMap.orderId}
+        AND sod.DEL_FLG = 0
+        AND so.DEL_FLG = 0
+        UNION ALL
+        SELECT
+         sod.PD_CODE AS productId
+        ,sod.PD_NAME AS productName
+        ,sod.ORDER_QTY AS number
+        ,sod.PD_PRICE AS pdPrice
+        FROM
+          so_order_detail sod
+          LEFT JOIN so_order_relation sor
+            ON sod.ORDER_ID = sor.CHILD_ORDER_ID
+        WHERE sor.MAIN_ORDER_ID = #{filterMap.orderId}
+        AND sod.DEL_FLG = 0
+        AND sor.DEL_FLG = 0
+    </select>
+</mapper>

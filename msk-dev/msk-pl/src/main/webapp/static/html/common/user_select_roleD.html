@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>用户身份角色选择</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link rel="stylesheet" href="../css/sm.min.css">
+    <link rel="stylesheet" href="../css/sm-extend.min.css">
+
+</head>
+<body>
+<div class="page-group">
+    <div class="page page-current">
+
+        <!--标题栏-->
+        <header class="bar bar-nav">
+            <!--<a class="icon icon-me pull-left open-panel"></a>-->
+            <h1 class="title">申报单管理系统</h1>
+        </header>
+
+        <!--内容区-->
+        <div class="content">
+            <div class="content-block">
+                <p><a href="#" class="button button-fill" id="url1">买手功能入口</a></p>
+                <p><a href="#" class="button button-fill" id="url2">合伙人功能入口</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type='text/javascript' src='../js/zepto.js' charset='utf-8'></script>
+<script type="text/javascript">
+    $.config = {router: false}
+</script>
+<script type='text/javascript' src='../js/sm.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+
+<script type="text/javascript" src="../js/common.js"></script>
+
+<script type="text/javascript">
+    var userName=getUrlParam("userName");
+    var wqAccount=getUrlParam("wqAccount");
+
+    window.onload(init());
+
+    function init(){
+        $.ajax({
+            type:"post",
+            url:"/"+_webroot+"/api/v1/pl/wquser_auth",
+            contentType:"application/json",
+            data:JSON.stringify({
+                "siteCode":"318",
+                "auth":"pl",
+                "loginId":"",
+                "param":{
+                    "userName":userName,
+                    "wqAccount":wqAccount
+                }
+            }),
+            success:function(data){
+                if(data.status=="S"&&data.result){
+                    var isPartner=data.result.isPartner;
+                    var isBs=data.result.isBs;
+                    if(isPartner=="1"&&isBs=="1"){
+//                        var url2=encodeURI("/"+_webroot+"/static/html/platformPartner/partner_operations.html?name="+userName+"&id="+data.result.partnerId);
+                        var url1=encodeURI("/"+_webroot+"/static/html/baDeclare/buyer_agent_declaration_operations.html?name="+userName+"&id="+data.result.bsCode);
+                        var url2=encodeURI("/"+_webroot+"/static/html/partnerDeclare/dpartner_operations.html?name="+userName+"&id="+data.result.partnerId);
+                        $("#url1").attr("href",url1);
+                        $("#url2").attr("href",url2);
+                    }else if(isPartner=="1"&&isBs=="0"){
+//                        var url=encodeURI("/"+_webroot+"/static/html/platformPartner/partner_operations.html?name="+userName+"&id="+data.result.partnerId);
+                        location.href=url;
+                    }else if(isPartner=="0"&&isBs=="1"){
+                        location.href= encodeURI("/"+_webroot+"/static/html/baDeclare/buyer_agent_declaration_operations.html?name="+userName+"&id="+data.result.bsCode);
+                    }else{
+                        location.href="user_verify_fail.html";
+                    }
+                }else{
+                    location.href="user_verify_fail.html";
+                }
+            }
+        });
+    }
+    $(function(){
+
+    });
+</script>
+
+</body>
+</html>

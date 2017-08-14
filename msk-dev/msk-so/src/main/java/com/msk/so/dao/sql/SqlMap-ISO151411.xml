@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151411Logic">
+    <select id = "getPaymentCount" resultType = "java.lang.Integer" parameterType = "BaseParam">
+        SELECT count(1) as count
+        FROM so_payment
+        WHERE ORDER_ID = #{orderId}
+        AND PAY_ORDER_CODE = #{paymentOrderCode}
+        AND DEL_FLG = 0
+    </select>
+</mapper>

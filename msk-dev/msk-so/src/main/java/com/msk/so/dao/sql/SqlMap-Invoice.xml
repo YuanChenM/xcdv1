@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.InvoiceLogic">
+    <sql id="selectFiled">
+        INVOICE_REQ_ID AS invoiceReqId,
+        ORDER_ID AS orderId,
+        ORDER_CODE AS orderCode,
+        INVOICE_TYPE AS invoiceType,
+        INVOICE_TITLE AS invoiceTitle,
+        VAT_INV_COMP AS vatInvComp,
+        VAT_TAXPAYER AS vatTaxpayer,
+        VAT_ADDR AS vatAddr,
+        VAT_TEL AS vatTel,
+        VAT_BANK AS vatBank,
+        VAT_ACCOUNT AS vatAccount,
+        INV_RECEIVER_TEL AS invReceiverTel,
+        INV_TIME_REQ AS invTimeReq,
+        INV_RECEIVER_EMAIL AS invReceiverEmail,
+        INVOICE_CONTENT AS invoiceContent,
+        INV_RECEIVER_ADDR AS invReceiverAddr,
+        INVOICE_REQ AS invoiceReq,
+        INVOICE_STATUS AS invoiceStatus,
+        REMARK AS remark,
+        REMARK2 AS remark2,
+        REMARK3 AS remark3,
+        INV_TIME AS invTime,
+        DEL_FLG AS delFlg,
+        CRT_ID AS crtId,
+        CRT_TIME AS crtTime,
+        UPD_ID AS updId,
+        UPD_TIME AS updTime,
+        ACT_ID AS actId,
+        ACT_TIME AS actTime,
+        VER AS ver
+    </sql>
+
+    <sql id="whereCondition">
+        <where>
+            <if test="invoiceReqId != null and invoiceReqId != ''">
+                INVOICE_REQ_ID = #{invoiceReqId}
+            </if>
+            <if test="orderId != null and orderId != ''">
+                AND ORDER_ID = #{orderId}
+            </if>
+            <if test="orderCode != null and orderCode != ''">
+                AND ORDER_CODE = #{orderCode}
+            </if>
+            <if test="invoiceType != null and invoiceType != ''">
+                AND INVOICE_TYPE = #{invoiceType}
+            </if>
+            <if test="invoiceTitle != null and invoiceTitle != ''">
+                AND INVOICE_TITLE = #{invoiceTitle}
+            </if>
+            <if test="vatInvComp != null and vatInvComp != ''">
+                AND VAT_INV_COMP = #{vatInvComp}
+            </if>
+            <if test="vatTaxpayer != null and vatTaxpayer != ''">
+                AND VAT_TAXPAYER = #{vatTaxpayer}
+            </if>
+            <if test="vatAddr != null and vatAddr != ''">
+                AND VAT_ADDR = #{vatAddr}
+            </if>
+            <if test="vatTel != null and vatTel != ''">
+                AND VAT_TEL = #{vatTel}
+            </if>
+            <if test="vatBank != null and vatBank != ''">
+                AND VAT_BANK = #{vatBank}
+            </if>
+            <if test="vatAccount != null and vatAccount != ''">
+                AND VAT_ACCOUNT = #{vatAccount}
+            </if>
+            <if test="invReceiverTel != null and invReceiverTel != ''">
+                AND INV_RECEIVER_TEL = #{invReceiverTel}
+            </if>
+            <if test="invTimeReq != null and invTimeReq != ''">
+                AND INV_TIME_REQ = #{invTimeReq}
+            </if>
+            <if test="invReceiverEmail != null and invReceiverEmail != ''">
+                AND INV_RECEIVER_EMAIL = #{invReceiverEmail}
+            </if>
+            <if test="invoiceContent != null and invoiceContent != ''">
+                AND INVOICE_CONTENT = #{invoiceContent}
+            </if>
+            <if test="invReceiverAddr != null and invReceiverAddr != ''">
+                AND INV_RECEIVER_ADDR = #{invReceiverAddr}
+            </if>
+            <if test="invoiceReq != null and invoiceReq != ''">
+                AND INVOICE_REQ = #{invoiceReq}
+            </if>
+            <if test="invoiceStatus != null and invoiceStatus != ''">
+                AND INVOICE_STATUS = #{invoiceStatus}
+            </if>
+            <if test="remark != null and remark != ''">
+                AND REMARK = #{remark}
+            </if>
+            <if test="remark2 != null and remark2 != ''">
+                AND REMARK2 = #{remark2}
+            </if>
+            <if test="remark3 != null and remark3 != ''">
+                AND REMARK3 = #{remark3}
+            </if>
+            <if test="invTime != null and invTime != ''">
+                AND INV_TIME = #{invTime}
+            </if>
+            <if test="delFlg != null and delFlg != ''">
+                AND DEL_FLG = #{delFlg}
+            </if>
+            <if test="crtId != null and crtId != ''">
+                AND CRT_ID = #{crtId}
+            </if>
+            <if test="crtTime != null and crtTime != ''">
+                AND CRT_TIME = #{crtTime}
+            </if>
+            <if test="updId != null and updId != ''">
+                AND UPD_ID = #{updId}
+            </if>
+            <if test="updTime != null and updTime != ''">
+                AND UPD_TIME = #{updTime}
+            </if>
+            <if test="actId != null and actId != ''">
+                AND ACT_ID = #{actId}
+            </if>
+            <if test="actTime != null and actTime != ''">
+                AND ACT_TIME = #{actTime}
+            </if>
+            <if test="ver != null and ver != ''">
+                AND VER = #{ver}
+            </if>
+        </where>
+    </sql>
+
+    <insert id="save" parameterType="com.msk.core.entity.SoCpInvoice">
+        INSERT INTO so_cp_invoice (
+            INVOICE_REQ_ID,
+            ORDER_ID,
+            ORDER_CODE,
+            INVOICE_TYPE,
+            INVOICE_TITLE,
+            VAT_INV_COMP,
+            VAT_TAXPAYER,
+            VAT_ADDR,
+            VAT_TEL,
+            VAT_BANK,
+            VAT_ACCOUNT,
+            INV_RECEIVER_TEL,
+            INV_TIME_REQ,
+            INV_RECEIVER_EMAIL,
+            INVOICE_CONTENT,
+            INV_RECEIVER_ADDR,
+            INVOICE_REQ,
+            INVOICE_STATUS,
+            REMARK,
+            REMARK2,
+            REMARK3,
+            INV_TIME,
+            DEL_FLG,
+            CRT_ID,
+            CRT_TIME,
+            UPD_ID,
+            UPD_TIME,
+            ACT_ID,
+            ACT_TIME,
+            VER
+        )
+        VALUE
+            (
+                #{invoiceReqId},
+                #{orderId},
+                #{orderCode},
+                #{invoiceType},
+                #{invoiceTitle},
+                #{vatInvComp},
+                #{vatTaxpayer},
+                #{vatAddr},
+                #{vatTel},
+                #{vatBank},
+                #{vatAccount},
+                #{invReceiverTel},
+                #{invTimeReq},
+                #{invReceiverEmail},
+                #{invoiceContent},
+                #{invReceiverAddr},
+                #{invoiceReq},
+                #{invoiceStatus},
+                #{remark},
+                #{remark2},
+                #{remark3},
+                #{invTime},
+                #{delFlg},
+                #{crtId},
+                #{crtTime},
+                #{updId},
+                #{updTime},
+                #{actId},
+                #{actTime},
+                1
+            )
+    </insert>
+
+    <select id="findOne" parameterType="com.msk.core.entity.SoCpInvoice" resultType="com.msk.core.entity.SoCpInvoice">
+        SELECT
+        <include refid="selectFiled"/>
+        FROM so_cp_invoice
+        <include refid="whereCondition"/>
+    </select>
+
+</mapper>

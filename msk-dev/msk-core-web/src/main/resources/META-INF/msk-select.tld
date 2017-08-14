@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee web-jsptaglibrary_2_0.xsd"
+        version="2.0">
+    <tlib-version>1.0</tlib-version>
+    <short-name>msk-select</short-name>
+    <uri>/select</uri>
+    <tag>
+        <name>codemaster</name>
+        <tag-class>com.msk.core.web.tag.SelectTag</tag-class>
+        <body-content>empty</body-content>
+        <attribute>
+            <name>codeName</name>
+            <required>false</required>
+            <fragment>true</fragment>
+        </attribute>
+        <attribute>
+            <name>selectValue</name>
+            <required>false</required>
+            <fragment>true</fragment>
+        </attribute>
+        <attribute>
+            <name>id</name>
+            <required>false</required>
+            <fragment>true</fragment>
+        </attribute>
+        <attribute>
+            <name>name</name>
+            <required>false</required>
+            <fragment>true</fragment>
+        </attribute>
+        <attribute>
+            <name>blank</name>
+            <required>false</required>
+            <fragment>true</fragment>
+        </attribute>
+        <dynamic-attributes>true</dynamic-attributes>
+    </tag>
+</taglib>

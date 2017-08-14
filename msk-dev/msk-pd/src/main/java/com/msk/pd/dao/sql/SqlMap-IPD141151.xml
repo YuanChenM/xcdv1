@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pd.logic.IPD141151Logic">
+    <select id="getLgcsCodeByCityCode" parameterType="com.msk.pd.bean.IPD141151Param" resultType="com.msk.core.entity.MdLogisticsArea">
+      SELECT
+        l.LGCS_AREA_CODE AS lgcsAreaCode,
+        city.CITY_CODE AS cityCode,
+        city.CITY_NAME AS cityName
+        FROM md_city city
+        INNER JOIN md_logistics_area l
+        ON city.LGCS_AREA_ID = l.LGCS_AREA_ID
+        WHERE city.CITY_CODE = #{cityCode}
+    </select>
+
+    <select id="findPageList" parameterType="com.msk.pd.bean.IPD141151Param" resultType="com.msk.pd.bean.IPD141151Bean">
+        SELECT ID AS floorId,FLOOR_NAME AS  floorName ,COLOR AS color
+        FROM  pd_app_floor
+        WHERE
+        LGCS_CODE = #{lgcsCode} AND DEL_FLG = '0'
+        <if test="floorId != null">
+         AND   ID = #{floorId}
+        </if>
+        ORDER BY SORT+0 ASC
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageCount}
+        </if>
+
+    </select>
+
+    <sql id="selectFiled">
+       f.ID AS floorId,
+	   f.LGCS_CODE AS lgcsCode,
+       IFNULL(fd.PD_CODE,'') AS pdCode,
+       IFNULL(Pr.pdKgPrice,'') as advertisePrice,
+       IFNULL(Pd.breedName,'') AS breedName,
+       IFNULL(Pd.pdLabel,'') AS pdLabel,
+       IFNULL(img.APP_IMG,'') AS coverImg,
+       IFNULL(Pd.breedCode,'') AS breedCode,
+       IFNULL(Pd.featureCode,'') AS featureCode,
+       IFNULL(Pd.featureName,'') AS featureName,
+       IFNULL(Pd.weightCode,'') AS weightCode,
+       IFNULL(Pd.weightName,'') AS weightName,
+       IFNULL(Pd.gradeCode,'') AS gradeCode,
+       IFNULL(Pd.gradeName,'') AS gradeName
+    </sql>
+
+    <select id="selectFloorProDetail" parameterType="BaseParam" resultType="com.msk.pd.bean.IPD141151Bean">
+      SELECT
+        <include refid="selectFiled"/>
+        FROM
+        pd_app_floor f
+        LEFT JOIN pd_app_floor_detail fd ON f.ID = fd.FLOOR_ID AND f.DEL_FLG='0'AND fd.DEL_FLG='0'
+        INNER JOIN (
+        SELECT
+        CONCAT(
+        a.CLASSES_CODE,
+        b.MACHINING_CODE,
+        c.BREED_CODE,
+        d.FEATURE_CODE,
+        e.WEIGHT_CODE,
+        h.grade_code
+        ) AS pdCode,
+        CONCAT(
+        a.CLASSES_CODE,
+        b.MACHINING_CODE,
+        c.BREED_CODE
+        ) AS pdCode11,
+        g.LGCS_CODE AS lgcsCode,
+        g.LGCS_NAME AS lgcsName,
+        g.PD_LABEL AS pdLabel,
+        c.BREED_NAME AS breedName,
+        c.BREED_CODE AS breedCode,
+        d.FEATURE_NAME AS featureName,
+        d.FEATURE_CODE AS featureCode,
+        e.WEIGHT_NAME AS weightName,
+        e.WEIGHT_CODE AS weightCode,
+        h.GRADE_NAME AS gradeName,
+        h.GRADE_CODE AS gradeCode
+        FROM
+        pd_classes a
+        INNER JOIN pd_machining b ON b.CLASSES_CODE = a.CLASSES_CODE
+        AND a.DEL_FLG = '0'
+        AND b.DEL_FLG = '0'
+        INNER JOIN pd_breed c ON c.CLASSES_CODE = a.CLASSES_CODE
+        AND c.DEL_FLG = '0'
+        AND c.MACHINING_CODE = b.MACHINING_CODE
+        INNER JOIN pd_feature d ON d.CLASSES_CODE = a.CLASSES_CODE
+        AND d.DEL_FLG = '0'
+        AND d.MACHINING_CODE = b.MACHINING_CODE
+        AND d.BREED_CODE = c.BREED_CODE
+        INNER JOIN pd_weight e ON e.CLASSES_CODE = a.CLASSES_CODE
+        AND e.DEL_FLG = '0'
+        AND e.MACHINING_CODE = b.MACHINING_CODE
+        AND e.BREED_CODE = c.BREED_CODE
+        AND e.FEATURE_CODE = d.FEATURE_CODE
+        INNER JOIN pd_logiarea g ON g.CLASSES_CODE = a.CLASSES_CODE
+        AND g.DEL_FLG = '0'
+        AND g.MACHINING_CODE = b.MACHINING_CODE
+        AND g.BREED_CODE = c.BREED_CODE
+        AND g.FEATURE_CODE = d.FEATURE_CODE
+        AND g.WEIGHT_CODE = e.WEIGHT_CODE
+        INNER JOIN pd_grade h ON h.GRADE_CODE = g.grade_Code
+        AND h.DEL_FLG = '0'
+        ORDER BY
+        a.CLASSES_CODE,
+        b.MACHINING_CODE,
+        c.BREED_CODE,
+        d.FEATURE_CODE,
+        e.WEIGHT_CODE,
+        g.lgcs_code,
+        h.GRADE_CODE
+        ) Pd ON fd.PD_CODE = Pd.pdCode
+        LEFT JOIN (
+        SELECT
+        *
+        FROM
+        pd_app_img
+        WHERE
+        IMG_FUNCTION = '0'
+        AND DEL_FLG = '0'
+        ) img ON img.PD_CODE = Pd.pdCode11
+
+        LEFT JOIN(
+        SELECT
+        swp.LGCS_CODE AS logiAreaCode,
+        swp.PD_CODE AS pdCode,
+        swd.WAYGRADE_CODE AS orderLevel,
+        swd.SELL_WAY_CODE AS sellWayCode,
+        spp.PRICE_PERIOD AS priceCycle,
+        spp.WAYGRADE_PRICE AS pdKgPrice
+        FROM
+        sp_waygrade_pd swp
+        LEFT JOIN sp_wayg_detail swd ON swd.WAY_CODE = swp.WAY_CODE
+        LEFT JOIN sp_seller_pd_priceplate spp ON spp.PD_CODE = swp.PD_CODE
+        AND spp.DEL_FLG = 0
+        AND spp.WAYGRADE_CODE = swd.WAYGRADE_CODE
+        WHERE
+        swp.DEL_FLG = 0
+        AND swd.WAYGRADE_CODE =0
+        AND spp.PRICE_PERIOD = #{filterMap.pricePeriod}
+        )Pr  ON fd.PD_CODE = Pr.pdCode AND f.LGCS_CODE = Pr.logiAreaCode
+        WHERE
+        fd.FLOOR_ID IN
+        <foreach collection="filterMap.floorList" item="item" open="(" close=")"
+                 separator=",">
+            #{item.floorId}
+        </foreach>
+
+        GROUP BY fd.PD_CODE
+        ORDER BY f.SORT+0 ASC
+       <!-- <if test="paging==true">
+            LIMIT #{pageNo},#{pageCount}
+        </if>-->
+    </select>
+
+    <select id="getPageCount" parameterType="com.msk.pd.bean.IPD141151Param" resultType="int">
+        SELECT count(1) FROM
+        (
+        SELECT ID AS floorId,FLOOR_NAME AS  floorName FROM  pd_app_floor
+        WHERE
+        LGCS_CODE = #{lgcsCode}
+        AND  DEL_FLG = '0'
+        )FL
+    </select>
+
+    <select id="getPriceCycleCode" parameterType="com.msk.pd.bean.IPD141151Param" resultType="com.msk.pd.bean.IPD14115103Bean">
+        SELECT PRICECYCLE_CODE AS pricePeriod,
+        VALIDTIME_START AS startDate,
+        VALIDTIME_END AS endDate
+        FROM sp_pricecycle_setting
+        WHERE DEL_FLG = 0 AND VALIDTIME_START <![CDATA[ <= ]]> #{actTime} AND VALIDTIME_END <![CDATA[ >= ]]> #{actTime}
+    </select>
+
+    <select id="getUsefulPriceCycleCode" parameterType="com.msk.pd.bean.IPD141151Param" resultType="com.msk.pd.bean.IPD14115103Bean">
+    SELECT PRICECYCLE_CODE AS pricePeriod,
+    VALIDTIME_START AS startDate,
+    VALIDTIME_END AS endDate
+    FROM sp_pricecycle_setting
+    WHERE DEL_FLG = 0 AND VALIDTIME_START <![CDATA[ <= ]]> #{actTime} AND VALIDTIME_END <![CDATA[ >= ]]> #{actTime}
+    </select>
+    <select id="getLatestPriceCycleCode" parameterType="com.msk.pd.bean.IPD141151Param" resultType="com.msk.pd.bean.IPD14115103Bean">
+        SELECT
+        PRICECYCLE_CODE AS pricePeriod
+        FROM
+            sp_pricecycle_setting
+        WHERE
+            DEL_FLG = '0'
+        AND CRT_TIME = (
+            SELECT
+                max(CRT_TIME)
+            FROM
+            sp_pricecycle_setting
+            WHERE DEL_FLG = '0'
+        );
+    </select>
+</mapper>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pd.logic.PD14112301Logic">
+
+    <select id="findOne" parameterType="com.msk.core.bean.BaseParam" resultType="com.msk.pd.bean.PD141123Bean">
+        SELECT
+         A.MACHININGREF_ID AS machiningRefId
+        FROM PD_MACHININGREF A
+        WHERE
+        A.CLASSES_CODE=#{filterMap.classesCode} AND A.MACHINING_NAME=#{filterMap.machiningName}
+    </select>
+
+    <insert id="saveMacRef" parameterType="com.msk.pd.bean.PD141123Bean">
+        INSERT INTO PD_MACHININGREF (
+        MACHININGREF_ID,
+        CLASSES_CODE,
+        MACHINING_CODE,
+        MACHINING_NAME,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER
+        )
+        VALUES
+        (
+        #{machiningRefId},
+        #{classesCode},
+        #{machiningCode},
+        #{machiningName},
+        NULL,
+        NULL,
+        NOW(),
+        NULL,
+        NOW(),
+        NULL,
+        NOW(),
+        NULL);
+    </insert>
+
+
+    <update id="modify" parameterType="com.msk.core.bean.BaseParam" >
+       UPDATE PD_MACHININGREF SET
+		MACHINING_NAME=#{filterMap.machiningName},
+		UPD_TIME=NOW()
+		WHERE
+		MACHININGREF_ID=#{filterMap.machiningRefId} AND CLASSES_CODE=#{filterMap.classesCode}
+    </update>
+
+    <delete id="remove" parameterType="com.msk.pd.bean.PD141123Bean">
+        DELETE  FROM  PD_MACHININGREF
+        WHERE MACHININGREF_ID=#{machiningRefId}
+    </delete>
+</mapper>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151803Logic">
+    <!-- 表字段 -->
+    <select id="findOrder" parameterType="com.msk.so.bean.ISO151803RsParam" resultType="com.msk.so.bean.ISO151803RsResult">
+        SELECT
+        o.ORDER_ID   AS  orderId,
+        o.ORDER_CODE  AS  orderCode,
+        date_format(o.ORDER_TIME,'%Y-%m-%d %T')    AS  orderTime,
+        o.BUYERS_ID AS  buyerId,
+        o.BUYERS_CODE   AS buyersCode,
+        o.BUYERS_NAME AS buyersName,
+        o.SELLER_CODE AS sellerCode,
+        o.SELLER_NAME AS sellerName,
+        o.ORDER_TYPE AS  orderType,
+        o.DISTRICT_CODE AS districtCode,
+        o.PAYMENT_TYPE AS  paymentType,
+        o.ORDER_AMOUNT AS  orderAmount
+        FROM
+        so_order o
+        LEFT JOIN so_order_receive_demand  demand
+        on demand.ORDER_ID=o.ORDER_ID
+        WHERE
+        o.DEL_FLG=0
+        and demand.DEL_FLG=0
+        AND  o.ORDER_ID=#{orderId}
+       and o.BUYERS_ID=#{buyerId}
+        <if test="orderCode !=null  and orderCode!=''">
+            AND o.ORDER_CODE=#{orderCode}
+        </if>
+
+        <if test="buyerTel !=null  and buyerTel!=''">
+            AND demand.RECEIVER_TEL=#{buyerTel}
+        </if>
+    </select>
+    <select id="findShip" parameterType="com.msk.so.bean.ISO151803RsParam" resultType="com.msk.so.bean.ISO151803Ship">
+        SELECT
+        ship.SHIP_ID AS shipId,
+        ship.SHIP_CODE AS shipCode,
+        date_format(ship.FORECAST_RECEIVE_TIME,'%Y-%m-%d')  proDate,
+        date_format(ship.FORECAST_RECEIVE_TIME,'%Y-%m-%d %T')   AS  expectReceiveTime,
+        date_format((select max(d.ACTUAL_RECEIVE_DATE)  from so_deliver d  WHERE d.SHIP_ID=ship.SHIP_ID),'%Y-%m-%d %T')     actualReceiveTime,
+        ((TO_DAYS(#{crtTime})-(TO_DAYS(IFNULL((select max(d.ACTUAL_RECEIVE_DATE)  from so_deliver d  WHERE d.SHIP_ID=ship.SHIP_ID),#{crtTime}))))) as dayNum,
+        (CASE
+        WHEN    ( ((TO_DAYS(#{crtTime})-(TO_DAYS(IFNULL((select max(d.ACTUAL_RECEIVE_DATE)  from so_deliver d  WHERE d.SHIP_ID=ship.SHIP_ID),#{crtTime})))))>#{returnDays})  THEN '2'
+        ELSE '1' END) AS  canReturn
+        FROM
+        so_order_ship ship
+        where
+        ship.DEL_FLG=0
+        AND  ship.ORDER_ID=#{orderId}
+        <if test="shipId !=null">
+            AND ship.SHIP_ID=#{shipId}
+        </if>
+        <if test="shipCode !=null and shipCode !=''">
+            AND ship.SHIP_CODE=#{shipCode}
+        </if>
+    </select>
+
+
+    <select id="findOrderDetail" parameterType="com.msk.so.bean.ISO151803RsParam" resultType="com.msk.so.bean.ISO151803Product">
+        SELECT
+              a.ORDER_DETAIL_ID  AS    orderDetailId,
+               d.PD_PRICE AS   pdPrice,
+              a.ORDER_DETAIL_AVAILABILITY_ID AS   shipDetailId,
+              a.SUPPLIER_CODE AS   supplierCode,
+               IFNULL(a.PD_CODE,'') AS pdCode,
+              a.SKU_CODE AS    skuCode,
+              IFNULL(a.SUPP_QTY,0) AS  suppQty,
+              IFNULL(a.SEND_QTY ,0)     AS    sendQty,
+               IFNULL(a.CANCEL_QTY ,0)  AS   cancelQty,
+               IFNULL(a.RECEIVE_QTY,0)   AS  receiverQty,
+               IFNULL(a.RETURN_QTY ,0)   AS   returnQty
+             FROM
+             so_order_detail_availability a
+             LEFT  JOIN so_order_detail  d
+             on d.ORDER_DETAIL_ID=a.ORDER_DETAIL_ID
+             WHERE a.DEL_FLG=0  and d.DEL_FLG=0
+              and SHIP_ID=#{shipId}
+             GROUP BY a.ORDER_DETAIL_ID
+    </select>
+</mapper>

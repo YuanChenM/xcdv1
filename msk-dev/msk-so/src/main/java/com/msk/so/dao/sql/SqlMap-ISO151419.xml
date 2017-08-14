@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.rs.ISO151419Logic">
+    <select id = "findOne" resultType="com.msk.so.bean.ISO151419RsResult" parameterType="com.msk.so.bean.ISO151419RsParam">
+        SELECT
+        COUNT(1) AS evaluateCount
+        FROM
+        so_evaluate_detail sed
+        INNER JOIN so_evaluate se
+        ON se.evaluate_id = sed.evaluate_id
+        WHERE 1 = 1
+          AND sed.del_flg = 0
+          AND se.del_flg = 0
+        <if test="orderId!=null and orderId!=''">
+            AND se.order_id = #{orderId}
+        </if>
+        <if test="pdCode!=null and pdCode!=''">
+            AND sed.PD_CODE = #{pdCode}
+        </if>
+        <if test="proDate!=null and proDate!=''">
+            AND sed.PRO_DATE = #{proDate}
+        </if>
+    </select>
+</mapper>

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.rs.ISO151805Logic">
+    <select id = "getOrderInfoByShipId" resultType="com.msk.so.bean.ISO151805RsOrderListResult" parameterType="com.msk.so.bean.ISO151805RsParam">
+        SELECT
+          SHIP_ID AS shipId,
+          ORDER_ID AS orderId,
+          1 AS paymentRule
+        FROM
+          SO_ORDER_SHIP
+        WHERE SHIP_ID IN
+        <foreach collection="orderList" item="order" separator="," open="(" close=")">
+            #{order.shipId}
+        </foreach>
+          AND DEL_FLG = 0
+    </select>
+
+    <select id="getOrderDetailInfoByOrderId" parameterType="com.msk.core.bean.BaseParam" resultType="com.msk.so.bean.ISO151805RsOrderDetailsResult">
+        SELECT
+          sod.ORDER_DETAIL_ID AS detailId,
+          sod.PRO_DATE AS proDate,
+          sod.PD_CODE AS pdCode,
+          sod.PD_NAME AS pdName,
+          sod.ORDER_QTY AS orderQty,
+          sod.PRICE_CYCLE AS priceCycle,
+          so.DISTRICT_CODE AS districtCode,
+          #{filterMap.orderId} AS orderId
+        FROM
+          SO_ORDER_DETAIL sod
+          LEFT JOIN so_order so ON so.order_id = sod.order_id
+        WHERE (sod.order_id = #{filterMap.orderId}
+          OR EXISTS
+          (SELECT
+            1
+          FROM
+            so_order_relation sor
+          WHERE sor.child_order_id = sod.order_id
+            AND sor.main_order_id = #{filterMap.orderId}
+            AND sor.del_flg = 0))
+          AND sod.del_flg = 0
+    </select>
+
+    <select id="getOrderDetailListByOrderId" parameterType="com.msk.core.bean.BaseParam" resultType="com.msk.so.bean.ISO151805RsOrderDetailsResult">
+        SELECT
+        DISTINCT
+        sod.PD_CODE AS pdCode,
+        so.DISTRICT_CODE AS districtCode
+        FROM
+        SO_ORDER_DETAIL sod
+        LEFT JOIN so_order so ON so.order_id = sod.order_id
+        WHERE (sod.order_id = #{filterMap.orderId}
+        OR EXISTS
+        (SELECT
+        1
+        FROM
+        so_order_relation sor
+        WHERE sor.child_order_id = sod.order_id
+        AND sor.main_order_id = #{filterMap.orderId}
+        AND sor.del_flg = 0))
+        AND sod.del_flg = 0
+    </select>
+
+    <select id="getOrderDetailPriceCount" parameterType="com.msk.core.entity.SoOrderDetailPrice" resultType="int">
+        SELECT
+          COUNT(1)
+        FROM
+          so_order_detail_price
+        WHERE ORDER_DETAIL_ID = #{orderDetailId}
+        AND ORDER_LEVEL = #{orderLevel}
+    </select>
+
+    <update id="modify" parameterType="com.msk.core.entity.SoOrderDetailPrice">
+        UPDATE
+          so_order_detail_price
+        SET
+          SITE_CODE = #{siteCode},
+          LOGIN_AUTH = #{loginAuth},
+          LOGIN_ID = #{loginId},
+          QUERY_TIME = #{queryTime},
+          ORDER_QTY = #{orderQty},
+          LEVEL_START = #{levelStart},
+          LEVEL_END = #{levelEnd},
+          LEVEL_PRICE = #{levelPrice}
+        WHERE ORDER_DETAIL_ID = #{orderDetailId}
+          AND ORDER_LEVEL = #{orderLevel}
+    </update>
+
+    <insert id="save" parameterType="com.msk.core.entity.SoOrderDetailPrice">
+        INSERT INTO so_order_detail_price (
+          PRICE_SN,
+          SITE_CODE,
+          LOGIN_AUTH,
+          LOGIN_ID,
+          QUERY_TIME,
+          SHIP_ID,
+          ORDER_ID,
+          PAYMENT_ID,
+          ORDER_DETAIL_ID,
+          PRO_DATE,
+          PD_CODE,
+          SKU_CODE,
+          ORDER_QTY,
+          ORDER_LEVEL,
+          LEVEL_START,
+          LEVEL_END,
+          LEVEL_PRICE
+        )
+        VALUES
+          (
+          #{priceSn},
+          #{siteCode},
+          #{loginAuth},
+          #{loginId},
+          #{queryTime},
+          #{shipId},
+          #{orderId},
+          #{paymentId},
+          #{orderDetailId},
+          #{proDate},
+          #{pdCode},
+          #{skuCode},
+          #{orderQty},
+          #{orderLevel},
+          #{levelStart},
+          #{levelEnd},
+          #{levelPrice}
+          )
+    </insert>
+
+    <select id="getSkuCodeInfoByDetailId" parameterType="com.msk.core.bean.BaseParam" resultType="com.msk.so.bean.ISO151805SkuCodeResult">
+        SELECT
+          so.order_source AS orderSource,
+          soda.SUPPLIER_CODE AS supplierCode,
+          soda.pd_code AS pdCode
+        FROM
+          so_order_detail_availability soda
+          LEFT JOIN so_order so
+            ON so.order_id = soda.order_id
+        WHERE soda.order_detail_id = #{filterMap.orderDetailId}
+          AND soda.del_flg = 0
+          AND so.del_flg = 0
+    </select>
+</mapper>

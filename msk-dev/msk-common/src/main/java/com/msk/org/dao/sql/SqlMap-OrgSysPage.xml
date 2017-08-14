@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.org.logic.OrgSysPageLogic">
+    <select id="findAllSys" resultType="com.msk.core.entity.OrgSys" parameterType="BaseParam">
+        SELECT
+        A.SYS_CODE AS sysCode,
+        A.SYS_NAME AS sysName,
+        A.SYS_LEVEL AS sysLevel,
+        A.PARENT_CODE AS parentCode,
+        A.SYS_DESC AS sysDesc
+        FROM ORG_SYS AS A
+        <where>
+            <if test="filterMap.sysCode!=null and filterMap.sysCode!=''">
+                AND A.SYS_CODE=#{filterMap.sysCode}
+            </if>
+            <if test="filterMap.sysLevel!=null and filterMap.sysLevel!=''">
+                AND A.SYS_LEVEL=#{filterMap.sysLevel}
+            </if>
+            <if test="filterMap.parentCode!=null and filterMap.parentCode!=''">
+                AND A.PARENT_CODE=#{filterMap.parentCode}
+            </if>
+        </where>
+    </select>
+    <select id="findSysModules" resultType="com.msk.core.entity.OrgSysModule">
+        SELECT
+        SYS_MODULE AS sysModule,
+        LOGIN_USER_TYPE AS loginUserType,
+        SYS_SHOW_NAME AS sysShowName,
+        SYS_CODE AS sysCode,
+        SYS_MAIN_URL AS sysMainUrl
+        FROM
+        ORG_SYS_MODULE
+        <where>
+            DEL_FLG = 0
+        </where>
+        ORDER BY LOGIN_USER_TYPE,SORT
+    </select>
+</mapper>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.by.logic.BY121301Logic">
+    <sql id="selectSql">
+        TER_MARKET_ID AS terMarketId,
+        MARKET_CODE AS marketCode,
+        MARKET_NAME AS marketName,
+        MARKET_ADDR AS marketAddr,
+        MARKET_LEVEL AS marketLevel,
+        MARKET_LEVEL_NAME AS marketLevelName,
+        LGCS_AREA_CODE AS lgcsAreaCode,
+        CITY_CODE AS cityCode,
+        DISTRICT_CODE AS districtCode
+    </sql>
+    <sql id="whereCondition">
+        WHERE DEL_FLG = '0'
+        <if test="filterMap.marketCode!=null and filterMap.marketCode!=''">
+            AND MARKET_CODE LIKE #{filterMap.marketCode}
+        </if>
+        <if test="filterMap.marketName!=null and filterMap.marketName!=''">
+            AND MARKET_NAME LIKE #{filterMap.marketName}
+        </if>
+    </sql>
+    <select id="findPageList" resultType="com.msk.by.bean.BY121301Bean" parameterType="BaseParam">
+        select
+        <include refid="selectSql"/>
+        from by_market_terminal
+        <include refid="whereCondition"/>
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize}
+        </if>
+    </select>
+
+    <select id="getPageCount" resultType="Integer" parameterType="BaseParam">
+        select count(1)
+        from by_market_terminal
+        <include refid="whereCondition"/>
+    </select>
+
+    <select id="findOne" resultType="com.msk.core.entity.ByMarketTerminal" parameterType="BaseParam">
+        select
+        <include refid="selectSql"/>
+        from by_market_terminal
+        WHERE TER_MARKET_ID = #{filterMap.marketId}
+    </select>
+
+    <update id="deleteMarkerTerminal" parameterType="BaseParam">
+        UPDATE by_market_terminal
+           SET DEL_FLG = '1'
+         WHERE TER_MARKET_ID = #{filterMap.marketId}
+    </update>
+</mapper>

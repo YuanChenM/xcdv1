@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.by.logic.IBY121206Logic">
+    <select id="findPictures" parameterType="BaseParam" resultType="com.msk.core.entity.ByBuyerPictures">
+        SELECT
+            ID AS id,
+            BUYER_ID AS buyerId,
+            BUS_LIC_PIC AS busLicPic,
+            BUS_LIC_SUF AS busLicSuf,
+            ORG_CERTIFICATE_PIC AS orgCertificatePic,
+            ORG_CERTIFICATE_SUF AS orgCertificateSuf,
+            TAX_CERTIFICATE_PIC AS taxCertificatePic,
+            TAX_CERTIFICATE_SUF AS taxCertificateSuf,
+            FOOD_CERTIFICATE_PIC AS foodCertificatePic,
+            FOOD_CERTIFICATE_SUF AS foodCertificateSuf,
+            LEGAL_CERTIFICATE_PIC AS legalCertificatePic,
+            LEGAL_CERTIFICATE_SUF AS legalCertificateSuf
+        FROM
+            by_buyer_pictures
+        WHERE
+            BUYER_ID = #{filterMap.buyerId}
+            AND DEL_FLG = 0
+    </select>
+    <update id="buyerPicturesModify" parameterType="BaseEntity">
+        UPDATE
+            by_buyer_pictures
+        SET
+        BUYER_ID = #{buyerId}
+        <if test="busLicPic != null and busLicPic != ''">
+            ,BUS_LIC_PIC = #{busLicPic}
+        </if>
+        <if test="busLicSuf != null and busLicSuf != ''">
+            ,BUS_LIC_SUF = #{busLicSuf}
+        </if>
+        <if test="orgCertificatePic != null and orgCertificatePic != ''">
+            ,ORG_CERTIFICATE_PIC = #{orgCertificatePic}
+        </if>
+        <if test="orgCertificateSuf != null and orgCertificateSuf != ''">
+            ,ORG_CERTIFICATE_SUF = #{orgCertificateSuf}
+        </if>
+        <if test="taxCertificatePic != null and taxCertificatePic != ''">
+            ,TAX_CERTIFICATE_PIC = #{taxCertificatePic}
+        </if>
+        <if test="taxCertificateSuf != null and taxCertificateSuf != ''">
+            ,TAX_CERTIFICATE_SUF = #{taxCertificateSuf}
+        </if>
+        <if test="foodCertificatePic != null and foodCertificatePic != ''">
+            ,FOOD_CERTIFICATE_PIC = #{foodCertificatePic}
+        </if>
+        <if test="foodCertificateSuf != null and foodCertificateSuf != ''">
+            ,FOOD_CERTIFICATE_SUF = #{foodCertificateSuf}
+        </if>
+        <if test="legalCertificatePic != null and legalCertificatePic != ''">
+            ,LEGAL_CERTIFICATE_PIC = #{legalCertificatePic}
+        </if>
+        <if test="legalCertificateSuf != null and legalCertificateSuf != ''">
+            ,LEGAL_CERTIFICATE_SUF = #{legalCertificateSuf}
+        </if>
+        WHERE
+            ID = #{id}
+            AND DEL_FLG = 0
+    </update>
+    <insert id="buyerPicturesInsert" parameterType="BaseEntity">
+        INSERT INTO
+            by_buyer_pictures(
+                ID,
+                BUYER_ID,
+                BUS_LIC_PIC,
+                BUS_LIC_SUF,
+                ORG_CERTIFICATE_PIC,
+                ORG_CERTIFICATE_SUF,
+                TAX_CERTIFICATE_PIC,
+                TAX_CERTIFICATE_SUF,
+                FOOD_CERTIFICATE_PIC,
+                FOOD_CERTIFICATE_SUF,
+                LEGAL_CERTIFICATE_PIC,
+                LEGAL_CERTIFICATE_SUF,
+                DEL_FLG,
+                CRT_ID,
+                CRT_TIME,
+                UPD_ID,
+                UPD_TIME,
+                ACT_ID,
+                ACT_TIME,
+                VER
+            )VALUES (
+                #{id},
+                #{buyerId},
+                #{busLicPic},
+                #{busLicSuf},
+                #{orgCertificatePic},
+                #{orgCertificateSuf},
+                #{taxCertificatePic},
+                #{taxCertificateSuf},
+                #{foodCertificatePic},
+                #{foodCertificateSuf},
+                #{legalCertificatePic},
+                #{legalCertificateSuf},
+                0,
+                #{crtId},
+                #{crtTime},
+                #{updId},
+                #{updTime},
+                #{actId},
+                #{actTime},
+                1
+            )
+    </insert>
+</mapper>

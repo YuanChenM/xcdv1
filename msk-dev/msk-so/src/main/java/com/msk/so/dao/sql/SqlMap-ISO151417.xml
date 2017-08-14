@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.rs.ISO151417Logic">
+    <insert id = "saveEvaluateInfo" parameterType = "com.msk.core.entity.SoEvaluate">
+        INSERT INTO so_evaluate (
+          EVALUATE_ID,
+          ORDER_ID,
+          EVALUATE_DATE,
+          USER_ID,
+          DEL_FLG,
+          CRT_ID,
+          CRT_TIME,
+          VER
+        ) VALUE (
+          #{evaluateId},
+          #{orderId},
+          #{evaluateDate},
+          #{userId},
+          #{delFlg},
+          #{crtId},
+          #{crtTime},
+          #{ver}
+        )
+    </insert>
+
+    <insert id = "saveEvaluateDetailInfo" parameterType = "com.msk.core.entity.SoEvaluateDetail">
+        INSERT INTO so_evaluate_detail (
+          DETAIL_ID,
+          EVALUATE_ID,
+          PRO_DATE,
+          PD_CODE,
+          EVALUATE_DESC,
+          EVALUATE_REMARK,
+          EVALUATE_SCORE,
+          EVALUATE_IMG,
+          DEL_FLG,
+          CRT_ID,
+          CRT_TIME,
+          VER
+        ) VALUE (
+          #{detailId},
+          #{evaluateId},
+          #{proDate},
+          #{pdCode},
+          #{evaluateDesc},
+          #{evaluateRemark},
+          #{evaluateScore},
+          #{evaluateImg},
+          #{delFlg},
+          #{crtId},
+          #{crtTime},
+          #{ver}
+        )
+    </insert>
+
+    <select id = "getOrderCount" parameterType = "com.msk.so.bean.ISO151417RsParam" resultType = "Integer">
+        SELECT
+          COUNT(1)
+        FROM
+          so_order
+        WHERE ORDER_ID = #{orderId}
+          AND BUYERS_ID = #{userId}
+          AND del_flg = 0
+    </select>
+
+    <select id = "getOrderDetailCount" parameterType = "com.msk.so.bean.ISO151417RsProductParam" resultType = "Integer">
+        SELECT
+          COUNT(1)
+        FROM
+          so_order_detail sod
+          LEFT JOIN so_order so
+            ON so.order_id = sod.order_id
+        WHERE (
+            sod.order_id = #{orderId}
+            OR EXISTS
+            (SELECT
+              1
+            FROM
+              so_order_relation sor
+            WHERE sor.main_order_id = #{orderId}
+              AND sor.CHILD_ORDER_id = sod.order_id
+              AND sor.del_flg = 0)
+          )
+          AND sod.PD_CODE = #{pdCode}
+          AND sod.del_flg = 0
+          AND so.del_flg = 0
+        <if test="proDate!=null and proDate!=''">
+            AND sod.PRO_DATE = #{proDate}
+        </if>
+    </select>
+</mapper>

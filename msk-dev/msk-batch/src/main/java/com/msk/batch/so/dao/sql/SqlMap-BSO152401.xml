@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.batch.so.logic.BSO152401Logic">
+
+    <!--数据插入历史表 so_sales_ranking    add by:wuhonglei -->
+    <insert id="batchSave"  parameterType="List">
+    INSERT INTO SO_SALES_RANKING
+        (LGCS_CODE, ORDER_LEVEL, PD_CODE,SUPP_CODE,SUPP_NAME,PRICE_CYCLE,SALES_AMOUNT,SALES_RANKING, DIST_QUA,WHEEL_FREQUENCY,
+        DEL_FLG,CRT_ID,CRT_TIME,VER)
+    VALUES
+        <foreach collection ="list" item ="item" index ="index" separator =",">
+        (#{item.lgcsCode}, #{item.orderLevel}, #{item.pdCode}, #{item.suppCode},#{item.suppName},#{item.priceCycle},#{item.salesAmount},#{item.salesRanking},#{item.distQua},#{item.wheelFrequency},
+            #{item.delFlg},#{item.crtId},#{item.crtTime},#{item.ver})
+        </foreach>
+    </insert>
+
+    <!-- 将so_sales_ranking 表中的数据 复制到 将so_sales_ranking_history表 -->
+    <insert id="saveCopyRaning">
+        INSERT INTO so_sales_ranking_history
+        (LGCS_CODE,HISTORY_DATE,ORDER_LEVEL,PD_CODE,SUPP_CODE,PRICE_CYCLE,SALES_AMOUNT,SALES_RANKING,DIST_QUA,WHEEL_FREQUENCY,DEL_FLG,CRT_ID,CRT_TIME,UPD_ID,UPD_TIME,ACT_ID,ACT_TIME,VER)
+         SELECT
+               LGCS_CODE,#{crtTime},ORDER_LEVEL ,PD_CODE,SUPP_CODE,PRICE_CYCLE,SALES_AMOUNT,SALES_RANKING,DIST_QUA,WHEEL_FREQUENCY,DEL_FLG,CRT_ID,CRT_TIME,UPD_ID,UPD_TIME,ACT_ID,ACT_TIME,VER
+        FROM so_sales_ranking;
+    </insert>
+
+    <update id="modify" parameterType="com.msk.core.entity.SoSalesRanking">
+        UPDATE so_sales_ranking a
+        INNER JOIN sl_seller b ON b.SL_CODE = a.SUPP_CODE AND b.DIST_QUA IN (1, 2, 3)
+        INNER JOIN (SELECT m.LGCS_CODE
+                         , m.ORDER_LEVEL
+                         , m.PD_CODE
+                         , m.SUPP_CODE
+                         , (SELECT count(1) + 1
+                              FROM so_sales_ranking n
+                             WHERE n.LGCS_CODE = m.LGCS_CODE
+                               AND n.ORDER_LEVEL = m.ORDER_LEVEL
+                               AND n.PD_CODE = m.PD_CODE
+                               AND n.SALES_AMOUNT > m.SALES_AMOUNT) AS rank
+                      FROM so_sales_ranking m
+                   ) c ON c.LGCS_CODE = a.LGCS_CODE
+                      AND c.ORDER_LEVEL = a.ORDER_LEVEL
+                      AND c.PD_CODE = a.PD_CODE
+                      AND c.SUPP_CODE = a.SUPP_CODE
+        SET a.PRICE_CYCLE = #{priceCycle},
+            a.SALES_RANKING = c.rank,
+            a.DIST_QUA = b.DIST_QUA,
+            a.WHEEL_FREQUENCY = 0,
+            a.DEL_FLG =#{delFlg},
+            a.CRT_ID =#{crtId},
+            a.CRT_TIME =#{crtTime},
+            a.UPD_ID =#{updId},
+            a.UPD_TIME =#{updTime},
+            a.ACT_ID =#{actId},
+            a.ACT_TIME =#{actTime},
+            a.VER =#{ver}
+    </update>
+
+    <sql id="selectSql">
+        LGCS_CODE AS lgcsCode,
+        ORDER_LEVEL AS orderLevel,
+        PD_CODE AS pdCode,
+        SUPP_CODE AS suppCode,
+        SUPP_NAME AS suppName,
+        PRICE_CYCLE AS priceCycle,
+        SALES_AMOUNT AS salesAmount,
+        SALES_RANKING AS salesRanking,
+        DIST_QUA AS distQua,
+        WHEEL_FREQUENCY AS wheelFrequency
+    </sql>
+
+    <sql id="whereCondition1">
+        <if test="filterMap.lgcsCode!=null and filterMap.lgcsCode!=''">
+            AND LGCS_CODE = #{filterMap.lgcsCode}
+        </if>
+        <if test="filterMap.orderLevel!=null and filterMap.orderLevel!=''">
+            AND ORDER_LEVEL = #{filterMap.orderLevel}
+        </if>
+        <if test="filterMap.pdCode!=null and filterMap.pdCode!=''">
+            AND PD_CODE = #{filterMap.pdCode}
+        </if>
+        <if test="filterMap.suppCode!=null and filterMap.suppCode!=''">
+            AND SUPP_CODE = #{filterMap.suppCode}
+        </if>
+    </sql>
+    <sql id="whereCondition2">
+        <where>
+            <if test="lgcsCode!=null and lgcsCode!=''">
+                AND LGCS_CODE = #{lgcsCode}
+            </if>
+            <if test="orderLevel!=null and orderLevel!=''">
+                AND ORDER_LEVEL = #{orderLevel}
+            </if>
+            <if test="pdCode!=null and pdCode!=''">
+                AND PD_CODE = #{pdCode}
+            </if>
+            <if test="suppCode!=null and suppCode!=''">
+                AND SUPP_CODE = #{suppCode}
+            </if>
+        </where>
+    </sql>
+
+    <!--DIST_QUA: 0:无资格,1:标准分销卖家,2:优良分销卖家,3:重点分销卖家 -->
+    <!--SELECT 同一区域，同一订单级别，同一个产品的销售排行 【:标准分销卖家】和【优良分销卖家】和 【重点分销卖家】的排行 -->
+    <!--UNION ALL -->
+    <!--SELECT 同一区域，同一订单级别，同一个产品的销售排行 【优良分销卖家】和 【重点分销卖家】的排行 -->
+    <!--UNION ALL-->
+    <!--SELECT 同一区域，同一订单级别，同一个产品的销售排行 【重点分销卖家】的排行 -->
+    <select id="findList" parameterType="BaseParam" resultType="com.msk.core.entity.SoSalesRanking">
+        SELECT
+        <include refid="selectSql"/>
+        FROM so_sales_ranking
+        WHERE WHEEL_FREQUENCY = 0
+        <include refid="whereCondition1"/>
+        UNION ALL
+        SELECT
+        <include refid="selectSql"/>
+        FROM so_sales_ranking
+        WHERE WHEEL_FREQUENCY = 1
+        AND DIST_QUA IN (2, 3)
+        <include refid="whereCondition1"/>
+        UNION ALL
+        SELECT
+        <include refid="selectSql"/>
+        FROM so_sales_ranking
+        WHERE WHEEL_FREQUENCY = 2
+        AND DIST_QUA = 3
+        <include refid="whereCondition1"/>
+        ORDER BY wheelFrequency, salesRanking
+    </select>
+
+    <select id="countFrequency" parameterType="BaseParam" resultType="int">
+        SELECT COUNT(1)
+          FROM so_sales_ranking
+         WHERE
+        <![CDATA[ (DIST_QUA = 1 AND WHEEL_FREQUENCY < 1)]]> or
+        <![CDATA[ (DIST_QUA = 2 AND WHEEL_FREQUENCY < 2)]]> or
+        <![CDATA[ (DIST_QUA = 3 AND WHEEL_FREQUENCY < 3)]]>
+    </select>
+
+    <update id="updateFrequency" parameterType="com.msk.core.entity.SoSalesRanking">
+        UPDATE so_sales_ranking
+        SET WHEEL_FREQUENCY = #{wheelFrequency},
+        UPD_ID = #{updId},
+        UPD_TIME = #{updTime}
+        <include refid="whereCondition2"/>
+    </update>
+
+    <delete id="remove" parameterType="BaseParam">
+       DELETE  FROM so_sales_ranking WHERE LGCS_CODE IS NOT NULL;
+    </delete>
+
+    <!-- 获取新增卖家信息-->
+    <select id="selectNewSeller" parameterType="BaseParam" resultType="com.msk.core.entity.SoSalesRanking">
+        SELECT
+          a.SL_CODE as suppCode
+         ,a.LGCS_AREA_CODE as lgcsCode
+         ,a.DIST_QUA as distQua
+         ,b.CRT_TIME as crtTime
+         ,concat(b.PD_CLASSES_CODE
+                  ,b.MACHINING_CODE
+                  , b.PD_BREED_CODE
+                  , b.PD_FEATURE_CODE
+                  , b.WEIGHT_CODE
+		          ,'1') AS pdCode
+        FROM sl_seller a
+        LEFT JOIN sl_product b
+                    ON b.SL_CODE = a.SL_CODE AND b.del_flg = 0
+        WHERE
+        b.CRT_TIME BETWEEN #{filterMap.cycleStart} AND #{filterMap.cycleEnd}
+        AND a.del_flg = 0
+    </select>
+
+    <!-- 获取卖家销售信息-->
+    <select id="selectOldSeller" parameterType="BaseParam" resultType="com.msk.core.entity.SoSalesRanking">
+        SELECT
+            o.lgcsCode as lgcsCode,
+            o.orderLevel as orderLevel,
+            o.pdCode as pdCode,
+            o.suppCode as suppCode,
+            SUM(o.pdPrice * o.salesQty) AS salesAmount
+        FROM
+            (
+                SELECT
+                    a.ORDER_ID AS orderId,
+                    b.ORDER_DETAIL_ID AS orderDetailId,
+                    LEFT (a.DISTRICT_CODE, 2) AS lgcsCode,
+                    b.ORDER_DETAIL_LEVEL AS orderLevel,
+                    left(b.PD_CODE, 10) AS pdCode,
+                    b.PD_PRICE AS pdPrice,
+                    d.SUPPLIER_CODE AS suppCode,
+                    ifnull(d.RECEIVE_QTY, 0) - ifnull(d.RETURN_QTY, 0) AS salesQty
+                FROM
+                    so_order a
+                INNER JOIN so_order_detail b ON b.ORDER_ID = a.ORDER_ID
+                AND b.RECEIVED_TIME BETWEEN #{filterMap.preCycleStart}
+                AND #{filterMap.preCycleEnd}
+                LEFT JOIN so_order_detail_availability d ON d.ORDER_ID = a.ORDER_ID
+                AND d.ORDER_DETAIL_ID = b.ORDER_DETAIL_ID
+            ) o
+        GROUP BY
+            o.lgcsCode,
+            o.orderLevel,
+            o.pdCode,
+            o.suppCode
+    </select>
+
+    <!-- 获取所有库存大于0的卖家信息-->
+    <select id="selectHaveStockSl" parameterType="BaseParam" resultType="com.msk.core.entity.SoSalesRanking">
+        SELECT DISTINCT
+		 A.PD_CODE AS pdCode
+		,A.SUPPLIER_CODE AS suppCode
+		,A.SUPPLIER_NAME AS suppName
+		,A.LGCS_CODE AS lgcsCode
+		,0 as orderLevel
+        FROM so_stock_sp A
+        WHERE A.STOCK_QTY > 0
+        AND A.DEL_FLG = 0
+        AND A.SUPPLY_PLATFORM = 1
+        AND A.STOCK_TYPE = 1
+    </select>
+    
+    <!--<select id="selectSuppName" parameterType="BaseParam" resultType="com.msk.core.entity.SoSalesRanking">
+      SELECT
+          A.SL_CODE as suppCode,
+          B.EP_NAME AS suppName
+      FROM  SL_SELLER AS  A
+      INNER JOIN  SL_ENTERPRISE B ON  A.EP_ID = B.EP_ID
+          AND A.DIST_QUA IN (1, 2, 3)
+    </select>-->
+
+</mapper>

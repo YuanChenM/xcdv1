@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL24110101Logic">
+
+    <update id="modifyOne" parameterType="com.msk.core.entity.SlAccount">
+        UPDATE
+		SL_ACCOUNT AS A
+		SET
+		A.SL_ACCOUNT=#{slAccount},
+		A.SL_TEL =#{slTel},
+		A.SL_CONTACT=#{slContact},
+		A.ACCOUNT_PSD=#{accountPsd},
+		A.SL_SHOW_NAME=#{slShowName},
+		A.AUTH_STATUS=#{authStatus},
+		A.FROM_FLG =#{fromFlg},
+		A.UPD_ID =#{updId},
+		A.UPD_TIME=SYSDATE(),
+		A.VER =#{ver}
+		WHERE A.SL_ACCOUNT=#{slAccount}
+    </update>
+
+    <update id="modify" parameterType="com.msk.core.entity.SlAccount">
+        UPDATE sl_account
+        SET SL_ACCOUNT = #{slAccount},
+        SL_TEL = #{slTel},
+        SL_SHOW_NAME = #{slShowName},
+        SL_CONTACT = #{slContact},
+        ACCOUNT_PSD = #{accountPsd},
+        AUTH_STATUS = #{authStatus},
+        UPD_ID = #{updId},
+        VER = #{ver}+1
+        WHERE
+            SL_ACCOUNT = #{slAccount}
+    </update>
+
+
+</mapper>

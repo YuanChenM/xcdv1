@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL241109Logic">
+    <sql id="whereSql">
+        <where>
+            <if test="filterMap.chapNo!=null and filterMap.chapNo!=''">
+                AND A.CHAP_NO = #{filterMap.chapNo}
+            </if>
+            <if test="filterMap.chapTitle!=null and filterMap.chapTitle!=''">
+                AND A.CHAP_TITLE like #{filterMap.chapTitle}
+            </if>
+            <if test="filterMap.chapId!=null and filterMap.chapId!=''">
+                AND A.CHAP_ID = #{filterMap.chapId}
+            </if>
+            <if test="filterMap.chapClass!=null and filterMap.chapClass!=''">
+                AND A.CHAP_CLASS = #{filterMap.chapClass}
+            </if>
+        </where>
+    </sql>
+    <select id="findPageList" parameterType="BasePageParam" resultType="com.msk.sl.bean.SL241109Bean">
+        SELECT
+        A.CHAP_ID AS chapId,
+        A.CHAP_NO AS chapNo,
+        A.CHAP_TITLE AS chapTitle
+        FROM
+        sl_dist_regu_chap AS A
+        <include refid="whereSql"/>
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+    <select id="getPageCount" resultType="Integer" parameterType="BasePageParam">
+        SELECT COUNT(1)
+        FROM
+        sl_dist_regu_chap AS A
+        <include refid="whereSql"/>
+    </select>
+</mapper>

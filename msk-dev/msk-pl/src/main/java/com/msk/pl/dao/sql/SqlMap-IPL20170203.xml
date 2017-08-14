@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170203Logic">
+
+
+    <!-- 查询任务ID -->
+    <select id="findOne" parameterType="BaseParam" resultType="com.msk.pl.bean.PLInfo">
+		SELECT TASK_ID AS taskId,STATUS AS status FROM PL_INFO WHERE PL_ID = #{plId} AND DEL_FLG = 0
+	</select>
+    <!-- 删除进货单数据-->
+    <update id="updatePlInfoById" parameterType="BaseParam">
+		UPDATE PL_INFO
+		SET
+		DEL_FLG = 1,
+		UPD_ID = #{updId},
+		UPD_TIME = NOW(),
+		VER = VER+1
+		WHERE PL_ID = #{plId} AND DEL_FLG = 0
+	</update>
+
+    <update id="modify" parameterType="BaseParam">
+		UPDATE PL_BS_TASK SET
+        ALREADY_RECORD_NUMBER = ALREADY_RECORD_NUMBER-1,
+		STATUS = CASE WHEN ALREADY_RECORD_NUMBER >= NEED_RECORD_NUMBER THEN 1 ELSE 0 END,
+		DEL_FLG =  CASE WHEN ALREADY_RECORD_NUMBER = 0 THEN 1 ELSE 0 END,
+		UPD_ID =  #{updId},
+        UPD_TIME = NOW(),
+		VER = VER+1
+		WHERE TASK_ID = #{filterMap.taskId} AND DEL_FLG = 0
+	</update>
+
+	<update id="updatePlInfoPdById" parameterType="BaseParam">
+		UPDATE PL_INFO_PD
+		SET
+		DEL_FLG = 1,
+		UPD_ID = #{updId},
+		UPD_TIME = NOW(),
+		VER = VER+1
+		WHERE PL_ID = #{plId} AND DEL_FLG = 0
+	</update>
+</mapper>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170221Logic">
+    <select id="findList" parameterType="com.msk.core.bean.RsPageParam"
+            resultType="com.msk.pl.bean.IPL20170221RsResultBean">
+        select
+        <include refid="selectSql"/>
+        from PL_INFO A
+        LEFT JOIN PL_BS_TASK G ON A.TASK_ID=G.TASK_ID
+        /*按配送站查询*/
+        <if test="selectRule==1">
+            LEFT JOIN pl_terminal_partner C ON A.TERMINAL_ID=C.TERMINAL_ID AND A.PARTNER_ID=C.PARTNER_ID
+            <include refid="whereCondition"/>
+            group by A.TERMINAL_ID
+        </if>
+        /*按买手查询*/
+        <if test="selectRule==2">
+            LEFT JOIN PL_DOMAIN_BS B ON A.BS_CODE=B.BS_CODE AND A.TERMINAL_ID=B.TERMINAL_ID
+            <include refid="whereCondition"/>
+            group by A.BS_CODE
+        </if>
+        <if test="selectRule==0">
+            <include refid="whereCondition"/>
+        </if>
+        ORDER BY sum(case when (A.STATUS=1) then 1 else 0 end ) desc
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+    <select id="getPageCount" resultType="Integer"
+            parameterType="com.msk.core.bean.RsPageParam">
+        SELECT count(1) FROM
+        (select
+        <include refid="selectSql"/>
+        from PL_INFO A
+        LEFT JOIN PL_BS_TASK G ON A.TASK_ID=G.TASK_ID
+        /*按配送站查询*/
+        <if test="selectRule==1">
+            LEFT JOIN pl_terminal_partner C ON A.TERMINAL_ID=C.TERMINAL_ID AND A.PARTNER_ID=C.PARTNER_ID
+            <include refid="whereCondition"/>
+            group by A.TERMINAL_ID
+        </if>
+        /*按买手查询*/
+        <if test="selectRule==2">
+            LEFT JOIN PL_DOMAIN_BS B ON A.BS_CODE=B.BS_CODE AND A.TERMINAL_ID=B.TERMINAL_ID
+            <include refid="whereCondition"/>
+            group by A.BS_CODE
+        </if>
+        <if test="selectRule==0">
+            <include refid="whereCondition"/>
+        </if>
+        ) E
+    </select>
+    <sql id="selectSql">
+        <if test="selectRule==1">
+            A.TERMINAL_ID as terminalId,
+            C.TERMINAL_NAME as terminalName,
+        </if>
+        <if test="selectRule==2">
+            A.BS_CODE as bsCode,
+            B.BS_NAME as bsName,
+        </if>
+        /*合伙人计费查询需要查询激励费用*/
+        <if test="selectType==1">
+            sum(case when (A.STATUS=1) then A.INCENTIVE_FEE else 0 end ) as allFee,
+        </if>
+        sum(case when (A.STATUS=1) then 1 else 0 end ) as validInfo ,
+        sum(case when (A.STATUS=0) then 1 else 0 end ) as invalidInfo
+    </sql>
+    <sql id="whereCondition">
+        WHERE A.PARTNER_ID=#{partnerId}
+        AND DATE_FORMAT(G.REPORT_DATE,'%Y-%m')=#{crtDate}
+        AND (A.DEL_FLG=0 or A.DEL_FLG is NULL)
+    </sql>
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.ds.logic.SC183103Logic">
+    <select id="findActualChangeProductList" parameterType="BaseParam" resultType="com.msk.ds.bean.ActualInput">
+        SELECT
+        stockActual.CLASSES_CODE as classCode,
+        pdClass.CLASSES_NAME as className,
+        stockActual.BREED_CODE as breedCode,
+        pdBreed.BREED_NAME as breedName,
+        stockActual.FEATURE_CODE as featureCode,
+        pdFeature.FEATURE_NAME as featureName,
+        stockActual.GRADE_CODE as gradeCode,
+        pdGrade.GRADE_NAME as gradeName,
+        stockActual.NEW_ACTUAL_NUM as changeBeforeNum
+        FROM
+        ds_pd_virtual_stock_actual stockActual,
+        pd_classes pdClass,
+        pd_breed pdBreed,
+        pd_feature pdFeature,
+        pd_grade pdGrade
+        WHERE
+        stockActual.CLASSES_CODE = pdClass.CLASSES_CODE
+        AND pdBreed.CLASSES_CODE = pdClass.CLASSES_CODE
+        AND pdFeature.CLASSES_CODE = pdBreed.CLASSES_CODE
+        AND pdFeature.BREED_CODE = pdBreed.BREED_CODE
+
+        AND stockActual.BREED_CODE = pdBreed.BREED_CODE
+        AND stockActual.FEATURE_CODE = pdFeature.FEATURE_CODE
+        AND stockActual.GRADE_CODE = pdGrade.GRADE_CODE
+
+        AND stockActual.DIST_MONTH = #{distMonth}
+        AND stockActual.LGCS_CODE = #{areaCode}
+        AND stockActual.SUPP_CODE = #{supplierCode}
+        AND stockActual.HALF_CODE = #{currentHalfCode}
+        AND stockActual.PD_STOCK_TYPE = #{planType}
+        AND pdClass.CLASSES_NAME LIKE #{productName}
+        AND stockActual.DEL_FLG = 0
+    </select>
+</mapper>

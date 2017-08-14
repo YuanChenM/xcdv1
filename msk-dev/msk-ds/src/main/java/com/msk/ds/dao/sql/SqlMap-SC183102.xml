@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.ds.logic.SC183102Logic">
+    <delete id="deletePlanBean" parameterType="com.msk.ds.bean.SC183102Bean">
+        DELETE FROM ds_pd_virtual_stock_plan WHERE
+        SUPP_DS_ID=#{suppDsId} AND VIRTUAL_STOCK_PLAN_ID=#{planFlowId}
+    </delete>
+    <sql id="selectFiled">
+
+        DS.SUPP_DS_ID AS suppDsId,
+        DS.VIRTUAL_STOCK_PLAN_ID AS planFlowId,
+        DS.DIST_MONTH AS distMonth,
+        DS.LGCS_Code as lgcsCode,
+        IFNULL(LOG.LGCS_AREA_NAME,'') AS lgcsName,
+        DS.SUPP_CODE AS suppCode,
+        IFNULL(SLE.EP_NAME,'') AS suppName,
+        IFNULL(CONST.CONSTANT_NAME,'') AS pdStockType,
+        DS.PD_STOCK_TYPE AS pdStockTypeZ,
+        CONS.CONSTANT_NAME AS halfCode,
+        DS.HALF_CODE AS halfCodeZ,
+        DS.HALF_CODE AS halfCodeA,
+        DS.HALF_CODE AS halfCodeB,
+        CLS.CLASSES_NAME AS classesCode,
+        IFNULL(BRE.BREED_NAME,'')  AS breedCode,
+        IFNULL(FEA.FEATURE_NAME,'') AS featureCode,
+        IFNULL(GRA.GRADE_NAME,'') AS gradeCode,
+        IFNULL(DS.OUT_SPEC,'') AS outSpec,
+        IFNULL(DS.OUT_NW,'') AS outNw,
+        IFNULL(DS.PD_CODE,'') AS pdCode,
+        IFNULL(DS.NORMS_CODE,'') AS normsCode,
+        DS.ADJUST_DATE AS adjustDate,
+        DS.OLD_PLAN_NUM AS oldPlanNum,
+        DS.NEW_PLAN_NUM AS newPlanNum,
+        DS.DEL_FLG AS delFlg
+    </sql>
+    <sql id="selectFrom">
+        FROM ds_pd_virtual_stock_plan AS DS
+        LEFT JOIN md_logistics_area AS LOG
+        ON DS.LGCS_CODE = LOG.LGCS_AREA_CODE
+        LEFT JOIN sl_seller AS SL
+        ON DS.SUPP_CODE = SL.SL_CODE
+        LEFT JOIN sl_enterprise AS SLE
+        ON SL.EP_ID = SLE.EP_ID
+        LEFT JOIN pd_classes AS CLS
+        ON DS.CLASSES_CODE = CLS.CLASSES_CODE
+        LEFT JOIN pd_breed AS BRE ON DS.BREED_CODE = BRE.BREED_CODE
+        AND DS.CLASSES_CODE = BRE.CLASSES_CODE AND DS.MACHINING_CODE = BRE.MACHINING_CODE
+        LEFT JOIN pd_feature AS FEA ON DS.FEATURE_CODE = FEA.FEATURE_CODE
+        AND DS.CLASSES_CODE = FEA.CLASSES_CODE AND DS.MACHINING_CODE = FEA.MACHINING_CODE
+        AND DS.BREED_CODE = FEA.BREED_CODE
+        LEFT JOIN pd_grade AS GRA ON DS.GRADE_CODE = GRA.GRADE_CODE
+
+        LEFT JOIN comm_constant AS CONS ON CONS.CONSTANT_TYPE="HalfCodeType"
+        AND DS.HALF_CODE = CONS.CONSTANT_VALUE
+        LEFT JOIN comm_constant AS CONST ON CONST.CONSTANT_TYPE="PdStockType"
+        AND DS.PD_STOCK_TYPE = CONST.CONSTANT_VALUE
+
+
+
+        /*INNER JOIN pd_breed AS BR
+        ON DS.BREED_CODE = BR.BREED_CODE
+        INNER JOIN pd_feature AS FEA
+        ON DS.FEATURE_CODE = FEA.FEATURE_CODE
+        INNER JOIN pd_grade AS GRA
+        ON DS.GRADE_CODE = GRA.GRADE_CODE*/
+
+    </sql>
+    <!--<sql id="selectFrom">
+        FROM pd_standard PDS
+        INNER JOIN pd_breed AS PDB
+        ON PDS.BREED_CODE = PDB.BREED_CODE AND PDS.CLASSES_CODE=PDB.CLASSES_CODE
+        INNER JOIN pd_classes AS PDC
+        ON PDS.CLASSES_CODE = PDC.CLASSES_CODE
+        INNER JOIN pd_feature AS PDD
+        ON PDS.CLASSES_CODE = PDD.CLASSES_CODE AND PDS.FEATURE_CODE = PDD.FEATURE_CODE AND PDS.BREED_CODE = PDD.BREED_CODE
+    </sql>-->
+    <sql id="whereCondition">
+        <where>
+
+            <if test="filterMap.suppDsId!=null and filterMap.suppDsId!=''">
+                AND DS.SUPP_DS_ID like #{filterMap.suppDsId}
+            </if>
+            <if test="filterMap.planFlowId!=null and filterMap.planFlowId!=''">
+                AND DS.VIRTUAL_STOCK_PLAN_ID like #{filterMap.planFlowId}
+            </if>
+            <if test="filterMap.distMonth!=null and filterMap.distMonth!=''">
+                AND DS.DIST_MONTH like #{filterMap.distMonth}
+            </if>
+            <!--<if test="filterMap.lgcsCode!=null and filterMap.lgcsCode!=''">-->
+                <!--AND DS.LGCS_CODE like #{filterMap.lgcsCode}-->
+            <!--</if>-->
+
+            <if test="filterMap.lgcsName!=null and filterMap.lgcsName!=''">
+                AND LOG.LGCS_AREA_NAME like #{filterMap.lgcsName}
+            </if>
+
+            <!--<if test="filterMap.suppCode!=null and filterMap.suppCode!=''">-->
+                <!--AND DS.SUPP_CODE like #{filterMap.suppCode}-->
+            <!--</if>-->
+
+            <if test="filterMap.suppName!=null and filterMap.suppName!=''">
+                AND SLE.EP_NAME like #{filterMap.suppName}
+            </if>
+            <if test="filterMap.pdStockTypes!=null">
+                <!--AND DS.PD_STOCK_TYPE like #{filterMap.pdStockType}-->
+                AND DS.PD_STOCK_TYPE IN
+                <foreach collection="filterMap.pdStockTypes" item="pdStockType" open="(" separator="," close=")">
+                    #{pdStockType}
+                </foreach>
+            </if>
+
+            <!--<if test="filterMap.pdStockType!=null and filterMap.pdStockType!=''">-->
+                <!--AND CONST.CONSTANT_NAME like #{filterMap.pdStockType}-->
+            <!--</if>-->
+
+            <if test="filterMap.halfCodes!=null">
+                <!--AND DS.HALF_CODE like #{filterMap.halfCode}-->
+                AND DS.HALF_CODE IN
+                <foreach collection="filterMap.halfCodes" item="halfCode" open="(" separator="," close=")">
+                    #{halfCode}
+                </foreach>
+            </if>
+
+            <!--<if test="filterMap.halfCode!=null and filterMap.halfCode!=''">-->
+                <!--AND CONS.CONSTANT_NAME like #{filterMap.halfCode}-->
+            <!--</if>-->
+
+            <!--<if test="filterMap.classesCode!=null and filterMap.classesCode!=''">-->
+                <!--AND DS.CLASSES_CODE like #{filterMap.classesCode}-->
+            <!--</if>-->
+
+            <if test="filterMap.classesCode!=null and filterMap.classesCode!=''">
+                AND CLS.CLASSES_NAME like #{filterMap.classesCode}
+            </if>
+
+            <!--<if test="filterMap.breedCode!=null and filterMap.breedCode!=''">-->
+                <!--AND DS.BREED_CODE like #{filterMap.breedCode}-->
+            <!--</if>-->
+            <!--<if test="filterMap.featureCode!=null and filterMap.featureCode!=''">-->
+                <!--AND DS.FEATURE_CODE like #{filterMap.featureCode}-->
+            <!--</if>-->
+            <!--<if test="filterMap.gradeCode!=null and filterMap.gradeCode!=''">-->
+                <!--AND DS.GRADE_CODE like #{filterMap.gradeCode}-->
+            <!--</if>-->
+
+            <if test="filterMap.breedCode!=null and filterMap.breedCode!=''">
+                AND BRE.BREED_NAME like #{filterMap.breedCode}
+            </if>
+            <if test="filterMap.featureCode!=null and filterMap.featureCode!=''">
+                AND FEA.FEATURE_NAME like #{filterMap.featureCode}
+            </if>
+            <if test="filterMap.gradeCode!=null and filterMap.gradeCode!=''">
+                AND GRA.GRADE_NAME like #{filterMap.gradeCode}
+            </if>
+
+            <if test="filterMap.outSpec!=null and filterMap.outSpec!=''">
+                AND DS.OUT_SPEC like #{filterMap.outSpec}
+            </if>
+
+            <if test="filterMap.outNw!=null and filterMap.outNw!=''">
+                AND DS.OUT_NW like #{filterMap.outNw}
+            </if>
+
+            <if test="filterMap.pdCode!=null and filterMap.pdCode!=''">
+                AND DS.PD_CODE like #{filterMap.pdCode}
+            </if>
+            <if test="filterMap.normsCode!=null and filterMap.normsCode!=''">
+                AND DS.NORMS_CODE like #{filterMap.normsCode}
+            </if>
+            <if test="filterMap.adjustDate!=null and filterMap.adjustDate!=''">
+                AND DS.ADJUST_DATE like #{filterMap.adjustDate}
+            </if>
+
+            <if test="filterMap.oldPlanNum!=null and filterMap.oldPlanNum!=''">
+                AND DS.OLD_PLAN_NUM like #{filterMap.oldPlanNum}
+            </if>
+            <if test="filterMap.newPlanNum!=null and filterMap.newPlanNum!=''">
+                AND DS.NEW_PLAN_NUM like #{filterMap.newPlanNum}
+            </if>
+            <if test="filterMap.crtId!=null and filterMap.crtId!=''">
+                AND DS.CRT_ID = #{filterMap.crtId}
+            </if>
+        </where>
+    </sql>
+    <select id="getPageCount" resultType="int" parameterType="BasePageParam">
+        select
+        count(1)
+        <include refid="selectFrom" />
+        <include refid="whereCondition" />
+
+    </select>
+    <select id="findPageList" resultType="com.msk.ds.bean.SC183102Bean"
+            parameterType="BasePageParam">
+        SELECT
+        <include refid="selectFiled" />
+        <include refid="selectFrom" />
+
+        /*FROM ds_pd_virtual_stock_actual AS DS*/
+        <include refid="whereCondition" />
+         order by suppDsId, planFlowId, distMonth
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+
+    </select>
+    <!--<select id="getPdStandard" resultType="com.msk.core.entity.PdStandard" parameterType="BaseParam">
+        SELECT
+        A.STANDARD_ID AS standardId
+        ,A.CLASSES_CODE AS classesCode
+        ,A.BREED_CODE AS breedCode
+        ,A.FEATURE_CODE AS featureCode
+        ,A.QLT_FLG AS qltFlg
+        ,TNC_FLG AS tncFlg
+        ,NOR_FLG AS norFlg
+        FROM PD_STANDARD A
+        WHERE A.STANDARD_ID=#{filterMap.standardId}
+    </select>-->
+
+</mapper>

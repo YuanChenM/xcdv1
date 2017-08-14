@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.org.logic.AuthLogic">
+    <sql id="constDef">
+        <bind name="USER_EMPL" value="@com.msk.core.web.consts.BusinessConst$LoginUserType@EMPL"/>
+        <bind name="USER_SELLER" value="@com.msk.core.web.consts.BusinessConst$LoginUserType@SELLER"/>
+        <bind name="AUTH_ALL" value="@com.msk.core.web.consts.BusinessConst$Auth@ALL"/>
+    </sql>
+
+    <select id="authEmployee" parameterType="java.util.HashMap" resultType="com.msk.core.web.bean.LoginUser">
+        <include refid="constDef"/>
+        SELECT
+        d.DEPT_CODE AS deptCode,
+        d.DEPT_NAME AS deptName,
+        e.EMPL_CODE AS emplNo,
+        e.EMPL_NAME AS emplName,
+        e.PWD AS loginPwd,
+        e.STATUS AS status,
+        e.EMPL_ID AS emplId,
+        #{USER_EMPL} AS userType
+        FROM
+        ORG_EMPL e
+        INNER JOIN ORG_DEPT_EMPL de ON (de.EMPL_ID = e.EMPL_ID AND de.DEL_FLG = 0)
+        INNER JOIN ORG_DEPT d ON (d.DEPT_ID = de.DEPT_ID AND d.DEL_FLG = 0)
+        WHERE
+        e.EMPL_CODE = #{loginId}
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(pwd)">
+            AND e.PWD = #{pwd}
+        </if>
+        AND e.STATUS = #{status}
+        AND e.DEL_FLG = '0'
+    </select>
+
+    <select id="findRoleList" parameterType="java.util.HashMap" resultType="com.msk.core.web.bean.LoginRole">
+        SELECT
+        ROLE_ID AS roleNo
+        ,EMPL_ID AS emplNo
+        FROM ORG_EMPL_ROLE
+        WHERE EMPL_ID = #{emplId}
+    </select>
+
+    <select id="findRoleAuthorityList" parameterType="java.util.HashMap"
+            resultType="com.msk.core.web.bean.LoginRoleAuthority">
+        SELECT
+            RA.PAGE_CODE AS pageCode
+            ,RA.ACTION_CODE AS actionCode
+            ,PE.PAGE_NAME AS pageName
+            ,PAGE_URL AS pageUrl
+            ,PE.IS_MENU AS isMenu
+            ,AN.ACTION_TYPE AS actionType
+            ,AN.ACTION_NAME AS actionName
+            ,RA.ROLE_ID AS roleId
+            ,PE.SYS_CODE AS sysCode
+            ,AN.PAGE_CODE AS actionPageCode
+        FROM ORG_ROLE_AUTH AS RA
+        INNER JOIN ORG_ROLE AS RE ON RE.ROLE_ID = RA.ROLE_ID AND RE.DEL_FLG = '0'
+        LEFT JOIN ORG_PAGE AS PE ON PE.PAGE_CODE = RA.PAGE_CODE AND PE.DEL_FLG = '0'
+        LEFT JOIN ORG_ACTION AS AN ON RA.ACTION_CODE = AN.ACTION_CODE AND AN.DEL_FLG = '0'
+        WHERE RA.ROLE_ID=#{roleNo}
+        AND RA.IS_AVAILABLE = #{isAvailable}
+        AND RA.DEL_FLG = '0'
+    </select>
+
+
+    <!--<select id="findSystemList" parameterType="BaseParam" resultType="com.msk.org.bean.SystemModel">-->
+    <!--SELECT-->
+    <!--SYS.SYS_NAME AS sysName-->
+    <!--,SYS.SYS_CODE AS sysCode-->
+    <!--FROM ORG_SYS AS SYS-->
+    <!--WHERE ('ALL'= #{filterMap.systemCode} OR SYS.SYS_CODE like #{filterMap.systemCode})-->
+    <!--AND SYS.SYS_CODE!='0' AND SYS.SYS_CODE!='ALL'-->
+    <!--AND SYS.DEL_FLG = '0'-->
+    <!--</select>-->
+    <!--<select id="findPageList" parameterType="BaseParam" resultType="com.msk.core.entity.OrgPage">-->
+    <!--SELECT-->
+    <!--PAGE.PAGE_CODE AS pageCode-->
+    <!--,PAGE.PAGE_NAME AS pageName-->
+    <!--,PAGE.PAGE_URL AS pageUrl-->
+    <!--FROM ORG_PAGE AS PAGE-->
+    <!--WHERE ('ALL'= #{filterMap.systemCode} OR PAGE.SYS_CODE like #{filterMap.systemCode})-->
+    <!--AND PAGE.SYS_CODE!='0' AND PAGE.SYS_CODE!='ALL'-->
+    <!--AND PAGE.DEL_FLG = '0'-->
+    <!--ORDER BY SORT ASC-->
+    <!--</select>-->
+    <!--<select id="findSubPageList" parameterType="BaseParam" resultType="com.msk.core.entity.OrgPage">-->
+    <!--SELECT-->
+    <!--PAGE.PAGE_CODE AS pageCode-->
+    <!--,PAGE.PAGE_NAME AS pageName-->
+    <!--,PAGE.PAGE_URL AS pageUrl-->
+    <!--FROM ORG_PAGE AS PAGE-->
+    <!--WHERE PAGE.SYS_CODE = #{filterMap.systemCode}-->
+    <!--AND PAGE.DEL_FLG = '0'-->
+    <!--ORDER BY SORT ASC-->
+    <!--</select>-->
+
+    <select id="authSupplier" parameterType="java.util.HashMap" resultType="com.msk.core.web.bean.LoginUser">
+        <include refid="constDef"/>
+        SELECT
+        D.DEPT_CODE as deptCode,
+        D.DEPT_NAME as deptName,
+        A.SL_ACCOUNT AS emplNo,
+        A.SL_SHOW_NAME AS emplName,
+        A.ACCOUNT_PSD AS loginPwd,
+        A.AUTH_STATUS AS STATUS,
+        A.SL_ACCOUNT AS emplId,
+        #{USER_SELLER} AS userType
+        FROM
+        sl_account A
+        INNER JOIN sl_seller B ON B.SL_ACCOUNT = A.SL_ACCOUNT AND B.DEL_FLG = 0
+        LEFT JOIN org_dept D ON (D.DEPT_ID = #{sellerDeptId} AND d.DEL_FLG = 0)
+        WHERE
+        A.DEL_FLG = 0
+        AND (A.SL_ACCOUNT = #{loginId} OR A.SL_TEL = #{loginId})
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(pwd)">
+            AND A.ACCOUNT_PSD = #{pwd}
+        </if>
+        AND A.AUTH_STATUS = #{status}
+    </select>
+
+    <select id="findAuthModules" parameterType="java.util.HashMap" resultType="com.msk.core.entity.OrgSysModule">
+        <include refid="constDef"/>
+        SELECT osm.SYS_CODE AS sysCode, osm.SYS_MODULE AS sysModule
+        FROM org_sys_module osm
+        INNER JOIN org_sys os ON (os.SYS_CODE=osm.SYS_CODE AND os.DEL_FLG=0)
+        WHERE	osm.LOGIN_USER_TYPE=#{userType} AND osm.DEL_FLG=0
+        AND EXISTS (
+        SELECT 1
+        FROM org_role_auth ora
+        WHERE ora.ROLE_ID IN
+        <foreach collection="roleList" index="index" item="role" open="(" separator="," close=")">
+        #{role.roleNo}
+        </foreach>
+        AND (ora.SYS_CODE=osm.SYS_CODE OR ora.SYS_CODE=#{AUTH_ALL})
+        AND ora.IS_AVAILABLE=1 AND ora.DEL_FLG=0
+        AND NOT EXISTS (
+        SELECT 1
+        FROM org_role_auth ora2
+        WHERE ora2.ROLE_ID=ora.ROLE_ID
+        AND (ora2.SYS_CODE=osm.SYS_CODE OR ora2.SYS_CODE=#{AUTH_ALL})
+        AND ora2.PAGE_CODE=#{AUTH_ALL} AND ora2.ACTION_CODE=#{AUTH_ALL}
+        AND ora2.IS_AVAILABLE=0 AND ora2.DEL_FLG=0))
+        ORDER BY SORT ASC
+    </select>
+
+    <select id="findAuthPages" parameterType="java.util.HashMap" resultType="com.msk.core.entity.OrgPage">
+    <include refid="constDef"/>
+        SELECT
+        op.SYS_CODE AS sysCode,
+        op.PAGE_CODE AS pageCode,
+        op.PAGE_NAME AS pageName,
+        op.IS_MENU AS isMenu,
+        op.PAGE_URL AS pageUrl
+        FROM org_page op
+        INNER JOIN org_sys os ON (os.SYS_CODE=op.SYS_CODE AND os.DEL_FLG=0)
+        WHERE op.PAGE_CODE!=#{AUTH_ALL}
+        AND (#{AUTH_ALL}=#{sysCode} OR op.SYS_CODE LIKE #{sysCodeLike})
+        AND op.DEL_FLG=0
+        AND EXISTS (
+        SELECT 1
+        FROM org_role_auth ora
+        WHERE ora.ROLE_ID IN
+        <foreach collection="roleList" index="index" item="role" open="(" separator="," close=")">
+            #{role.roleNo}
+        </foreach>
+        AND ora.IS_AVAILABLE=1 AND ora.DEL_FLG=0
+        AND (
+        (ora.SYS_CODE=op.SYS_CODE AND (ora.PAGE_CODE=op.PAGE_CODE OR ora.PAGE_CODE=#{AUTH_ALL}))
+        OR (ora.SYS_CODE=#{AUTH_ALL} AND ora.PAGE_CODE=#{AUTH_ALL})
+        )
+        AND NOT EXISTS (
+        SELECT 1
+        FROM org_role_auth ora2
+        WHERE ora2.ROLE_ID=ora.ROLE_ID
+        AND ora2.IS_AVAILABLE=0 AND ora2.DEL_FLG=0
+        AND (
+        (ora2.SYS_CODE=LEFT(op.SYS_CODE, LENGTH(ora2.SYS_CODE))
+        AND (ora2.PAGE_CODE=op.PAGE_CODE OR ora2.PAGE_CODE=#{AUTH_ALL})
+        AND ora2.ACTION_CODE=#{AUTH_ALL})
+        OR (ora2.SYS_CODE=#{AUTH_ALL} AND ora2.PAGE_CODE=#{AUTH_ALL} AND ora2.ACTION_CODE=#{AUTH_ALL})
+        )
+        )
+        )
+        ORDER BY op.SYS_CODE, op.SORT ASC
+    </select>
+
+    <select id="findAuthActions" parameterType="java.util.HashMap" resultType="com.msk.core.web.bean.ActionAuthority">
+    <include refid="constDef"/>
+        SELECT
+        oa.PAGE_CODE AS pageCode,
+        oa.ACTION_CODE AS actionCode,
+        oa.ACTION_NAME AS actionName,
+        oa.ACTION_TYPE AS actionType
+        FROM org_action oa
+        INNER JOIN org_page op ON (op.PAGE_CODE=oa.PAGE_CODE AND op.DEL_FLG=0)
+        INNER JOIN org_sys os ON (os.SYS_CODE=op.SYS_CODE AND os.DEL_FLG=0)
+        WHERE oa.ACTION_CODE!=#{AUTH_ALL}
+        AND (#{AUTH_ALL}=#{sysCode} OR op.SYS_CODE LIKE #{sysCodeLike})
+        AND oa.DEL_FLG=0
+        AND EXISTS (
+        SELECT 1
+        FROM org_role_auth ora
+        WHERE ora.ROLE_ID IN
+        <foreach collection="roleList" index="index" item="role" open="(" separator="," close=")">
+            #{role.roleNo}
+        </foreach>
+        AND ora.IS_AVAILABLE=1 AND ora.DEL_FLG=0
+        AND (
+        (ora.SYS_CODE=op.SYS_CODE AND ora.PAGE_CODE=op.PAGE_CODE AND (ora.ACTION_CODE=oa.ACTION_CODE OR ora.ACTION_CODE=#{AUTH_ALL}))
+        OR (ora.SYS_CODE=LEFT(op.SYS_CODE, LENGTH(ora.SYS_CODE)) AND ora.PAGE_CODE=#{AUTH_ALL} AND ora.ACTION_CODE=#{AUTH_ALL})
+        OR (ora.SYS_CODE=#{AUTH_ALL} AND ora.PAGE_CODE=#{AUTH_ALL} AND ora.ACTION_CODE=#{AUTH_ALL})
+        )
+        AND NOT EXISTS (
+        SELECT 1
+        FROM org_role_auth ora2
+        WHERE ora2.ROLE_ID=ora.ROLE_ID
+        AND ora2.IS_AVAILABLE=0 AND ora2.DEL_FLG=0
+        AND (
+        (ora2.SYS_CODE=op.SYS_CODE AND ora2.PAGE_CODE=op.PAGE_CODE AND (ora2.ACTION_CODE=oa.ACTION_CODE OR ora2.ACTION_CODE=#{AUTH_ALL}))
+        OR (ora2.SYS_CODE=LEFT(op.SYS_CODE, LENGTH(ora2.SYS_CODE)) AND ora2.PAGE_CODE=#{AUTH_ALL} AND ora2.ACTION_CODE=#{AUTH_ALL})
+        OR (ora2.SYS_CODE=#{AUTH_ALL} AND ora2.PAGE_CODE=#{AUTH_ALL} AND ora2.ACTION_CODE=#{AUTH_ALL})
+        )
+        )
+        )
+        ORDER BY oa.PAGE_CODE, oa.ACTION_CODE ASC
+    </select>
+</mapper>

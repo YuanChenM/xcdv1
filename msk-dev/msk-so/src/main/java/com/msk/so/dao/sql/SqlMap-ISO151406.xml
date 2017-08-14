@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151406Logic">
+    <select id = "findSales" resultType = "com.msk.so.bean.HouseAccountSalesResult" parameterType = "BaseParam">
+        SELECT so.sellers AS houseCode,
+        so.DISTRICT_CODE AS lgcsAreaCode,
+        sod.CLASSES_CODE AS pdClassCode,
+        SUM((IFNULL(sod.ORDER_QTY,0) - IFNULL(sod.RETURN_QTY,0) - IFNULL(sod.REJECTION_QTY,0) - IFNULL(sod.CANCEL_QTY,0))*IFNULL(sod.PD_PRICE,0)) AS bigDecimalSales
+        FROM so_order so
+        INNER JOIN so_order_detail sod
+        ON so.order_id = sod.order_id
+        WHERE so.order_type IN (5,6)
+        AND so.order_status != 99
+        AND so.sellers = #{houseCode}
+        AND DATE_FORMAT(so.order_time,"%Y-%m") = #{saleMonth}
+        <if test="lgcsAreaCode!=null and lgcsAreaCode!=''">
+            AND so.DISTRICT_CODE = #{lgcsAreaCode}
+        </if>
+        <if test="pdClassCode!=null and pdClassCode!=''">
+            AND sod.CLASSES_CODE = #{pdClassCode}
+        </if>
+        GROUP BY so.DISTRICT_CODE,sod.CLASSES_CODE
+    </select>
+</mapper>

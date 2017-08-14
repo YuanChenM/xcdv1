@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO251401Logic">
+	<sql id="selectSql">
+		A.PRO_CODE AS proCode,
+		A.DISTRICT_CODE AS districtCode,
+		A.BUYERS_ID AS buyersId,
+		A.BUYERS_CODE AS buyersCode,
+		A.BUYERS_NAME AS buyersName,
+		A.SELLER_CODE AS sellerCode,
+		A.SELLER_NAME AS sellerName,
+		A.ORDER_SOURCE AS orderSource,
+		A.PRO_TIME AS proTime,
+		A.STATUS AS status,
+		A.DEL_FLG AS delFlg
+	</sql>
+	<insert id="saveProDetail" parameterType="com.msk.core.entity.SoProDetail">
+		INSERT INTO SO_PRO_DETAIL(
+		 PRO_ID
+		,PRO_CODE
+		,PRO_DETAIL_ID
+		,CLASSES_CODE
+		,CLASSES_NAME
+		,BREED_CODE
+		,BREED_NAME
+		,FEATURE_CODE
+		,FEATURE_NAME
+		,NORMS_CODE
+		,NORMS_NAME
+		,PD_CODE
+		,PD_NAME
+		,PD_GRADE_CODE
+		,PD_GRADE_NAME
+		,PD_UNIT
+		,PACKING_VOLUME
+		,PD_WEIGHT
+		,PD_VOLUME
+		,ORDER_PRICE
+		,PRICE_CYCLE
+		,ORDER_QTY
+		,DEL_FLG
+		,CRT_ID
+		,CRT_TIME
+		,VER
+		)
+		VALUES(
+		 #{proId}
+		,#{proCode}
+		,#{proDetailId}
+		,#{classesCode}
+		,#{classesName}
+		,#{breedCode}
+		,#{breedName}
+		,#{featureCode}
+		,#{featureName}
+		,#{normsCode}
+		,#{normsName}
+		,#{pdCode}
+		,#{pdName}
+		,#{pdGradeCode}
+		,#{pdGradeName}
+		,#{pdUnit}
+		,#{packingVolume}
+		,#{pdWeight}
+		,#{pdVolume}
+		,#{orderPrice}
+		,#{priceCycle}
+		,#{orderQty}
+		,0
+		,#{crtId}
+		,#{crtTime}
+		,1
+		)
+	</insert>
+
+	<insert id="save" parameterType="com.msk.core.entity.SoPro">
+		insert into SO_PRO(
+		PRO_ID,
+		PRO_CODE,
+		STATUS,
+		BUYERS_ID,
+		BUYERS_CODE,
+		BUYERS_NAME,
+		BUYERS_TYPE,
+		SELLER_CODE,
+		SELLER_NAME,
+		ORDER_SOURCE,
+		DISTRICT_CODE,
+		PRO_TIME,
+		DEL_FLG,
+		CRT_ID,
+		CRT_TIME,
+		VER
+		)values(
+		#{proId}
+	   ,#{proCode}
+	   ,#{status}
+	   ,#{buyersId}
+	   ,#{buyersCode}
+	   ,#{buyersName}
+	   ,#{buyersType}
+	   ,#{sellerCode}
+	   ,#{sellerName}
+	   ,#{orderSource}
+	   ,#{districtCode}
+	   ,#{proTime}
+	   ,0
+	   ,#{crtId}
+	   ,#{crtTime}
+	   ,1
+		)
+	</insert>
+	<select id="findPro" resultType="com.msk.core.entity.SoPro"
+        parameterType="BaseParam">
+        SELECT A.PRO_ID AS proId,
+        <include refid="selectSql" />
+        FROM SO_PRO A
+		WHERE A.PRO_ID = (select MAX(B.PRO_ID) FROM SO_PRO B)
+    </select>
+
+	<select id="getBuyersInfo" parameterType="com.msk.so.bean.ISO251401RsParam" resultType="com.msk.core.entity.SoOrder">
+		SELECT
+		sbbi.SL_CODE AS buyersId,
+		sbbi.SL_CODE_DIS AS buyersCode
+		FROM
+		sl_bs_basic_info sbbi
+		INNER JOIN sl_bs_account sba ON sba.SL_ACCOUNT = sbbi.SL_ACCOUNT
+		WHERE
+		  	sba.SL_SHOW_NAME = #{buyersName}
+		AND sbbi.DEL_FLG = 0
+		AND sba.DEL_FLG = 0
+	</select>
+</mapper>

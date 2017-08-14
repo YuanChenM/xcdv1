@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL241103008Logic">
+    <select id="selectmemberName" parameterType="BaseParam" resultType="com.msk.sl.bean.SL24110306Bean">
+        SELECT
+        A.MEMBER_NAME AS memberName,
+        A.EP_ID AS epId
+        FROM
+        sl_ep_manager AS A
+        WHERE A.MEMBER_DUTIES=#{filterMap.memberDuties} AND A.EP_ID=#{filterMap.epId}
+    </select>
+
+    <insert id="save" parameterType="com.msk.sl.bean.SL24110306Bean">
+        INSERT INTO sl_ep_manager
+        (EP_ID,MEMBER_ID,MEMBER_DUTIES,MEMBER_NAME,MEMBER_AGE,MEMBER_EDUC,MEMBER_TEL,CRT_ID,CRT_TIME,VER)
+        VALUES (#{epId},#{memberId},#{memberDuties},#{memberName},#{memberAge},#{memberEduc},#{memberTel},#{crtId},SYSDATE(),#{ver})
+    </insert>
+
+
+    <select id="findOne1" parameterType="BaseParam" resultType="com.msk.core.entity.SlEpManager">
+        SELECT A.EP_ID AS epId FROM sl_enterprise AS A WHERE A.EP_ID = #{filterMap.epId}
+    </select>
+
+    <insert id="saveManager1" parameterType="com.msk.core.entity.SlEpManager">
+       INSERT INTO sl_ep_manager (
+            EP_ID,
+            MEMBER_ID,
+            MEMBER_DUTIES,
+            MEMBER_NAME,
+            MEMBER_AGE,
+            MEMBER_EDUC,
+            MEMBER_TEL,
+            ACT_ID
+        )
+        VALUES
+            (#{epId},#{memberId},#{memberDuties},#{memberName},#{memberAge},#{memberEduc},#{memberTel},#{crtId})
+    </insert>
+
+    <select id="selectmaxmid" resultType="com.msk.sl.bean.SL24110306Bean"
+            parameterType="com.msk.core.bean.BaseParam">
+        SELECT MAX(MEMBER_ID+0) AS memberId
+        FROM sl_ep_manager
+        WHERE EP_ID = #{filterMap.epId}
+    </select>
+</mapper>

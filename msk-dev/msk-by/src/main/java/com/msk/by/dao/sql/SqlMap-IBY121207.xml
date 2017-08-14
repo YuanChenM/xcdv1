@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.by.logic.IBY121207Logic">
+    <select id="findEmployee" parameterType="BaseParam" resultType="com.msk.by.bean.IBY121207RsParam">
+        SELECT
+           ID AS id,
+           BUYER_ID AS buyerId,
+           EMPLOYEE_TYPE AS employeeType,
+           EMPLOYEE_NAME AS employeeName,
+           EMPLOYEE_TEL AS employeeTel,
+           EMPLOYEE_QQ AS employeeQq,
+           EMPLOYEE_WECHAT AS employeeWechat,
+           BUS_CARD_ID AS busCardId,
+           BUS_CARD_SUF AS busCardSuf,
+           BUS_CARD_FLG AS busCardFlg,
+           CONTACT_PERSON AS contactPerson,
+           PURCHASE AS purchase,
+           RECEIVE_PERSON AS receivePerson
+        FROM
+           by_buyer_employee
+        WHERE
+           BUYER_ID = #{filterMap.buyerId}
+           AND DEL_FLG = 0
+           <if test="filterMap.id != null and filterMap.id != ''">
+              AND ID = #{filterMap.id}
+           </if>
+           <if test="filterMap.employeeName != null and filterMap.employeeName != ''">
+               AND EMPLOYEE_NAME = #{filterMap.employeeName}
+           </if>
+           <if test="filterMap.employeeType != null and filterMap.employeeType != ''">
+               AND EMPLOYEE_TYPE = #{filterMap.employeeType}
+           </if>
+    </select>
+    <update id="buyerEmployeeModify" parameterType="BaseEntity">
+        UPDATE
+           by_buyer_employee
+        SET
+           EMPLOYEE_TYPE = #{employeeType},
+           EMPLOYEE_NAME = #{employeeName},
+           EMPLOYEE_TEL = #{employeeTel},
+           EMPLOYEE_QQ = #{employeeQq},
+           EMPLOYEE_WECHAT = #{employeeWechat},
+           BUS_CARD_FLG = #{busCardFlg},
+        <if test="busCardId != null and busCardId != ''">
+           BUS_CARD_ID = #{busCardId},
+        </if>
+        <if test="busCardSuf != null and busCardSuf != ''">
+           BUS_CARD_SUF = #{busCardSuf},
+        </if>
+           CONTACT_PERSON = #{contactPerson},
+           PURCHASE = #{purchase},
+           RECEIVE_PERSON = #{receivePerson},
+           UPD_ID = #{updId},
+           UPD_TIME = #{updTime},
+           DEL_FLG = 0
+        WHERE
+           ID = #{id}
+           AND BUYER_ID = #{buyerId}
+    </update>
+    <insert id="buyerEmployeeInsert" parameterType="BaseEntity">
+        INSERT INTO
+           by_buyer_employee(
+               ID,
+               BUYER_ID,
+               EMPLOYEE_TYPE,
+               EMPLOYEE_NAME,
+               EMPLOYEE_TEL,
+               EMPLOYEE_QQ,
+               EMPLOYEE_WECHAT,
+               BUS_CARD_FLG,
+               BUS_CARD_ID,
+               BUS_CARD_SUF,
+               CONTACT_PERSON,
+               PURCHASE,
+               RECEIVE_PERSON,
+               DEL_FLG,
+               CRT_ID,
+               CRT_TIME,
+               UPD_ID,
+               UPD_TIME,
+               ACT_ID,
+               ACT_TIME,
+               VER
+           )VALUES (
+               #{id},
+               #{buyerId},
+               #{employeeType},
+               #{employeeName},
+               #{employeeTel},
+               #{employeeQq},
+               #{employeeWechat},
+               #{busCardFlg},
+               #{busCardId},
+               #{busCardSuf},
+               #{contactPerson},
+               #{purchase},
+               #{receivePerson},
+               0,
+               #{crtId},
+               #{crtTime},
+               #{updId},
+               #{updTime},
+               #{actId},
+               #{actTime},
+               1
+           )
+    </insert>
+</mapper>

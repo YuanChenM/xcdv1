@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170206Logic">
+
+
+    <!-- 查询进货单产品数据 -->
+    <select id="findOne" parameterType="BaseParam" resultType="com.msk.pl.bean.IPL20170206Result">
+        SELECT
+        A.CLASSESTREE_CODE AS pdCode
+        ,B.NORMS_SUTTLE AS smallPackFeature
+        ,B.NORMS_NUMBER AS smallPackNumber
+        ,B.NORMS_OUT AS bigPackNumber
+        ,B.NETWEIGHT_OUT AS netweight
+        ,B.GROSSWEIGHT_OUT AS grossweight
+        ,B.NORMS_OUT_SIZE AS cartonSize
+        FROM PD_CLASSESTREE A
+        INNER JOIN PD_NORMS_STD B ON B.CLASSESTREE_CODE LIKE CONCAT(A.CLASSESTREE_CODE,'%')
+        where
+        <if test="filterMap.featureName == null or filterMap.featureName == ''">
+            A.LEVEL_NAME = #{pdName} AND A.DEL_FLG = 0 ORDER BY B.STANDARD_ID LIMIT 1
+        </if>
+        <if test="filterMap.featureName != null and filterMap.featureName!= ''">
+            A.PARENT_NAME = #{pdName} AND A.LEVEL_NAME = #{filterMap.featureName} AND A.DEL_FLG = 0  ORDER BY B.STANDARD_ID LIMIT 1
+        </if>
+    </select>
+</mapper>

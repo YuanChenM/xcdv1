@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.msk.so.logic.OrderDetailAvailabilityLogic">
+    <sql id="selectOrderAvailabilitySql">
+    ORDER_ID AS orderId,
+    ORDER_CODE AS orderCode,
+    ORDER_DETAIL_ID AS orderDetailId,
+    ORDER_DETAIL_AVAILABILITY_ID AS orderDetailAvailabilityId,
+    SUPPLIER_CODE AS supplierCode,
+    SUPPLIER_NAME AS supplierName,
+    CLASSES_CODE AS classesCode,
+    CLASSES_NAME AS classesName,
+    BREED_CODE AS breedCode,
+    BREED_NAME AS breedName,
+    FEATURE_CODE AS featureCode,
+    FEATURE_NAME AS featureName,
+    NORMS_CODE AS normsCode,
+    NORMS_NAME AS normsName,
+    PD_CODE AS pdCode,
+    PD_NAME AS pdName,
+    PD_GRADE_CODE AS pdGradeCode,
+    PD_GRADE_NAME AS pdGradeName,
+    UNIT AS unit,
+    PACKING_VOLUME AS packingVolume,
+    WEIGHT AS weight,
+    VOLUME AS volume,
+    SUPP_QTY AS suppQty,
+    IFNULL(SEND_QTY,0) AS sendQty,
+    RECEIVE_QTY AS receiveQty,
+    CANCEL_QTY AS cancelQty,
+    RETURN_QTY AS returnQty,
+    STATUS AS status
+    </sql>
+
+    <select id="findOne" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderDetailAvailability">
+        SELECT
+        <include refid="selectOrderAvailabilitySql"></include>
+        FROM
+        SO_ORDER_DETAIL_AVAILABILITY
+        WHERE
+        ORDER_ID = #{filterMap.orderId}
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(filterMap.supplierCode)">
+            AND SUPPLIER_CODE = #{filterMap.supplierCode}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(filterMap.pdCode)">
+            AND PD_CODE = #{filterMap.pdCode}
+        </if>
+        AND
+        DEL_FLG = 0
+    </select>
+
+    <select id="orderDetailAvailabilityList" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderDetailAvailability">
+        SELECT
+        <include refid="selectOrderAvailabilitySql"></include>
+        FROM
+        SO_ORDER_DETAIL_AVAILABILITY
+        WHERE
+        ORDER_ID = #{filterMap.orderId}
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(filterMap.supplierCode)">
+            AND SUPPLIER_CODE = #{filterMap.supplierCode}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(filterMap.pdCode)">
+            AND PD_CODE = #{filterMap.pdCode}
+        </if>
+        AND
+        DEL_FLG = 0
+    </select>
+    <update id="modify" parameterType="BaseParam">
+        UPDATE 
+            SO_ORDER_DETAIL_AVAILABILITY
+        SET 
+            UPD_ID = #{filterMap.updId}
+            ,UPD_TIME = #{filterMap.updTime}
+            ,VER = VER + 1
+        WHERE 
+            ORDER_DETAIL_AVAILABILITY_ID = #{filterMap.id}
+    </update>
+
+    <insert id="save" parameterType="com.msk.core.entity.SoOrderDetailAvailability">
+        INSERT INTO so_order_detail_availability
+        (
+        ORDER_ID,
+        ORDER_CODE,
+        ORDER_DETAIL_ID,
+        ORDER_DETAIL_AVAILABILITY_ID,
+        SUPPLIER_CODE,
+        SUPPLIER_NAME,
+        <if test="classesCode!=null">
+            CLASSES_CODE,
+        </if>
+        <if test="classesName!=null">
+            CLASSES_NAME,
+        </if>
+        <if test="breedCode!=null">
+            BREED_CODE,
+        </if>
+        <if test="breedName!=null">
+            BREED_NAME,
+        </if>
+        <if test="featureCode!=null">
+            FEATURE_CODE,
+        </if>
+        <if test="featureName!=null">
+            FEATURE_NAME,
+        </if>
+        <if test="normsCode!=null">
+            NORMS_CODE,
+        </if>
+        <if test="normsName!=null">
+            NORMS_NAME,
+        </if>
+        <if test="pdCode!=null">
+            PD_CODE,
+        </if>
+        <if test="pdName!=null">
+            PD_NAME,
+        </if>
+        <if test="pdGradeCode!=null">
+            PD_GRADE_CODE,
+        </if>
+        <if test="pdGradeName!=null">
+            PD_GRADE_NAME,
+        </if>
+        <if test="unit!=null">
+            UNIT,
+        </if>
+        <if test="packingVolume!=null">
+            PACKING_VOLUME,
+        </if>
+        <if test="weight!=null">
+            WEIGHT,
+        </if>
+        <if test="volume!=null">
+            VOLUME,
+        </if>
+        <if test="suppQty!=null">
+            SUPP_QTY,
+        </if>
+        <if test="sendQty!=null">
+            SEND_QTY,
+        </if>
+        <if test="receiveQty!=null">
+            RECEIVE_QTY,
+        </if>
+        <if test="cancelQty!=null">
+            CANCEL_QTY,
+        </if>
+        <if test="returnQty!=null">
+            RETURN_QTY,
+        </if>
+        <if test="sendTime!=null">
+            SEND_TIME,
+        </if>
+        <if test="receivedTime!=null">
+            RECEIVED_TIME,
+        </if>
+        <if test="pickingDiff!=null">
+            PICKING_DIFF,
+        </if>
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER
+        )
+        SELECT
+        #{orderId},
+        #{orderCode},
+        #{orderDetailId},
+        IFNULL(MAX(ORDER_DETAIL_AVAILABILITY_ID), 0) + 1,
+        #{supplierCode},
+        #{supplierName},
+        <if test="classesCode!=null">
+            #{classesCode},
+        </if>
+        <if test="classesName!=null">
+            #{classesName},
+        </if>
+        <if test="breedCode!=null">
+            #{breedCode},
+        </if>
+        <if test="breedName!=null">
+            #{breedName},
+        </if>
+        <if test="featureCode!=null">
+            #{featureCode},
+        </if>
+        <if test="featureName!=null">
+            #{featureName},
+        </if>
+        <if test="normsCode!=null">
+            #{normsCode},
+        </if>
+        <if test="normsName!=null">
+            #{normsName},
+        </if>
+        <if test="pdCode!=null">
+            #{pdCode},
+        </if>
+        <if test="pdName!=null">
+            #{pdName},
+        </if>
+        <if test="pdGradeCode!=null">
+            #{pdGradeCode},
+        </if>
+        <if test="pdGradeName!=null">
+            #{pdGradeName},
+        </if>
+        <if test="unit!=null">
+            #{unit},
+        </if>
+        <if test="packingVolume!=null">
+            #{packingVolume},
+        </if>
+        <if test="weight!=null">
+            #{weight},
+        </if>
+        <if test="volume!=null">
+            #{volume},
+        </if>
+        <if test="suppQty!=null">
+            #{suppQty},
+        </if>
+        <if test="sendQty!=null">
+            #{sendQty},
+        </if>
+        <if test="receiveQty!=null">
+            #{receiveQty},
+        </if>
+        <if test="cancelQty!=null">
+            #{cancelQty},
+        </if>
+        <if test="returnQty!=null">
+            #{returnQty},
+        </if>
+        <if test="sendTime!=null">
+            #{sendTime},
+        </if>
+        <if test="receivedTime!=null">
+            #{receivedTime},
+        </if>
+        <if test="pickingDiff!=null">
+            #{pickingDiff},
+        </if>
+        #{delFlg},
+        #{crtId},
+        #{crtTime},
+        #{updId},
+        #{updTime},
+        #{actId},
+        #{actTime},
+        #{ver}
+        FROM so_order_detail_availability
+    </insert>
+    <update id="modifyOrderDetailAvailability" parameterType="BaseEntity">
+        UPDATE SO_ORDER_DETAIL_AVAILABILITY
+        SET VER = VER + 1
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(updId)">
+            ,UPD_ID = #{updId}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(updTime)">
+            ,UPD_TIME = #{updTime}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(suppQty)">
+            ,SUPP_QTY = #{suppQty}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(status)">
+            ,STATUS = #{status}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(receiveQty)">
+            ,RECEIVE_QTY = #{receiveQty}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(sendQty)">
+            ,CANCEL_QTY = SUPP_QTY - IFNULL(SEND_QTY,0)- #{sendQty}
+            ,SEND_QTY = IFNULL(SEND_QTY,0)+#{sendQty}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(sendTime)">
+            ,SEND_TIME = #{sendTime}
+        </if>
+        WHERE ORDER_DETAIL_AVAILABILITY_ID = #{orderDetailAvailabilityId}
+    </update>
+</mapper>

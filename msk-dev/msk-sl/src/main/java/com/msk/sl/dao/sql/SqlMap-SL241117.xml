@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL241117Logic">
+    <sql id="PdTncStdSql">
+		A.STANDARD_ID AS standardId,
+		A.TNC_STD_ITEM_ID AS tncStdItemId,
+		A.TNC_STD_VAL1 AS tncStdVal1,
+		A.TNC_STD_VAL2 AS tncStdVal2,
+		A.TNC_STD_VAL3 AS tncStdVal3
+	</sql>
+    <sql id="PdTncStdItemSql">
+		B.TNC_STD_ITEM_ID AS tncStdItemId,
+		B.TNC_STD_ITEM_NAME AS tncStdItemName,
+		B.LEVEL_ID AS levelId,
+		B.PARENT_ID AS parentId,
+		B.IS_CATALOG AS isCatalog,
+		IFNULL(C.STD_VAL,'') AS stdVal,
+		IFNULL(C.AGREE_FLG,'') AS agreeFlg,
+		C.SL_CODE AS slCode,
+		C.SL_PD_ID AS slPdId
+	</sql>
+    <select id="getTncStdInfo" resultType="com.msk.sl.bean.SL241117Bean" parameterType="BaseParam">
+        SELECT
+        <include refid="PdTncStdItemSql"/>
+        ,
+        <include refid="PdTncStdSql"/>
+		FROM PD_TNC_STD A
+        INNER JOIN PD_TNC_STD_ITEM B ON A.TNC_STD_ITEM_ID=B.TNC_STD_ITEM_ID
+		LEFT JOIN sl_pd_tnc_std_new C ON A.STANDARD_ID=C.STANDARD_ID AND B.TNC_STD_ITEM_ID=C.STD_ITEM_ID
+		AND C.SL_CODE=#{filterMap.slCode} AND C.SL_PD_ID=#{filterMap.slPdId}
+		WHERE  B.LEVEL_ID=#{filterMap.levelId}
+		AND A.STANDARD_ID=#{filterMap.standardId}
+    </select>
+    <!--根据产品信息获得产品标准id-->
+    <select id="findStandardInfo" resultType="com.msk.core.entity.PdStandard" parameterType="BaseParam">
+		SELECT
+		A.STANDARD_ID AS standardId
+		FROM
+		pd_standard AS A
+		WHERE
+		A.CLASSES_CODE =#{filterMap.classesCode}
+		AND A.MACHINING_CODE =#{filterMap.machiningCode}
+		AND A.BREED_CODE=#{filterMap.breedCode}
+		<if test="filterMap.featureCode==null or filterMap.featureCode==''">
+			AND (A.FEATURE_CODE IS NULL OR A.FEATURE_CODE='')
+		</if>
+		<if test="filterMap.featureCode!=null and filterMap.featureCode!=''">
+			AND A.FEATURE_CODE=#{filterMap.featureCode}
+		</if>
+		<if test="filterMap.weightCode==null or filterMap.weightCode==''">
+			AND (A.WEIGHT_CODE IS NULL OR A.WEIGHT_CODE='')
+		</if>
+		<if test="filterMap.weightCode!=null and filterMap.weightCode!=''">
+			AND A.WEIGHT_CODE=#{filterMap.weightCode}
+		</if>
+	</select>
+    <insert id="save" parameterType="com.msk.core.entity.SlPdTncStdNew">
+		INSERT INTO sl_pd_tnc_std_new (
+			SL_CODE,
+			SL_PD_ID,
+			STANDARD_ID,
+			STD_ITEM_ID,
+			AGREE_FLG,
+			STD_VAL,
+			DEL_FLG,
+			CRT_ID,
+			CRT_TIME,
+			VER
+		)
+		VALUES
+		(
+			#{slCode},
+			#{slPdId},
+			#{standardId},
+			#{stdItemId},
+			#{agreeFlg},
+			#{stdVal},
+			#{delFlg},
+			#{crtId},
+			NOW(),
+			#{ver}
+		)
+	</insert>
+	<delete id="remove" parameterType="com.msk.core.entity.SlPdTncStdNew">
+		delete from sl_pd_tnc_std_new
+		WHERE
+		SL_PD_ID = #{slPdId}
+	</delete>
+	<update id="modify" parameterType="com.msk.core.entity.SlPdTncStdNew">
+		UPDATE sl_pd_tnc_std_new SET
+			AGREE_FLG=#{agreeFlg},
+			STD_VAL=#{stdVal},
+			UPD_ID=#{updId},
+			UPD_TIME=NOW(),
+			VER=#{ver},
+			DEL_FLG=#{delFlg}
+		WHERE
+			 SL_CODE = #{slCode} AND
+			 SL_PD_ID = #{slPdId} AND
+			 STANDARD_ID = #{standardId} AND
+			 STD_ITEM_ID = #{stdItemId}
+	</update>
+	<update id="modifySlProduct" parameterType="com.msk.core.entity.SlProduct">
+		UPDATE sl_product SET
+		SL_TNC_GRADE_CODE=#{slTncGradeCode},
+		UPD_TIME=NOW(),
+		UPD_ID=#{updId}
+		WHERE
+		SL_CODE = #{slCode} AND
+		SL_PD_ID=#{slPdId}
+	</update>
+	<insert id="saveNotAgree" parameterType="com.msk.core.entity.PdTncStdDiscussProvider">
+		INSERT INTO pd_tnc_std_discuss_provider (
+		KEY_ID,
+		STANDARD_ID,
+		SL_PD_ID,
+		TNC_STD_ITEM_ID,
+		TNC_STD_VAL,
+		RAISE_DATE,
+		PROVIDER_CODE,
+		PROVIDER_NAME,
+		DISCUSS_STATUS,
+		DEL_FLG,
+		CRT_ID,
+		CRT_TIME,
+		VER
+		)
+		VALUES
+		(
+		#{keyId},
+		#{standardId},
+		#{slPdId},
+		#{tncStdItemId},
+		#{tncStdVal},
+		now(),
+		#{providerCode},
+		#{providerName},
+		#{discussStatus},
+		#{delFlg},
+		#{crtId},
+		now(),
+		#{ver}
+		)
+	</insert>
+	<select id="findSlPdTncStdNew" resultType="com.msk.core.entity.SlPdTncStdNew" parameterType="BaseParam">
+		SELECT
+			SL_CODE AS slCode,
+			SL_PD_ID as slPdId,
+			STANDARD_ID as standardId,
+			STD_ITEM_ID as stdItemId,
+			AGREE_FLG as agreeFlg,
+			STD_VAL as stdVal,
+			DEL_FLG as delFlg,
+			VER as ver
+		FROM
+		sl_pd_tnc_std_new AS A
+		WHERE
+		A.SL_CODE=#{filterMap.slCode} AND
+		A.SL_PD_ID=#{filterMap.slPdId} AND
+		A.STD_ITEM_ID=#{filterMap.stdItemId}
+		AND (DEL_FLG =0 OR DEL_FLG IS NULL)
+	</select>
+	<select id="getMctCount" resultType="com.msk.sl.bean.SlPdStdAgreeFlgBean" parameterType="BaseParam">
+		SELECT
+			A.AGREE_FLG AS agreeFlg,COUNT(1) AS flgCount
+		FROM
+			sl_pd_mct_std_new AS A
+		WHERE
+			A.SL_PD_ID = #{filterMap.slPdId}
+		AND A.SL_CODE = #{filterMap.slCode}
+		GROUP BY A.AGREE_FLG
+	</select>
+	<select id="getTncCount" resultType="com.msk.sl.bean.SlPdStdAgreeFlgBean" parameterType="BaseParam">
+		SELECT
+		A.AGREE_FLG AS agreeFlg,COUNT(1) AS flgCount
+		FROM
+		sl_pd_tnc_std_new AS A
+		WHERE
+		A.SL_PD_ID = #{filterMap.slPdId}
+		AND A.SL_CODE = #{filterMap.slCode}
+		GROUP BY A.AGREE_FLG
+	</select>
+	<select id="getStdCount" resultType="Integer" parameterType="BaseParam">
+		SELECT
+			Count(1)
+		FROM
+			sl_pd_tnc_std_other AS A
+		WHERE
+			A.SL_PD_ID = #{filterMap.slPdId}
+		AND A.SL_CODE = #{filterMap.slCode}
+		AND A.STD_FLAG = #{filterMap.stdFlg}
+	</select>
+</mapper>

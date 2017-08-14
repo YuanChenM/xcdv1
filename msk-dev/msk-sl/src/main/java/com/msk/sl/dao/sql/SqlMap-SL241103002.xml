@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL241103002Logic">
+    <insert id="save" parameterType="com.msk.core.entity.SlEnterprise">
+        INSERT INTO sl_enterprise
+        (EP_ID,LIC_NO,LIC_ADDR,LIC_BUSI_TYPE,
+        LIC_BUSI_SCOPE,LIC_LEGAL_PERSON,
+        LIC_REG_CAPITAL,LIC_PAIDIN_CAPITAL,LIC_CRT_DATE,
+        LIC_TERM_BEGIN,LIC_TERM_END,TAX_NO,TAX_VAT_NO,ORG_NO,
+        BAL_LEGAL_PERSON,BAL_BANK,BAL_ACCOUNT)
+        VALUES (#{epId},#{licNo},#{licAddr},#{licBusiType},
+        #{licBusiScope},#{licLegalPerson},#{licRegCapital},
+        #{licPaidinCapital},#{licCrtDate},#{licTermBegin},
+        #{licTermEnd},#{taxNo},#{taxVatNo},#{orgNo},#{balLegalPerson},
+        #{balBank},#{balAccount})
+    </insert>
+    <insert id="saveSeller" parameterType="com.msk.core.entity.SlSeller">
+        INSERT INTO sl_seller
+        (SL_ACCOUNT,SL_AREA_CODE,SL_CODE,EP_ID,SL_MAIN_CLASS)
+        VALUES (#{slAccount},#{slAreaCode},#{slCode},#{epId},#{slMainClass})
+    </insert>
+    <select id="findList" resultType="com.msk.core.entity.SlSeller"
+            parameterType="com.msk.core.bean.BaseParam">
+        select
+        SL_AREA_CODE
+        from sl_seller
+        WHERE
+        SL_AREA_CODE=#{filterMap.slAreaCode}
+    </select>
+    <select id="findSlcode" resultType="com.msk.core.entity.SlSeller"
+            parameterType="com.msk.core.bean.BaseParam">
+        select
+        max(SL_CODE) from sl_seller
+        where SL_AREA_CODE=#{filterMap.slAreaCode}
+    </select>
+    <select id="findAndCheck" resultType="com.msk.core.entity.SlSeller"
+            parameterType="com.msk.core.bean.BaseParam">
+        select
+        SL_ACCOUNT
+        from sl_seller
+        WHERE
+        SL_ACCOUNT=#{filterMap.slAccount}
+    </select>
+
+</mapper>

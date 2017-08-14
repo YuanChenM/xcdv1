@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170223Logic">
+    <select id="findList" parameterType="com.msk.core.bean.RsPageParam"
+            resultType="com.msk.pl.bean.IPL20170223RsResultBean">
+        SELECT
+        <include refid="selectSql"/>
+        FROM PL_BS_TASK A
+        LEFT JOIN
+        (select B.TASK_ID,SUM(case when(B.STATUS=0) then 1 else 0 end ) invalid,
+        SUM(case when(B.STATUS=1) then 1 else 0 end ) valid
+        from PL_INFO B WHERE B.DEL_FLG=0 or B.DEL_FLG is NULL
+        GROUP BY B.TASK_ID) C
+        ON A.TASK_ID=C.TASK_ID
+        <if test="selectRule==1">
+            LEFT JOIN pl_terminal_partner D ON A.TERMINAL_ID=D.TERMINAL_ID AND A.PARTNER_ID=D.PARTNER_ID
+            <include refid="whereCondition"/>
+            group by A.TERMINAL_ID
+        </if>
+        <if test="selectRule==2">
+            LEFT JOIN PL_DOMAIN_BS E ON A.BS_CODE=E.BS_CODE AND A.TERMINAL_ID=E.TERMINAL_ID
+            <include refid="whereCondition"/>
+            GROUP BY A.BS_CODE
+        </if>
+        <if test="selectRule==0">
+            <include refid="whereCondition"/>
+        </if>
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+    <sql id="selectSql">
+        <if test="selectRule==1">
+            A.TERMINAL_ID as terminalId,
+            D.TERMINAL_NAME as terminalName,
+        </if>
+        <if test="selectRule==2">
+            A.BS_CODE as bsCode,
+            E.BS_NAME as bsName,
+        </if>
+        SUM(A.NEED_RECORD_NUMBER) as needRecordNumber,
+        SUM(C.valid) as alreadyRecordNumber,
+        SUM(C.invalid) as invalidInfo,
+        round(SUM(A.ALREADY_RECORD_NUMBER)/SUM(A.NEED_RECORD_NUMBER)*100,2) as percent
+    </sql>
+    <sql id="whereCondition">
+        WHERE A.PARTNER_ID=#{partnerId}
+        AND DATE_FORMAT(A.REPORT_DATE,'%Y-%m')=#{crtDate}
+        AND (A.DEL_FLG=0 or A.DEL_FLG is NULL)
+    </sql>
+    <select id="getPageCount" resultType="Integer"
+            parameterType="com.msk.core.bean.BasePageParam">
+        SELECT count(1) FROM
+        ( SELECT
+        <include refid="selectSql"/>
+        FROM PL_BS_TASK A
+        LEFT JOIN
+        (select B.TASK_ID,SUM(case when(B.STATUS=0) then 1 else 0 end ) invalid,
+        SUM(case when(B.STATUS=1) then 1 else 0 end ) valid
+        from PL_INFO B
+        GROUP BY B.TASK_ID) C
+        ON A.TASK_ID=C.TASK_ID
+        <if test="selectRule==1">
+            LEFT JOIN pl_terminal_partner D ON A.TERMINAL_ID=D.TERMINAL_ID AND A.PARTNER_ID=D.PARTNER_ID
+            <include refid="whereCondition"/>
+            group by A.TERMINAL_ID
+        </if>
+        <if test="selectRule==2">
+            LEFT JOIN PL_DOMAIN_BS E ON A.BS_CODE=E.BS_CODE AND A.TERMINAL_ID=E.TERMINAL_ID
+            <include refid="whereCondition"/>
+            GROUP BY A.BS_CODE
+        </if>
+        <if test="selectRule==0">
+            <include refid="whereCondition"/>
+        </if>
+        ) E
+    </select>
+</mapper>

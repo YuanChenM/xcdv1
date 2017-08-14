@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.ds.logic.DS174103Logic">
+    <sql id="selectFrom">
+          FROM sl_product b
+         INNER JOIN sl_seller a
+            ON b.SL_CODE = a.SL_CODE
+         INNER JOIN sl_pd_pkg c
+            ON c.PD_CLASSES_CODE = b.PD_CLASSES_CODE
+           AND c.PD_BREED_CODE = b.PD_BREED_CODE
+           AND c.PD_FEATURE_CODE = b.PD_FEATURE_CODE
+         INNER JOIN sl_enterprise ep
+            ON ep.EP_ID = a.EP_ID
+         INNER JOIN pd_classes pc
+            ON pc.CLASSES_CODE = b.PD_CLASSES_CODE
+         INNER JOIN pd_breed pb
+            ON pb.CLASSES_CODE = b.PD_CLASSES_CODE
+           AND pb.BREED_CODE = b.PD_BREED_CODE
+         INNER JOIN pd_feature pf
+            ON pf.CLASSES_CODE = b.PD_CLASSES_CODE
+           AND pf.BREED_CODE = b.PD_BREED_CODE
+           AND pf.FEATURE_CODE = b.PD_FEATURE_CODE
+         INNER JOIN pd_grade pg
+            ON pg.GRADE_CODE = b.SL_TNC_GRADE_CODE
+    </sql>
+    <sql id="whereCondition">
+        <where>
+            <if test="filterMap.slCode!=null and filterMap.slCode!=''">
+                AND a.SL_CODE like #{filterMap.slCode}
+            </if>
+            <if test="filterMap.slName!=null and filterMap.slName!=''">
+                AND ep.LIC_NAME like #{filterMap.slName}
+            </if>
+            <if test="filterMap.classesCode!=null and filterMap.classesCode!=''">
+                AND b.PD_CLASSES_CODE like #{filterMap.classesCode}
+            </if>
+            <if test="filterMap.breedCode!=null and filterMap.breedCode!=''">
+                AND b.PD_BREED_CODE like #{filterMap.breedCode}
+            </if>
+            <if test="filterMap.featureCode!=null and filterMap.featureCode!=''">
+                AND b.PD_FEATURE_CODE like #{filterMap.featureCode}
+            </if>
+            <if test="filterMap.breedName!=null and filterMap.breedName!=''">
+                AND pb.BREED_NAME like #{filterMap.breedName}
+            </if>
+            <if test="filterMap.classesName!=null and filterMap.classesName!=''">
+                AND pc.CLASSES_NAME like #{filterMap.classesName}
+            </if>
+            <if test="filterMap.featureName!=null and filterMap.featureName!=''">
+                AND pf.FEATURE_NAME like #{filterMap.featureName}
+            </if>
+            <if test="filterMap.gradeName!=null and filterMap.gradeName!=''">
+                AND b.SL_TNC_GRADE_CODE = #{filterMap.gradeName}
+            </if>
+            <if test="filterMap.pkgCode!=null and filterMap.pkgCode!=''">
+                AND c.PKG_CODE = #{filterMap.pkgCode}
+            </if>
+            AND NOT EXISTS (SELECT 1
+                              FROM ds_sl_pd_lot l
+                             WHERE l.SL_CODE = b.SL_CODE
+                               AND l.GRADE_CODE = b.SL_TNC_GRADE_CODE
+                               AND l.CLASSES_CODE = c.PD_CLASSES_CODE
+                               AND l.BREED_CODE = c.PD_BREED_CODE
+                               AND l.FEATURE_CODE = c.PD_FEATURE_CODE
+                               AND l.PKG_CODE = c.PKG_CODE)
+        </where>
+    </sql>
+    <select id="getPageCount" parameterType="BaseParam" resultType="int">
+        SELECT count(distinct b.SL_CODE,b.PD_CLASSES_CODE,b.PD_BREED_CODE,b.PD_FEATURE_CODE,b.SL_TNC_GRADE_CODE,c.PKG_CODE)
+        <include refid="selectFrom" />
+        <include refid="whereCondition" />
+    </select>
+    <select id="findPageList" parameterType="BaseParam" resultType="com.msk.core.entity.DsSlPdLot">
+        SELECT DISTINCT
+          b.SL_CODE AS slCode
+        , b.PD_CLASSES_CODE AS classesCode
+        , b.PD_BREED_CODE AS breedCode
+        , b.PD_FEATURE_CODE AS featureCode
+        , b.SL_TNC_GRADE_CODE AS gradeCode
+        , c.PKG_CODE AS pkgCode
+        , ep.EP_NAME AS slName
+        , ep.LIC_ADDR as manufacturer
+        , pc.CLASSES_NAME AS classesName
+        , pb.BREED_NAME AS breedName
+        , pf.FEATURE_NAME AS featureName
+        , pg.GRADE_NAME AS gradeName
+        <include refid="selectFrom" />
+        <include refid="whereCondition" />
+        order by slCode, classesCode, breedCode, featureCode, pkgCode
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize}
+        </if>
+    </select>
+
+    <insert id="save" parameterType="com.msk.core.entity.DsSlPdLot">
+        INSERT INTO ds_sl_pd_lot
+        (LOT_ID,
+        <if test="classesCode!=null">
+            CLASSES_CODE,
+        </if>
+        <if test="breedCode!=null">
+            BREED_CODE,
+        </if>
+        <if test="featureCode!=null">
+            FEATURE_CODE,
+        </if>
+        <if test="breedName!=null">
+            BREED_NAME,
+        </if>
+        <if test="gradeCode!=null">
+            GRADE_CODE,
+        </if>
+        <if test="featureName!=null">
+            FEATURE_NAME,
+        </if>
+        <if test="pkgCode!=null">
+            PKG_CODE,
+        </if>
+        <if test="gradeName!=null">
+            GRADE_NAME,
+        </if>
+        <if test="slCode!=null">
+            SL_CODE,
+        </if>
+        <if test="lgcsCode!=null">
+            LGCS_CODE,
+        </if>
+        <if test="slName!=null">
+            SL_NAME,
+        </if>
+        <if test="dateCode!=null">
+            DATE_CODE,
+        </if>
+        <if test="lgcsName!=null">
+            LGCS_NAME,
+        </if>
+        <if test="pdCode!=null">
+            PD_CODE,
+        </if>
+        <if test="pdName!=null">
+            PD_NAME,
+        </if>
+        <if test="pdStatus!=null">
+            PD_STATUS,
+        </if>
+        <if test="origin!=null">
+            ORIGIN,
+        </if>
+        <if test="prodcingarea!=null">
+            PRODCINGAREA,
+        </if>
+        <if test="manufacturer!=null">
+            MANUFACTURER,
+        </if>
+        <if test="brand!=null">
+            BRAND,
+        </if>
+        <if test="netweight!=null">
+            NETWEIGHT,
+        </if>
+        <if test="pkgSpec!=null">
+            PKG_SPEC,
+        </if>
+        <if test="pkgWay!=null">
+            PKG_WAY,
+        </if>
+        <if test="pdTime!=null">
+            PD_TIME,
+        </if>
+        <if test="shelfLife!=null">
+            SHELF_LIFE,
+        </if>
+        <if test="processingWay!=null">
+            PROCESSING_WAY,
+        </if>
+        <if test="storageWay!=null">
+            STORAGE_WAY,
+        </if>
+        <if test="classesName!=null">
+            CLASSES_NAME,
+        </if>
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER
+        )
+        SELECT
+        IFNULL(max(LOT_ID), 0) + 1,
+        <if test="classesCode!=null">
+            #{classesCode},
+        </if>
+        <if test="breedCode!=null">
+            #{breedCode},
+        </if>
+        <if test="featureCode!=null">
+            #{featureCode},
+        </if>
+        <if test="breedName!=null">
+            #{breedName},
+        </if>
+        <if test="gradeCode!=null">
+            #{gradeCode},
+        </if>
+        <if test="featureName!=null">
+            #{featureName},
+        </if>
+        <if test="pkgCode!=null">
+            #{pkgCode},
+        </if>
+        <if test="gradeName!=null">
+            #{gradeName},
+        </if>
+        <if test="slCode!=null">
+            #{slCode},
+        </if>
+        <if test="lgcsCode!=null">
+            #{lgcsCode},
+        </if>
+        <if test="slName!=null">
+            #{slName},
+        </if>
+        <if test="dateCode!=null">
+            #{dateCode},
+        </if>
+        <if test="lgcsName!=null">
+            #{lgcsName},
+        </if>
+        <if test="pdCode!=null">
+            #{pdCode},
+        </if>
+        <if test="pdName!=null">
+            #{pdName},
+        </if>
+        <if test="pdStatus!=null">
+            #{pdStatus},
+        </if>
+        <if test="origin!=null">
+            #{origin},
+        </if>
+        <if test="prodcingarea!=null">
+            #{prodcingarea},
+        </if>
+        <if test="manufacturer!=null">
+            #{manufacturer},
+        </if>
+        <if test="brand!=null">
+            #{brand},
+        </if>
+        <if test="netweight!=null">
+            #{netweight},
+        </if>
+        <if test="pkgSpec!=null">
+            #{pkgSpec},
+        </if>
+        <if test="pkgWay!=null">
+            #{pkgWay},
+        </if>
+        <if test="pdTime!=null">
+            #{pdTime},
+        </if>
+        <if test="shelfLife!=null">
+            #{shelfLife},
+        </if>
+        <if test="processingWay!=null">
+            #{processingWay},
+        </if>
+        <if test="storageWay!=null">
+            #{storageWay},
+        </if>
+        <if test="classesName!=null">
+            #{classesName},
+        </if>
+        #{delFlg},
+        #{crtId},
+        #{crtTime},
+        #{updId},
+        #{updTime},
+        #{actId},
+        #{actTime},
+        #{ver}
+        FROM ds_sl_pd_lot
+    </insert>
+    <select id="findLgcsInfo" parameterType="BaseParam" resultType="com.msk.core.entity.DsSlPdLot">
+        SELECT
+        lgcs.LGCS_AREA_CODE AS lgcsCode,
+        lgcs.LGCS_AREA_NAME AS lgcsName,
+        CONCAT(city.CITY_NAME,dist.DISTRICT_NAME) AS prodcingarea
+        FROM
+        md_logistics_area lgcs
+        INNER JOIN comm_city city ON city.LGCS_ID = lgcs.LGCS_ID
+        INNER JOIN comm_district dist ON dist.CITY_ID = city.CITY_ID
+        WHERE  dist.DISTRICT_CODE=#{filterMap.districtCode}
+    </select>
+</mapper>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL241119Logic">
+    <sql id="selectSql">
+    A.STANDARD_ID AS standardId,
+    A.NORMS_CODE AS normsCode,
+    A.NORMS_SUTTLE AS normsSuttle,
+    A.NORMS_ERROR AS normsError,
+    A.NORMS_NUMBER AS normsNumber,
+    A.NORMS_SIZE AS normsSize,
+    A.NORMS_TEXTURE AS normsTexture,
+    A.NORMS_OUT AS normsOut,
+    A.NORMS_KG AS normsKg,
+    A.NORMS_OUT_SIZE AS normsOutSize,
+    A.NORMS_OUT_TEXTURE AS normsOutTexture,
+    A.NORMS_TEN AS normsTen,
+    A.DEL_FLG AS delFlg,
+    A.CRT_ID AS crtId,
+    A.CRT_TIME AS crtTime,
+    A.UPD_ID AS updld,
+    A.UPD_TIME AS updTime,
+    A.ACT_ID AS actId,
+    A.ACT_TIME AS actTime,
+    A.VER AS ver,
+    B.SL_PD_PKG_ID AS slPdPkgId,
+    (
+		CASE
+		WHEN B.SL_PD_PKG_ID IS NOT NULL THEN
+			'1'
+		ELSE
+			'0'
+		END
+	) AS checkFlag
+  </sql>
+    <select id="findPageList" resultType="com.msk.sl.bean.SL241119Bean"
+            parameterType="com.msk.core.bean.BasePageParam">
+        select
+        <include refid="selectSql"/>
+        from PD_NORMS_STD AS A
+        LEFT JOIN sl_pd_pkg B ON B.PKG_CODE=A.NORMS_CODE AND A.STANDARD_ID=B.STANDARD_ID AND B.SL_CODE=#{filterMap.slCode} AND B.SL_PD_ID=#{filterMap.slPdId}
+        <where>
+            (A.DEL_FLG=0 OR A.DEL_FLG IS NULL)
+            <if test="filterMap.standardId!='' and filterMap.standardId!=null">
+                AND A.STANDARD_ID=#{filterMap.standardId}
+            </if>
+            <if test="filterMap.normsCode!='' and filterMap.normsCode!=null">
+                AND A.NORMS_CODE=#{filterMap.normsCode}
+            </if>
+        </where>
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+    <select id="getPageCount" resultType="Integer"
+            parameterType="com.msk.core.bean.BasePageParam">
+        SELECT COUNT(1)
+        FROM PD_NORMS_STD AS A
+        LEFT JOIN sl_pd_pkg B ON B.PKG_CODE=A.NORMS_CODE AND A.STANDARD_ID=B.STANDARD_ID AND B.SL_CODE=#{filterMap.slCode} AND B.SL_PD_ID=#{filterMap.slPdId}
+        <where>
+            <if test="filterMap.standardId!='' and filterMap.standardId!=null">
+                AND A.STANDARD_ID=#{filterMap.standardId}
+            </if>
+            <if test="filterMap.normsCode!='' and filterMap.normsCode!=null">
+                AND A.NORMS_CODE=#{filterMap.normsCode}
+            </if>
+        </where>
+    </select>
+</mapper>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pd.logic.PD14114801Logic">
+
+    <update id="modify" parameterType="com.msk.pd.bean.PD141148MctProBean" >
+        UPDATE PD_MCT_STD_DISCUSS_PROVIDER  SET
+        FIX_DATE = #{fixDate}
+        ,DISCUSS_STATUS = #{discussStatus}
+        ,UPD_TIME = NOW()
+        WHERE KEY_ID =#{keyId}
+    </update >
+
+    <!--查询所有供应商为结案日,和未结案日-->
+    <select id="findList" parameterType = "BaseParam" resultType = "com.msk.pd.bean.PD141148MctProBean">
+        SELECT
+		 A.KEY_ID AS keyId
+		,A.MCT_STD_ITEM_ID AS mctStdItemId
+		,A.SL_PD_ID AS slPdId
+		,A.MCT_STD_VAL AS mctStdVal
+		,A.RAISE_DATE AS raiseDate
+		,A.FIX_DATE AS fixDate
+		,A.DISCUSS_STATUS AS discussStatus
+		FROM PD_MCT_STD_DISCUSS_PROVIDER A
+		WHERE A.STANDARD_ID=#{filterMap.standardId}
+		AND A.MCT_STD_ITEM_ID = #{filterMap.mctStdItemId}
+		AND A.DISCUSS_STATUS != #{filterMap.discussStatus}
+		ORDER BY A.DISCUSS_STATUS DESC
+    </select>
+
+
+
+</mapper>

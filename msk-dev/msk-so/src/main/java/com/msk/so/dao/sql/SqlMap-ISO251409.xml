@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO251409Logic">
+    <resultMap id="OrderReturn" type="com.msk.so.bean.ISO251409RsReturnInfos">
+        <result column="RETURN_ID" property="returnId"/>
+        <result column="RETURN_CODE" property="returnCode"/>
+        <result column="CRT_TIME" property="crtTime"/>
+        <result column="RETURN_STATUS" property="returnStatus"/>
+        <result column="VER" property="ver"/>
+        <result column="RETURN_SOURCE" property="returnSource"/>
+        <result column="RETURN_TYPE" property="returnType"/>
+        <result column="RETURN_TIME" property="returnTime"/>
+        <result column="RETURN_AMOUNT" property="returnAmount"/>
+        <result column="RETURN_MODE" property="returnMode"/>
+        <result column="RETURN_REASON_CODE" property="returnReasonCode"/>
+        <result column="RETURN_REASON_DES" property="returnReasonDes"/>
+        <result column="APPLY_REMARK" property="applyRemark"/>
+        <result column="image1" property="image1"/>
+        <result column="image2" property="image2"/>
+        <result column="image3" property="image3"/>
+        <result column="image4" property="image4"/>
+        <result column="image5" property="image5"/>
+        <result column="IS_PAID" property="isPaid"/>
+        <result column="REFUND_MODE" property="refundMode"/>
+        <result column="ORDER_ID" property="orderId"/>
+        <result column="ORDER_CODE" property="orderCode"/>
+        <result column="ORDER_TIME" property="orderTime"/>
+        <collection property="returnDetails" ofType="com.msk.so.bean.ISO251409RsReturnDetails">
+            <result column="RETURN_DETAIL_ID" property="returnDetailId"/>
+            <result column="PD_CODE" property="pdCode"/>
+            <result column="PD_NAME" property="pdName"/>
+            <result column="PD_LEVEL" property="pdLevel"/>
+            <result column="UNIT" property="unit"/>
+            <result column="PACKING_VOLUME" property="packingVolume"/>
+            <result column="WEIGHT" property="weight"/>
+            <result column="VOLUME" property="volume"/>
+            <result column="PD_PRICE" property="orderPrice"/>
+            <result column="PRICE_CYCLE" property="priceCycle"/>
+            <result column="RETURN_QTY" property="returnQty"/>
+            <result column="RECEIVE_QTY" property="receiveQty"/>
+            <result column="ORDER_DETAIL_ID" property="orderDetailId"/>
+            <result column="detailReason" property="returnReasonCode"/>
+            <result column="detailReasonDes" property="returnReasonDes"/>
+        </collection>
+    </resultMap>
+
+    <sql id="whereCondtion">
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(buyersId)">
+            <!--       Bug #3816           -->
+            AND SORO.BUYERS_ID = #{buyersId}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(roleType)">
+            <!--       Bug #3816           -->
+            AND SORO.ROLE_TYPE = #{roleType}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(sellerCode)">
+            AND SORO.SELLER_CODE = #{sellerCode}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(returnStatus)">
+            AND SORO.RETURN_STATUS IN (#{returnStatus})
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(returnTimeFrom)">
+            AND SORO.APPLY_TIME <![CDATA[ >= DATE_FORMAT(#{returnTimeFrom},'%Y-%c-%d 00:00:00')  ]]>
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(returnTimeTo)">
+            AND SORO.APPLY_TIME<![CDATA[ <= DATE_FORMAT(#{returnTimeTo},'%Y-%c-%d 23:59:59')  ]]>
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(returnSource)">
+            AND SORO.RETURN_SOURCE = #{returnSource}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(districtCode)">
+            AND SORO.DISTRICT_CODE = #{districtCode}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(refundMode)">
+            AND SORO.REFUND_MODE = #{refundMode}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(returnAmountMin)">
+            AND SORO.RETURN_AMOUNT <![CDATA[ >= #{returnAmountMin} ]]>
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(returnAmountMax)">
+            AND SORO.RETURN_AMOUNT <![CDATA[ <= #{returnAmountMax} ]]>
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(isInvoice)">
+            AND SORO.IS_INVOICE = #{isInvoice}
+        </if>
+        <!--<if test="@com.msk.core.utils.MybatisTag@notEmpty(selfDeliveryFlg)">
+            AND SOO.SELF_DELIVERY_FLAG = #{selfDeliveryFlg}
+        </if> -->
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(sellers)">
+            AND SORO.SELLERS = #{sellers}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderTaker)">
+            AND SORO.ORDER_TAKER = #{orderTaker}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderDetailType)">
+            AND SOOD.ORDER_DETAIL_TYPE = #{orderDetailType}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderDetailLevel)">
+            AND SOOD.ORDER_DETAIL_LEVEL = #{orderDetailLevel}
+        </if>
+        <!-- Modify for bug#726 at 2016/06/02 by wangjianzhou Start.-->
+        <if test="@com.msk.core.utils.MybatisTag@notListEmpty(returnList)">
+            AND(
+            <foreach collection="returnList" item="item" open="(" close=")" separator="or">
+                <if test="@com.msk.core.utils.MybatisTag@notEmpty(item.returnId)">
+                    SORO.RETURN_ID = #{item.returnId}
+                </if>
+                <if test="@com.msk.core.utils.MybatisTag@isEmpty(item.returnId)">
+                    1=1
+                </if>
+            </foreach>
+            OR
+            <foreach collection="returnList" item="item" open="(" close=")" separator="or">
+                <if test="@com.msk.core.utils.MybatisTag@notEmpty(item.returnCode)">
+                    SORO.RETURN_CODE = #{item.returnCode}
+                </if>
+                <if test="@com.msk.core.utils.MybatisTag@isEmpty(item.returnCode)">
+                    1=1
+                </if>
+            </foreach>
+            )
+        </if>
+        <!-- Modify for bug#726 at 2016/06/02 by wangjianzhou end.-->
+    </sql>
+
+    <select id="findPageList" parameterType="BaseParam" resultMap="OrderReturn">
+        SELECT
+        IFNULL(SORO.RETURN_ID, '') RETURN_ID
+        , IFNULL(SORO.RETURN_CODE, '') RETURN_CODE
+        , SORO.CRT_TIME
+        , IFNULL(SORO.RETURN_STATUS, '') RETURN_STATUS
+        , IFNULL(SORO.RETURN_SOURCE, '') RETURN_SOURCE
+        , IFNULL(SORO.RETURN_TYPE, '') RETURN_TYPE
+        , SORO.APPLY_TIME AS RETURN_TIME
+        , IFNULL(SORO.RETURN_AMOUNT, '') RETURN_AMOUNT
+        , IFNULL(SORO.RETURN_MODE, '') RETURN_MODE
+        , IFNULL(SORO.RETURN_REASON, '') RETURN_REASON_CODE
+        , IFNULL(SRR.REASON_NAME, '') RETURN_REASON_DES
+        , IFNULL(SORO.APPLY_REMARK, '') APPLY_REMARK
+        , IFNULL(SORO.IMAGE1, '') AS image1
+        , IFNULL(SORO.IMAGE2, '') AS image2
+        , IFNULL(SORO.IMAGE3, '') AS image3
+        , IFNULL(SORO.IMAGE4, '') AS image4
+        , IFNULL(SORO.IMAGE5, '') AS image5
+        , IFNULL(SORO.REFUND_MODE, '') REFUND_MODE
+        , IFNULL(SORO.ORDER_ID, '') ORDER_ID
+        , IFNULL(SORO.ORDER_CODE, '') ORDER_CODE
+        , SOO.ORDER_TIME
+        , IFNULL(SOROD.DETAIL_ID, '') RETURN_DETAIL_ID
+        , IFNULL(SOROD.PD_CODE, '') PD_CODE
+        , IFNULL(SOROD.PD_NAME, '') PD_NAME
+        , IFNULL(SOROD.PD_LEVEL, '') PD_LEVEL
+        , IFNULL(SOROD.UNIT, '') UNIT
+        , IFNULL(SOROD.PACKING_VOLUME, '0.00') PACKING_VOLUME
+        , IFNULL(SOROD.WEIGHT, '0.00') WEIGHT
+        , IFNULL(SOROD.VOLUME, '0.00') VOLUME
+        , IFNULL(SOOD.PD_PRICE, '0.00') PD_PRICE
+        , IFNULL(SOOD.PRICE_CYCLE, '') PRICE_CYCLE
+        , IFNULL(SOROD.RETURN_QTY, '') RETURN_QTY
+        , IFNULL(SOOD.RECEIVE_QTY, '0.00') RECEIVE_QTY
+        , IFNULL(SOOD.ORDER_DETAIL_ID, '') ORDER_DETAIL_ID
+        , IFNULL(SOROD.DETAIL_REASON, '') as detailReason
+        , IFNULL(SRRDetail.REASON_NAME, '') as detailReasonDes
+        , IFNULL(SORO.VER, '') VER
+        , SORO.IS_PAID
+        FROM SO_RETURN AS SORO
+        INNER JOIN SO_ORDER AS SOO ON SORO.ORDER_ID = SOO.ORDER_ID
+        LEFT JOIN SO_RETURN_DETAIL AS SOROD ON SORO.RETURN_ID = SOROD.RETURN_ID
+        LEFT JOIN so_order_detail_availability AS SODA ON SOROD.ORDER_DETAIL_AVAILABILITY_ID =
+        SODA.ORDER_DETAIL_AVAILABILITY_ID
+        LEFT JOIN SO_ORDER_DETAIL AS SOOD ON SOOD.ORDER_DETAIL_ID = SODA.ORDER_DETAIL_ID
+        LEFT JOIN so_return_reason AS SRRDetail ON SRRDetail.REASON_ID = SOROD.DETAIL_REASON
+        LEFT JOIN so_return_reason AS SRR ON SRR.REASON_ID = SORO.RETURN_REASON
+        WHERE 1=1
+        <include refid="whereCondtion"/>
+        ORDER BY SORO.RETURN_ID DESC ,SORO.UPD_TIME DESC
+        <if test="startPos>0 and pageCount>0">
+            LIMIT #{startPos},#{pageCount}
+        </if>
+    </select>
+    <select id="getPageCount" parameterType="BaseParam" resultType="java.lang.Integer">
+        SELECT
+        COUNT(1)
+        FROM SO_RETURN AS SORO
+        INNER JOIN SO_ORDER AS SOO ON SORO.ORDER_ID = SOO.ORDER_ID
+        LEFT JOIN SO_RETURN_DETAIL AS SOROD ON SORO.RETURN_ID = SOROD.RETURN_ID
+        LEFT JOIN so_order_detail_availability AS SODA ON SOROD.ORDER_DETAIL_AVAILABILITY_ID =
+        SODA.ORDER_DETAIL_AVAILABILITY_ID
+        LEFT JOIN SO_ORDER_DETAIL AS SOOD ON SOOD.ORDER_DETAIL_ID = SODA.ORDER_DETAIL_ID
+        WHERE 1=1
+        <include refid="whereCondtion"/>
+    </select>
+
+
+</mapper>

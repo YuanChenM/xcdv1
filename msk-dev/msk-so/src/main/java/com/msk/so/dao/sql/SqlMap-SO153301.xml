@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.SO153301Logic">
+    <!-- 表字段 -->
+	<sql id="selectSql">
+        TRANS_ID AS transId,
+        IFNULL(SO.BUSINESS_MAIN,'') AS businessMain,
+        IFNULL(sa.SL_SHOW_NAME,'') AS mainSellerName,
+        IFNULL(BUY.BUYER_NAME,'') AS mainBuyerName,
+        IFNULL(BUSINESS_ASSISTANT,'') AS businessAssistant,
+        IFNULL(saa.SL_SHOW_NAME,'') AS assSellerName,
+        IFNULL(BUYY.BUYER_NAME,'') AS assBuyerName,
+        BUSINESS_MAN_ROLE AS businessManRole,
+        BUSINESS_ASSISTANT_ROLE AS businessAssistantRole,
+        SELECT_CODE AS selectCode,
+        SELECT_TYPE AS selectType,
+        SETTLEMENT AS settlement,
+        PAID_SEQ AS paidSeq,
+        ORDER_AMOUNT AS orderAmount,
+        DATE_FORMAT(TRAN_TIME,'%Y-%m-%d %T')  AS tranTime,
+        PLATFORM_TYPE AS platformType,
+        AMOUNT_TYPE AS amountType,
+        IFNULL(REMARK,'') AS remark,
+        DATE_FORMAT(SO.CRT_TIME,'%Y-%m-%d %T') AS createTime
+	</sql>
+    <sql id="selectFrom">
+        FROM so_cp_transaction_detail AS SO
+        LEFT JOIN sl_seller AS SL
+        ON SO.BUSINESS_MAIN = SL.SL_CODE
+        LEFT JOIN by_buyer_basic_info AS BUY
+        ON SO.BUSINESS_MAIN = BUY.BUYER_ID
+        LEFT JOIN sl_account AS sa
+        ON sa.SL_ACCOUNT=sl.SL_ACCOUNT
+        LEFT JOIN sl_seller AS SLL
+        ON SO.BUSINESS_ASSISTANT = SLL.SL_CODE
+        LEFT JOIN by_buyer_basic_info AS BUYY
+        ON SO.BUSINESS_ASSISTANT = BUYY.BUYER_ID
+        LEFT JOIN sl_account AS saa
+   	    ON saa.SL_ACCOUNT=sll.SL_ACCOUNT
+    </sql>
+    <!--条件 -->
+	<sql id="whereCondition">
+		<where>
+            <if test="filterMap.transId!=null and filterMap.transId!=''">
+                  AND TRANS_ID=#{transId}
+            </if> 
+            <if test="filterMap.businessMain!=null and filterMap.businessMain!=''">
+                AND ((BUSINESS_MAIN = #{filterMap.businessMain} AND BUSINESS_MAN_ROLE = 4)
+                OR (BUSINESS_ASSISTANT = #{filterMap.businessMain} AND BUSINESS_ASSISTANT_ROLE = 4))
+            </if>
+            <if test="filterMap.businessAssistant!=null and filterMap.businessAssistant!=''">
+                  AND BUSINESS_ASSISTANT=#{businessAssistant}
+            </if> 
+            <if test="filterMap.businessManRole!=null and filterMap.businessManRole!=''">
+                  AND BUSINESS_MAN_ROLE=#{businessManRole}
+            </if> 
+            <if test="filterMap.businessAssistantRole!=null and filterMap.businessAssistantRole!=''">
+                  AND BUSINESS_ASSISTANT_ROLE=#{businessAssistantRole}
+            </if> 
+            <if test="filterMap.selectCode!=null and filterMap.selectCode!=''">
+                  AND SELECT_CODE=#{selectCode}
+            </if> 
+            <if test="filterMap.selectType!=null and filterMap.selectType!=''">
+                  AND SELECT_TYPE=#{selectType}
+            </if>
+            <if test="filterMap.settlement!=null and filterMap.settlement!=''">
+                <if test="filterMap.settlement == 0">
+                    AND SETTLEMENT=0
+                </if>
+                <if test="filterMap.settlement == 1">
+                    AND SETTLEMENT=1
+                </if>
+            </if>
+            <if test="filterMap.paidSeq!=null and filterMap.paidSeq!=''">
+                  AND PAID_SEQ=#{paidSeq}
+            </if>
+            <if test="filterMap.businessName!=null and filterMap.businessName!=''">
+                AND (((SL.SL_ACCOUNT like #{filterMap.businessName} AND BUSINESS_MAN_ROLE = 4) OR (BUY.BUYER_NAME like #{filterMap.businessName} AND BUSINESS_MAN_ROLE = 4)) OR
+                ((SLL.SL_ACCOUNT like #{filterMap.businessName} AND BUSINESS_ASSISTANT_ROLE = 4) OR (BUYY.BUYER_NAME like #{filterMap.businessName} AND BUSINESS_ASSISTANT_ROLE = 4)))
+            </if>
+            <if test="filterMap.orderAmountStart!=null and filterMap.orderAmountStart!=''">
+                <![CDATA[ AND ORDER_AMOUNT >= #{filterMap.orderAmountStart}]]>
+            </if>
+            <if test="filterMap.orderAmountEnd!=null and filterMap.orderAmountEnd!=''">
+                <![CDATA[ AND ORDER_AMOUNT <= #{filterMap.orderAmountEnd}]]>
+            </if>
+            <if test="filterMap.tranTimeStart!=null and filterMap.tranTimeStart!=''">
+                <![CDATA[ AND DATE_FORMAT(TRAN_TIME,'%Y-%m-%d') >= #{filterMap.tranTimeStart}]]>
+            </if>
+            <if test="filterMap.tranTimeEnd!=null and filterMap.tranTimeEnd!=''">
+                <![CDATA[ AND DATE_FORMAT(TRAN_TIME,'%Y-%m-%d') <= #{filterMap.tranTimeEnd}]]>
+            </if>
+            <if test="filterMap.orderAmount!=null and filterMap.orderAmount!=''">
+                  AND ORDER_AMOUNT=#{orderAmount}
+            </if>
+            <if test="filterMap.tranTime!=null and filterMap.tranTime!=''">
+                  AND TRAN_TIME=#{tranTime}
+            </if> 
+            <if test="filterMap.platformType!=null and filterMap.platformType!=''">
+                  AND PLATFORM_TYPE=#{platformType}
+            </if> 
+            <if test="filterMap.amountType!=null and filterMap.amountType!=''">
+                  AND AMOUNT_TYPE=#{filterMap.amountType}
+            </if> 
+            <if test="filterMap.remark!=null and filterMap.remark!=''">
+                  AND REMARK=#{remark}
+            </if>
+            <if test="filterMap.createTimeStart!=null and filterMap.createTimeStart!=''">
+                <![CDATA[ AND DATE_FORMAT(SO.CRT_TIME,'%Y-%m-%d') >= #{filterMap.createTimeStart}]]>
+            </if>
+            <if test="filterMap.createTimeEnd!=null and filterMap.createTimeEnd!=''">
+                <![CDATA[ AND DATE_FORMAT(SO.CRT_TIME,'%Y-%m-%d') <= #{filterMap.createTimeEnd}]]>
+            </if>
+            <if test="filterMap.orderAmountType!=null and filterMap.orderAmountType!=''">
+                <if test="filterMap.orderAmountType == 0">
+                    AND (BUSINESS_MAN_ROLE = 4 or BUSINESS_ASSISTANT_ROLE = 4)
+                </if>
+                <if test="filterMap.orderAmountType == 1">
+                    AND BUSINESS_MAN_ROLE = 4
+                </if>
+                <if test="filterMap.orderAmountType == 2">
+                    AND BUSINESS_ASSISTANT_ROLE = 4
+                </if>
+            </if>
+        </where>
+	</sql>
+
+	<update id="modify" parameterType="com.msk.so.bean.SO153201Bean">
+		update so_cp_transaction_detail 
+		set 
+            BUSINESS_MAIN=#{businessMain},
+            BUSINESS_ASSISTANT=#{businessAssistant},
+            BUSINESS_MAN_ROLE=#{businessManRole},
+            BUSINESS_ASSISTANT_ROLE=#{businessAssistantRole},
+            SELECT_CODE=#{selectCode},
+            SELECT_TYPE=#{selectType},
+            SETTLEMENT=#{settlement},
+            PAID_SEQ=#{paidSeq},
+            ORDER_AMOUNT=#{orderAmount},
+            TRAN_TIME=#{tranTime},
+            PLATFORM_TYPE=#{platformType},
+            AMOUNT_TYPE=#{amountType},
+            REMARK=#{remark}
+        WHERE
+            TRANS_ID=#{transId}		
+	</update>
+
+    <select id="findPageList" resultType="com.msk.so.bean.SO153201Bean"
+            parameterType="BasePageParam">
+        SELECT
+        <include refid="selectSql" />
+        <include refid="selectFrom" />
+        <include refid="whereCondition" />
+        <if test="filterMap.createTimeStart!=null or filterMap.createTimeEnd!=null">
+            order by createTime desc
+        </if>
+        <if test="filterMap.tranTimeStart!=null or filterMap.tranTimeEnd!=null">
+            order by tranTime desc
+        </if>
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+
+	<select id="getPageCount" resultType="Integer" parameterType="BasePageParam">
+		select count(1)
+        <include refid="selectFrom" />
+		<include refid="whereCondition"/>
+	</select>
+</mapper>

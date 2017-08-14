@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pd.logic.PD144107Logic">
+
+    <select id="findList" parameterType="BaseParam" resultType="com.msk.core.entity.PdAppImg">
+        select
+        id AS id,
+        pd_code as pdCode,
+        sort as sort,
+        app_img as appImg,
+        type as type,
+        IMG_FUNCTION as imgFunction,
+        DEL_FLG as delFlg,
+        ver
+        from pd_app_img
+        where pd_code = #{filterMap.pdCode} and del_flg = 0
+        ORDER BY
+        sort
+    </select>
+
+    <select id="findPageList" parameterType="BaseParam" resultType="com.msk.core.entity.PdAppImg">
+        select
+            id AS id,
+            pd_code as pdCode,
+            sort as sort,
+            app_img as appImg,
+            type as type,
+            IMG_FUNCTION as imgFunction,
+            DEL_FLG as delFlg,
+            ver as ver
+        from pd_app_img
+        where pd_code = LEFT(#{filterMap.pdCode},5) and del_flg = 0 AND img_function = 1
+        ORDER BY
+        sort
+    </select>
+
+    <select id="findImg" parameterType="BaseParam" resultType="com.msk.core.entity.PdAppImg">
+        select
+        id AS id,
+        pd_code as pdCode,
+        <choose>
+            <when test="filterMap.sort != null and filterMap.sort != ''">
+                (sort + 1) as sort,
+            </when>
+            <otherwise>
+                sort as sort,
+            </otherwise>
+        </choose>
+        app_img as appImg,
+        type as type,
+        IMG_FUNCTION as imgFunction,
+        DEL_FLG as delFlg
+        from pd_app_img
+        where del_flg = 0
+        <choose>
+            <when test="id != null and id != ''">
+                and id = #{id}
+            </when>
+            <otherwise>
+                <if test="pdCode != null and pdCode != ''">
+                    and pd_code = LEFT(#{pdCode},5)
+                </if>
+                <choose>
+                    <when test="filterMap.sort != null and filterMap.sort != ''">
+                        and img_function = 1 and sort = (select Max(sort) from pd_app_img where del_flg = 0 and pd_code = LEFT(#{pdCode},5) and img_function = 1)
+                    </when>
+                    <otherwise>
+                        and img_function = 0
+                    </otherwise>
+                </choose>
+            </otherwise>
+        </choose>
+
+    </select>
+
+    <select id="getPageCount" parameterType="BaseParam" resultType="int">
+        select
+            count(1)
+        from pd_app_img
+        where pd_code = LEFT(#{filterMap.pdCode},5) and del_flg = 0 AND img_function = 1
+    </select>
+
+    <insert id="saveImg" parameterType="com.msk.pd.bean.PD144107Param">
+        insert into pd_app_img(
+        ID,
+        PD_CODE,
+        SORT,
+        APP_IMG,
+        TYPE,
+        IMG_FUNCTION,
+        ORIGINAL_IMG_NAME,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER
+    )
+    VALUES(
+        #{id},
+        #{pdCode},
+        #{sort},
+        #{appImg},
+        1,
+        #{imgFunction},
+        #{originalImgName},
+        0,
+        #{crtId},
+        #{crtTime},
+        #{updId},
+        #{updTime},
+        #{actId},
+        #{actTime},
+        0)
+    </insert>
+
+
+    <update id="updateImg" parameterType="com.msk.pd.bean.PD144107Param">
+        UPDATE pd_app_img p
+        set
+        <if test="sort != null and sort != ''">
+            p.sort = #{sort},
+        </if>
+        <if test="delFlg != null and delFlg != ''">
+            p.del_flg = #{delFlg},
+        </if>
+        <if test="appImg != null and appImg != ''">
+            p.app_Img = #{appImg},
+        </if>
+        <if test="originFileName != null and originFileName != ''">
+            p.ORIGINAL_IMG_NAME = #{originFileName},
+        </if>
+        ver = ver + 1,
+        p.upd_time = #{updTime},
+        p.upd_id = #{updId}
+        where  p.PD_CODE = LEFT (#{pdCode},5)
+        <if test="source != null and source != ''">
+            AND p.IMG_FUNCTION = #{source}
+        </if>
+        <if test="id != null and id != ''">
+            AND p.id = #{id}
+        </if>
+    </update>
+
+
+
+    <update id="update" parameterType="com.msk.pd.bean.PD144106Param">
+        UPDATE pd_logiarea p
+         set
+            <if test="pdLabel != null and pdLabel != ''">
+                p.pd_label = #{pdLabel},
+            </if>
+            <if test="status != null and status != ''">
+                p.status = #{status},
+            </if>
+            <if test="delFlg != null and delFlg != ''">
+                p.del_flg = #{delFlg},
+            </if>
+                p.ver = ver + 1,
+                p.upd_time = #{updTime},
+                p.upd_id = #{updId}
+         where  CONCAT(p.CLASSES_CODE,p.MACHINING_CODE,p.BREED_CODE,p.FEATURE_CODE,p.WEIGHT_CODE,p.GRADE_CODE) = #{pdCode} AND p.LGCS_CODE = #{lgcsCode}
+    </update>
+</mapper>

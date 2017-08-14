@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170215Logic">
+    <insert id="save" parameterType="com.msk.pl.bean.PLIncentiveFeeSetting">
+        INSERT  INTO  PL_INCENTIVE_FEE_SETTING
+        (
+        INCENTIVE_FEE_ID,
+        PARTNER_ID,
+            TERMINAL_ID,
+        INCENTIVE_FEE,
+        EFFECTIVE_TIME,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        VER
+        )VALUES
+        (
+        #{incentiveFeeId},
+        #{partnerId},
+            #{terminalId},
+        #{incentiveFee},
+        #{effectiveDate},
+        0,
+        #{crtId},
+        now(),
+        1
+        )
+    </insert>
+    <select id="findOne" resultType="com.msk.pl.bean.IPL20170215RsResult"
+            parameterType="com.msk.pl.bean.IPL20170216RsParam">
+        select
+        <include refid="findOneSql"/>
+        FROM PL_INCENTIVE_FEE_SETTING
+        WHERE PARTNER_ID=#{partnerId} AND (DEL_FLG=0 or DEL_FLG is NULL)
+        ORDER BY CRT_TIME DESC limit 1
+    </select>
+    <update id="modifyDate" parameterType="com.msk.pl.bean.IPL20170215Param">
+        UPDATE PL_INCENTIVE_FEE_SETTING
+        SET DEL_FLG=1,
+        UPD_ID=#{crtId},
+        UPD_TIME=now(),
+        VER=VER+1
+        WHERE PARTNER_ID=#{partnerId}
+        AND DATE_FORMAT(EFFECTIVE_TIME,'%Y-%m-%d') &gt;= #{effectiveTime}
+    </update>
+
+    <sql id="findOneSql">
+        INCENTIVE_FEE_ID as incentiveFeeId,
+        PARTNER_ID as partnerId,
+        TERMINAL_ID as terminalId,
+        INCENTIVE_FEE as incentiveFee,
+        EFFECTIVE_TIME as effectiveTime,
+        VER as ver
+    </sql>
+    <update id="modify" parameterType="com.msk.pl.bean.IPL20170215RsResult">
+      UPDATE PL_INCENTIVE_FEE_SETTING
+      SET OVER_TIME=#{overTime},
+        UPD_ID=#{updId},
+        UPD_TIME=now(),
+        VER=#{ver}
+      WHERE INCENTIVE_FEE_ID=#{incentiveFeeId}
+    </update>
+</mapper>

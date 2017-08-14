@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.ISL231119Logic">
+    <select id="count" parameterType="BaseParam" resultType="int">
+        SELECT count(1)
+        FROM sl_pd_lgcs
+    </select>
+    <select id="findList" parameterType="BaseParam" resultType="com.msk.sl.bean.SlLogiAreaPdBean">
+        SELECT
+        a.SL_CODE AS slCode,
+        ifnull(se.EP_NAME, a.SL_CODE) AS slName,
+        a.LGCS_CODE AS logiAreaCode,
+        ifnull(b.LGCS_NAME, a.LGCS_CODE) AS logiAreaName,
+        concat(a.CLASSES_CODE, a.BREED_CODE, a.FEATURE_CODE) AS pdCode,
+        concat(ifnull(c.CLASSES_NAME, a.CLASSES_CODE), '/',
+               ifnull(d.BREED_NAME, a.BREED_CODE), '/',
+               ifnull(e.FEATURE_NAME, a.FEATURE_CODE)) AS pdName,
+        a.CLASSES_CODE AS classesCode,
+        a.BREED_CODE AS breedCode,
+        a.FEATURE_CODE AS featureCode,
+        a.GRADE_CODE AS gradeCode,
+        a.PKG_CODE AS pkgCode
+        FROM sl_pd_lgcs a
+        LEFT JOIN sl_seller s
+          ON s.SL_CODE = a.SL_CODE
+        LEFT JOIN sl_enterprise se
+          ON se.EP_ID = s.EP_ID
+        LEFT JOIN comm_logistics_area b
+          ON b.LGCS_CODE = a.LGCS_CODE
+        LEFT JOIN pd_classes c
+          ON c.CLASSES_CODE = a.CLASSES_CODE
+        LEFT JOIN pd_breed d
+          ON d.CLASSES_CODE = a.CLASSES_CODE
+         AND d.BREED_CODE = a.BREED_CODE
+        LEFT JOIN pd_feature e
+          ON e.CLASSES_CODE = a.CLASSES_CODE
+         AND e.BREED_CODE = a.BREED_CODE
+         AND e.FEATURE_CODE = a.FEATURE_CODE
+        ORDER BY a.LGCS_CODE, a.CLASSES_CODE, a.BREED_CODE, a.FEATURE_CODE
+        <if test="pageCount>0">
+            LIMIT #{startPos}, #{pageCount}
+        </if>
+    </select>
+</mapper>

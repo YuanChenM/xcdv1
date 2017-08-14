@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151804Logic">
+    <!-- 表字段 -->
+    <select id="findReturnReason" parameterType="com.msk.so.bean.ISO151804RsParam" resultType="com.msk.so.bean.ISO151804ReasonResult">
+        SELECT
+        reason.REASON_ID  as reasonId ,
+        reason.REASON_NAME as reasonName
+        from  so_return_reason  reason
+        WHERE
+        reason.DEL_FLG=0
+        <if test="returnType !=null  and returnType!=''">
+            AND  reason.RETURN_TYPE like  '%${returnType}%'
+        </if>
+    </select>
+
+</mapper>

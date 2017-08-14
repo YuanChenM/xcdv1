@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170404Logic">
+    <select id="findPageList" parameterType="com.msk.pl.bean.IPL20170404Param"
+            resultType="com.msk.pl.bean.IPL20170404Result">
+        SELECT
+        b.PD_ID AS pdId,
+        b.PD_NAME AS pdName,
+        b.CLASSES_Name AS classesName,
+        b.CLASSES_CODE AS classesCode,
+        b.PD_CODE AS pdCode,
+        b.DECLARE_PRICE AS declarePrice,
+        b.MACHINING_CODE AS machiningCode,
+        b.MACHINING_NAME AS machiningName,
+        a.BS_CODE as bsCode,
+        a.PP_ID AS ppId,
+        a.DT_ID as dtId
+        FROM PL_DECLARE_TASK a
+        LEFT JOIN PL_DECLARE_INFO b ON a.DT_ID = b.DT_ID AND a.DEL_FLG=b.DEL_FLG
+        WHERE 1=1
+        AND a.DEL_FLG = 0
+        AND a.BS_CODE = #{bsCode}
+        AND a.PP_ID =#{ppId}
+        <if test="classesCode !=null and classesCode !=''">
+            AND b.CLASSES_CODE =#{classesCode}
+        </if>
+        GROUP BY MACHINING_NAME
+
+        ORDER BY CLASSES_CODE
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageCount}
+        </if>
+    </select>
+
+    <select id="getPageCount" resultType="Integer" parameterType="com.msk.pl.bean.IPL20170404Param">
+        SELECT
+        count(1)
+        FROM
+        ( select b.PD_ID AS pdId
+        FROM PL_DECLARE_TASK a
+        LEFT JOIN PL_DECLARE_INFO b ON a.DT_ID = b.DT_ID AND a.DEL_FLG=b.DEL_FLG
+        WHERE 1=1
+        AND a.DEL_FLG = 0
+        AND a.BS_CODE = #{bsCode}
+        AND a.PP_ID =#{ppId}
+        <if test="classesCode !=null and classesCode !=''">
+            AND b.CLASSES_CODE =#{classesCode}
+        </if>
+        GROUP BY MACHINING_NAME
+        ) t
+    </select>
+
+
+    <select id="findList" parameterType="com.msk.pl.bean.IPL20170404Param" resultType="com.msk.pl.bean.IPL20170404Result">
+        SELECT
+        b.PD_ID AS pdId,
+        b.PD_NAME AS pdName,
+        b.CLASSES_Name AS classesName,
+        b.CLASSES_CODE AS classesCode,
+        b.PD_CODE AS pdCode,
+        b.DECLARE_PRICE AS declarePrice,
+        b.MACHINING_CODE AS machiningCode,
+        b.MACHINING_NAME AS machiningName,
+        a.BS_CODE as bsCode,
+        a.PP_ID AS ppId,
+        a.DT_ID as dtId
+        FROM PL_DECLARE_TASK a
+        LEFT JOIN PL_DECLARE_INFO b ON a.DT_ID = b.DT_ID AND a.DEL_FLG=b.DEL_FLG
+        WHERE a.DEL_FLG = 0
+        AND a.BS_CODE = #{bsCode}
+        AND a.PP_ID =#{ppId}
+        AND b.CLASSES_CODE =#{classesCode}
+        AND b.MACHINING_CODE = #{machiningCode}
+    </select>
+</mapper>

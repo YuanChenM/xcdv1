@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.msk.common.logic.BuyersTypeLogic">
+    <select id="findList" parameterType="BaseParam" resultType="com.msk.common.bean.BuyersType">
+        SELECT
+          BUYTYPE.CODE AS code
+          ,BUYTYPE.NAME AS name
+        FROM BYR_BUYER_CHARACTER_TYPES AS BUYTYPE
+
+    </select>
+</mapper>

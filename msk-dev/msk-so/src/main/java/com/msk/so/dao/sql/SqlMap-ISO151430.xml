@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151430Logic">
+
+<select id="findProductStock" resultType="com.msk.so.bean.rs.PdStock" parameterType="map">
+
+	   SELECT
+	   LGCS_CODE as lgcsCode,
+	   LGCS_NAME as lgcsName,
+	   WAREHOUSE_CODE as warehouseCode,
+	   WAREHOUSE_NAME as warehouseName,
+	   SL_CODE as  slCode,
+	   SL_NAME as slName,
+	   CLASSES_CODE as classesCode,
+	   CLASSES_NAME as classesName,
+	   BREED_CODE as breedCode,
+	   BREED_NAME as breedName,
+	   UNIT       as unit,
+	   PD_CODE    as pdCode,
+	   PD_NAME     as pdName,
+	   STOCK_QTY as stockQty
+	   FROM  so_stock_sl sl
+	   WHERE  sl.SL_CODE=#{slCode} and sl.LGCS_CODE= #{lgcsCode} and sl.DEL_FLG=0
+</select>
+
+
+     <select id="findOrderStock" parameterType="map" resultType="BigDecimal">
+      SELECT sum( IFNULL((IFNULL(a.RECEIVE_QTY,a.SEND_QTY)),a.SUPP_QTY) )
+      from  so_order  o
+      LEFT  JOIN  so_order_detail_availability a   on o.ORDER_ID=a.ORDER_ID
+      WHERE o.ORDER_STATUS != #{orderState} and o.DEL_FLG=0  and o.DISTRICT_CODE =#{lgcsCode}
+		     and o.SELLER_CODE=#{slCode} and (a.STATUS =#{confirm} or a.STATUS =#{wait_send}) and a.PD_CODE=#{pdCode}
+     </select>
+
+
+
+
+	<select id="findReturnStock" parameterType="map" resultType="BigDecimal">
+        select  SUM(IFNULL(d.INBOUND_QTY,0)) FROM   so_return_detail  d
+         LEFT JOIN  so_return  r on  r.RETURN_ID=d.RETURN_ID
+         LEFT JOIN  so_order o  on  r.ORDER_ID=o.ORDER_ID
+         where r.RETURN_STATUS=#{state} and r.SELLER_CODE=#{slCode} and o.DISTRICT_CODE=#{lgcsCode}  and d.PD_CODE=#{pdCode}
+	</select>
+</mapper>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.ms.logic.MS11210102Logic">
+
+<update id="modifyOne" parameterType="com.msk.core.entity.MsCardmanager">
+UPDATE MS_CARDMANAGER SET
+MS_PREVPW=#{msPrevpw},
+MS_NOWPW=#{msNowpw}
+WHERE
+MS_CARDNO=#{msCardno}
+</update>
+
+<select id="findOne" resultType="com.msk.core.entity.MsCardmanager"
+parameterType="com.msk.core.bean.BaseParam">
+select
+A.MS_CARDNO AS msCardno
+from MS_CARDMANAGER AS A
+WHERE
+MS_ID=#{filterMap.msId}
+</select>
+
+<select id="findOneByCardNo" resultType="com.msk.core.entity.MsCardmanager"
+parameterType="com.msk.core.bean.BaseParam">
+select
+A.MS_NOWPW AS msNowpw
+from MS_CARDMANAGER AS A
+WHERE
+A.MS_CARDNO=#{filterMap.msCardno }
+</select> 
+
+</mapper>

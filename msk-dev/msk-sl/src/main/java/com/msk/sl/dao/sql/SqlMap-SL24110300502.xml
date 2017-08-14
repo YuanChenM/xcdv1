@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL24110300502Logic">
+    <update id="updateSlEpCap" parameterType="com.msk.core.entity.SlEpCap">
+        UPDATE SL_EP_CAP SET
+        SCAP_MATERIAL=#{scapMaterial},
+        SCAP_PRODUCT=#{scapProduct}
+        WHERE
+        EP_ID=#{epId}
+    </update>
+</mapper>

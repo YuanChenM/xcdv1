@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.ISL231191RsLogic">
+	<select id="findOne" parameterType="BaseParam" resultType="com.msk.sl.bean.ISL231191Result">
+		SELECT
+		A.SL_PD_ARTNO AS slPdArtNo
+		FROM
+		sl_pd_artno AS A
+		WHERE
+		A.SL_CODE=#{filterMap.slCode}
+		AND A.CLASSES_CODE=#{filterMap.classesCode}
+		AND A.MACHINING_CODE=#{filterMap.machiningCode}
+		AND A.BREED_CODE=#{filterMap.breedCode}
+		AND A.FEATURE_CODE=#{filterMap.featureCode}
+		AND A.WEIGHT_CODE=#{filterMap.weightCode}
+		AND A.GRADE_CODE=#{filterMap.gradeCode}
+		AND A.SALE_PLATFORM=#{filterMap.salesPlatform}
+	</select>
+</mapper>

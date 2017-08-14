@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.bp.logic.IBP11291ILogic">
+
+    <sql id="commonFiledInfo">
+        A.PRICECYCLE_PERIOD AS priceCyclePeriod
+        ,A.LOGIAREA_CODE AS logiAreaCode
+        ,A.SL_CODE AS slCode
+        ,A.PD_CODE AS productCode
+    </sql>
+    <sql id="commonFiledDetail">
+        A.ORDERLEVEL_CODE AS orderlevelCode
+        ,A.PRICEOFKG AS priceOfKg
+        ,B.PRICEOFBOX AS priceOfBox
+        ,B.LEVELSTAND_MIN AS boxMin
+        ,B.LEVELSTAND_MAX AS boxMax
+    </sql>
+    <sql id="commCondtionInfo">
+        WHERE
+        A.DEL_FLG = 0
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(filterMap.pricePeriod)">
+            AND A.PRICECYCLE_PERIOD = #{filterMap.pricePeriod}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(filterMap.pdCode)">
+            AND A.PD_CODE LIKE #{filterMap.pdCode}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(filterMap.logiAreaCode)">
+            AND A.LOGIAREA_CODE = #{filterMap.logiAreaCode}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(filterMap.slCode)">
+            AND A.SL_CODE = #{filterMap.slCode}
+        </if>
+    </sql>
+    <sql id="commCondtionDetail">
+        WHERE
+        A.DEL_FLG = 0
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(filterMap.pricePeriod)">
+            AND A.PRICECYCLE_PERIOD = #{filterMap.pricePeriod}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(filterMap.productCode)">
+            AND A.PD_CODE = #{filterMap.productCode}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(filterMap.logiAreaCode)">
+            AND A.LOGIAREA_CODE = #{filterMap.logiAreaCode}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(filterMap.slCode)">
+            AND A.SL_CODE = #{filterMap.slCode}
+        </if>
+    </sql>
+    <select id="findpdInfo" resultType="com.msk.bp.bean.IBP11291IProducts"
+            parameterType="BaseParam">
+        SELECT DISTINCT
+        <include refid="commonFiledInfo"/>
+        FROM BP_PRICEPRD_LOGIAREA AS A
+        <include refid="commCondtionInfo"/>
+    </select>
+    <select id="findPriceList" resultType="com.msk.bp.bean.IBP11291IProductsRsResult"
+            parameterType="BaseParam">
+        SELECT
+        <include refid="commonFiledDetail"/>
+        FROM
+        BP_PRICEPRD_LOGIAREA AS A
+        INNER JOIN (
+            SELECT
+                T1.PRICECYCLE_PERIOD,
+                T1.LOGIAREA_CODE,
+                T1.SL_CODE,
+                T1.PD_CODE,
+                T2.ORDERLEVEL_CODE,
+                T2.PRICEOFBOX,
+                T2.LEVELSTAND_MIN,
+                T2.LEVELSTAND_MAX
+            FROM
+              BP_SELLER_QUOTATION T1
+            INNER JOIN BP_SELLER_QUOTATION_DETAIL T2 ON T2.PRICECYCLE_ID = T1.PRICECYCLE_ID
+              AND T2.DEL_FLG = 0
+            WHERE
+            T1.DEL_FLG = 0
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(filterMap.pricePeriod)">
+                AND T1.PRICECYCLE_PERIOD = #{filterMap.pricePeriod}
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(filterMap.productCode)">
+                AND T1.PD_CODE =  #{filterMap.productCode}
+            </if>
+            ) B ON A.PRICECYCLE_PERIOD = B.PRICECYCLE_PERIOD
+            AND A.LOGIAREA_CODE = B.LOGIAREA_CODE
+            AND A.SL_CODE = B.SL_CODE
+            AND A.PD_CODE = B.PD_CODE
+            AND A.ORDERLEVEL_CODE = B.ORDERLEVEL_CODE
+        <include refid="commCondtionDetail"/>
+    </select>
+</mapper>

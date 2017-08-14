@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.batch.wq.logic.BWQ201702Logic">
+    <!--添加员工数据-->
+    <insert id="saveEmployee" parameterType="com.msk.core.bean.BaseParam">
+    insert into wq_employee(
+    TBL_ID,
+    EMP_ID,
+    EMP_CODE,
+    EMP_NAME,
+    EMP_SEX,
+    EMP_MOBILE,
+    EMP_TEL,
+    EMP_IDCARD,
+    EMP_ORG_ID,
+    EMP_ORG_CODE,
+    EMP_IS_ORG_LEADER,
+    EMP_PARENT_ID,
+    PARENT_CODE,
+    WAIQIN365_PARENT_ID,
+    EMP_POSITION,
+    ID,
+    EMP_STATUS,
+    DEL_FLG,
+    CRT_ID,
+    CRT_TIME,
+    UPD_ID,
+    UPD_TIME,
+    ACT_ID,
+    ACT_TIME,
+    VER
+    ) values
+    <foreach collection="filterMap.list" item="li" separator=",">
+        (
+        #{li.tblId},
+        #{li.empId},
+        #{li.empCode},
+        #{li.empName},
+        #{li.empSex},
+        #{li.empMobile},
+        #{li.empTel},
+        #{li.empIdcard},
+        #{li.empOrgId},
+        #{li.empOrgCode},
+        #{li.empIsOrgLearder},
+        #{li.empParentId},
+        #{li.parentCode},
+        #{li.waiqin365ParentId},
+        #{li.empPosition},
+        #{li.id},
+        #{li.empStatus},
+        #{li.delFlg},
+        #{li.crtId},
+        SYSDATE(),
+        #{li.updId},
+        #{li.updTime},
+        #{li.actId},
+        #{li.actTime},
+        #{li.ver})
+    </foreach>
+    </insert>
+    <!--查询365外勤员工数据-->
+    <select id="queryByAccountId" parameterType="com.msk.core.bean.BaseParam" resultType="com.msk.batch.wq.bean.BWQ201702Result">
+        select ID as id from wq_employee as a where a.EMP_NAME=#{filterMap.empName} and a.EMP_STATUS='1'
+    </select>
+
+    <!--查询买手数据-->
+    <select id="querySlBsAccount" resultType="com.msk.batch.wq.bean.SlBsAccountParam">
+        select a.SL_ACCOUNT as empCode,a.SL_SHOW_NAME as empName,a.SL_TEL as empMobile,a.FROM_FLG as fromFlg,b.MEMO4 as empTel,b.MEMO5 as memo5,b.MEMO6 as memo6,b.MEMO7 as empIdcard,b.MEMO8 as memo8,b.MEMO3 as empEmail,b.MEMO9 as empAddr,b.MEMO2 as empQq,b.MEMO1 as empWeixin,b.LGCS_AREA_CODE as lgcsAreaCode,b.LGCS_AREA_NAME as lgcsAreaName,b.PROVINCE_CODE as provinceCode,b.PROVINCE_NAME as provinceName,b.CITY_CODE as cityCode,b.CITY_NAME as cityName,b.DISTRICT_CODE as districtCode,b.DISTRICT_NAME as districtName from sl_bs_account AS a LEFT JOIN sl_bs_basic_info as b ON(a.SL_ACCOUNT=b.SL_ACCOUNT) where a.DEL_FLG='0'
+    </select>
+
+    <!--查询买手类型-->
+    <select id="querySlBsType" resultType="com.msk.batch.wq.bean.SlBsAccountParam">
+        select b.TYPE_NAME as memo8 from sl_bs_basic_info AS a LEFT JOIN sl_bs_house_type as b ON(a.MEMO6=b.TYPE_CODE) where b.ROLE_TYPE='0' and a.MEMO6=#{filterMap.byType} and a.SL_ACCOUNT=#{filterMap.account} and b.TYPE_LEVER='0'
+    </select>
+
+    <!--删除员工信息-->
+    <delete id="removeEmployee">
+        delete from wq_employee
+    </delete>
+
+    <!--查询买手和管家重复-->
+    <select id="querySlBsHouse" resultType="java.lang.Integer" parameterType="com.msk.core.bean.BaseParam">
+        select count(1) from sl_house_account as b where b.HOUSE_SHOW_NAME=#{filterMap.empName}
+    </select>
+
+    <!--查询固定参数-->
+    <select id="queryConstant" resultType="com.msk.batch.wq.bean.BWQ20170202Result" parameterType="com.msk.core.bean.BaseParam">
+        select a.CONSTANT_VALUE as constantValue from wq_setting as a where a.CONSTANT_TYPE=#{filterMap.constantType} and a.CONSTANT_NAME=#{filterMap.constantName}
+    </select>
+
+    <!--查询员工电话是否存在-->
+    <select id="queryEmployeePhoto" resultType="java.lang.Integer" parameterType="com.msk.core.bean.BaseParam">
+        select count(1) from wq_employee as a where a.EMP_MOBILE=#{filterMap.empMobile}  and a.EMP_STATUS!='0'
+    </select>
+
+    <!--判断已停用的员工-->
+    <select id="queryEmployeeStop" resultType="java.lang.Integer" parameterType="com.msk.core.bean.BaseParam">
+        select count(1) from wq_employee as a
+        <where>
+            <if test="filterMap.empName!=null and filterMap.empName!=''">
+              and a.EMP_NAME=#{filterMap.empName}
+            </if>
+                and a.EMP_STATUS='2'
+        </where>
+    </select>
+
+    <!--查询员工是否删除-->
+    <select id="queryEmployeeDelete" resultType="java.lang.Integer" parameterType="com.msk.core.bean.BaseParam">
+        select count(1) from wq_employee as a
+        <where>
+            <if test="filterMap.empName!=null and filterMap.empName!=''">
+                and a.EMP_NAME=#{filterMap.empName}
+            </if>
+            and a.EMP_STATUS='0'
+        </where>
+    </select>
+</mapper>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO251412Logic">
+    <select id="findOne" resultType="com.msk.core.entity.SoOrder" parameterType="BaseParam">
+    SELECT
+    A.REQUIRE_ORDER_CODE AS requireOrderCode,
+    A.UPD_TIME AS updTime,
+    A.ORDER_STATUS AS orderStatus,
+    A.ORDER_ID AS orderId,
+    A.DUSTBIN_FLG AS dustbinFlg,
+    A.VER AS ver
+    FROM
+    so_order AS A
+    WHERE
+    A.ORDER_ID=#{filterMap.iSO251412RsParam.orderId}
+    AND A.VER=#{filterMap.iSO251412RsParam.ver}
+    </select>
+    <update id="modify" parameterType="com.msk.core.entity.SoOrder">
+    UPDATE so_order AS A SET
+    A.UPD_TIME=#{updTime},
+    A.UPD_ID=#{updId}
+    <if test="delFlg==1">
+        ,A.DEL_FLG=#{delFlg}
+    </if>
+    <if test="dustbinFlg!=null and dustbinFlg!=''">
+        ,A.DUSTBIN_FLG=#{dustbinFlg}
+    </if>
+    WHERE
+    A.ORDER_ID=#{orderId}
+    AND A.VER =#{ver}
+    </update>
+</mapper>

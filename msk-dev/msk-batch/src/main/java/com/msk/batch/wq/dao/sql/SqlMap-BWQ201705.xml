@@ -1,0 +1,558 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.batch.wq.logic.BWQ201705Logic">
+    <resultMap id="queryOrderProductResult" type="com.msk.batch.wq.bean.BWQ20170503Bean">
+       <!-- <association property="pt" javaType="com.msk.batch.wq.bean.BWQ2017050201Bean">-->
+            <id property="sourceCode" column="orderid"></id>
+            <result property="slfdf1701180002" column="orderCode"></result>
+            <result property="slfdf1701180004" column="orderTime"></result>
+            <result property="slfdf1701180005" column="buyersCode"></result>
+            <result property="slfdf1701180006" column="buyersId"></result>
+            <result property="slfdf1701180006Name" column="buyersName"></result>
+            <result property="slfdf1701180007" column="sellerCode"></result>
+            <result property="slfdf1701180008" column="sellerName"></result>
+            <result property="slfdf1701180009" column="orderStatusName"></result>
+            <result property="slfdf1701180010" column="orderAmount"></result>
+            <result property="orderType" column="orderType"></result>
+            <result property="slfdf1701180011" column="orderTypeName"></result>
+            <result property="slfdf1701180012" column="districtName"></result>
+            <result property="slfdf1701180013" column="paymentTypeName"></result>
+            <result property="slfdf1701180014" column="paidAmount"></result>
+            <result property="slfdf1701180015" column="paidTime"></result>
+            <result property="slfdf1701180016" column="receiverName"></result>
+            <result property="slfdf1701180017" column="receiverTel"></result>
+            <result property="slfdf1701180018" column="receiverProvince"></result>
+            <result property="slfdf1701180019" column="receiverCity"></result>
+            <result property="slfdf1701180020" column="receiverDistrict"></result>
+            <result property="slfdf1701180021" column="receiverAddr"></result>
+            <result property="slfdf1701180022" column="receiveTime"></result>
+            <result property="slfdf1701180023" column="receiveEarltestName"></result>
+            <result property="slfdf1701180024" column="receiveLastName"></result>
+            <result property="slfdf1701190001" column="remark"></result>
+            <result property="slfdf1701190002" column="remark2"></result>
+            <result property="slfdf1701190003" column="remark3"></result>
+            <result property="slfdf1701190004" column="remark4"></result>
+ <!--       </association>-->
+        <collection property="rows" ofType="com.msk.batch.wq.bean.BWQ201705020201Bean">
+            <id property="sourceCode" column="orderDetailId"></id>
+            <result property="slfdf1701180025" column="pdcode"></result>
+            <result property="slfdf1701180026" column="pdname"></result>
+            <result property="slfdf1701180027" column="pdPrice"></result>
+            <result property="slfdf1701180028" column="orderQty"></result>
+            <result property="slfdf1701180029" column="chPdCode"></result>
+            <result property="slfdf1701180030" column="chPdName"></result>
+            <result property="slfdf1701180031" column="chPdPrice"></result>
+            <result property="slfdf1701180032" column="chOrderQty"></result>
+            <result property="childOrderCode" column="childOrderCode"></result>
+            <result property="childOrderId" column="childOrderId"></result>
+            <result property="mainOrderId" column="mainOrderId"></result>
+            <result property="mainOrderCode" column="mainOrderCode"></result>
+        </collection>
+    </resultMap>
+
+    <!--添加全部订单数据-->
+    <insert id="saveWqOrder" parameterType="com.msk.core.bean.BaseParam">
+        insert into wq_order(
+        TBL_ID,
+        WQ_ID,
+        ORDER_ID,
+        ORDER_CODE,
+        ORDER_TIME,
+        BUYER_ID,
+        BUYER_NAME,
+        SELLER_CODE,
+        SELLER_NAME,
+        ORDER_STAUTS,
+        ORDER_AMOUNT,
+        ORDER_TYPE,
+        ORDER_DISTRICT,
+        PAYMENT_TYPE,
+        PAID_AMOUNT,
+        PAID_TIME,
+        RECEIVER_NAME,
+        RECEIVER_TEL,
+        RECEIVER_PROVINCE,
+        RECEIVER_CITY,
+        RECEIVER_DISTRICT,
+        RECEIVER_ADDR,
+        RECEIVER_TIME,
+        RECEIVER_EARLY,
+        RECEIVER_LAST,
+        MEMO1,
+        MEMO2,
+        MEMO3,
+        MEMO4,
+        MEMO5,
+        MEMO6,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER
+        ) values
+        <foreach collection="filterMap.listPt" item="li" separator=",">
+            (
+            #{li.pt.tblId},
+            #{li.pt.id},
+            #{li.pt.sourceCode},
+            #{li.pt.slfdf1701180002},
+            #{li.pt.slfdf1701180004},
+            #{li.pt.slfdf1701180006},
+            #{li.pt.slfdf1701180006Name},
+            #{li.pt.slfdf1701180007},
+            #{li.pt.slfdf1701180008},
+            #{li.pt.slfdf1701180009},
+            #{li.pt.slfdf1701180010},
+            #{li.pt.slfdf1701180011},
+            #{li.pt.slfdf1701180012},
+            #{li.pt.slfdf1701180013},
+            #{li.pt.slfdf1701180014},
+            #{li.pt.slfdf1701180015},
+            #{li.pt.slfdf1701180016},
+            #{li.pt.slfdf1701180017},
+            #{li.pt.slfdf1701180018},
+            #{li.pt.slfdf1701180019},
+            #{li.pt.slfdf1701180020},
+            #{li.pt.slfdf1701180021},
+            #{li.pt.slfdf1701180022},
+            #{li.pt.slfdf1701180023},
+            #{li.pt.slfdf1701180024},
+            #{li.pt.slfdf1701190001},
+            #{li.pt.slfdf1701190002},
+            #{li.pt.slfdf1701190003},
+            #{li.pt.slfdf1701190004},
+            #{li.pt.slfdf1701190005},
+            #{li.pt.slfdf1701190006},
+            #{li.pt.delFlg},
+            #{li.pt.crtId},
+            SYSDATE(),
+            #{li.pt.updId},
+            #{li.pt.updTime},
+            #{li.pt.actId},
+            #{li.pt.actTime},
+            #{li.pt.ver})
+        </foreach>
+    </insert>
+
+    <!--添加单一订单数据-->
+    <insert id="saveWqOrderOne" parameterType="com.msk.core.bean.BaseParam">
+        insert into wq_order(
+        TBL_ID,
+        WQ_ID,
+        ORDER_ID,
+        ORDER_CODE,
+        ORDER_TIME,
+        BUYER_ID,
+        BUYER_NAME,
+        SELLER_CODE,
+        SELLER_NAME,
+        ORDER_STAUTS,
+        ORDER_AMOUNT,
+        ORDER_TYPE,
+        ORDER_DISTRICT,
+        PAYMENT_TYPE,
+        PAID_AMOUNT,
+        PAID_TIME,
+        RECEIVER_NAME,
+        RECEIVER_TEL,
+        RECEIVER_PROVINCE,
+        RECEIVER_CITY,
+        RECEIVER_DISTRICT,
+        RECEIVER_ADDR,
+        RECEIVER_TIME,
+        RECEIVER_EARLY,
+        RECEIVER_LAST,
+        MEMO1,
+        MEMO2,
+        MEMO3,
+        MEMO4,
+        MEMO5,
+        MEMO6,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER
+        ) values
+        (
+        #{filterMap.bwq201705Result.pt.tblId},
+        #{filterMap.bwq201705Result.pt.id},
+        #{filterMap.bwq201705Result.pt.sourceCode},
+        #{filterMap.bwq201705Result.pt.slfdf1701180002},
+        #{filterMap.bwq201705Result.pt.slfdf1701180004},
+        #{filterMap.bwq201705Result.pt.slfdf1701180006},
+        #{filterMap.bwq201705Result.pt.slfdf1701180006Name},
+        #{filterMap.bwq201705Result.pt.slfdf1701180007},
+        #{filterMap.bwq201705Result.pt.slfdf1701180008},
+        #{filterMap.bwq201705Result.pt.slfdf1701180009},
+        #{filterMap.bwq201705Result.pt.slfdf1701180010},
+        #{filterMap.bwq201705Result.pt.slfdf1701180011},
+        #{filterMap.bwq201705Result.pt.slfdf1701180012},
+        #{filterMap.bwq201705Result.pt.slfdf1701180013},
+        #{filterMap.bwq201705Result.pt.slfdf1701180014},
+        #{filterMap.bwq201705Result.pt.slfdf1701180015},
+        #{filterMap.bwq201705Result.pt.slfdf1701180016},
+        #{filterMap.bwq201705Result.pt.slfdf1701180017},
+        #{filterMap.bwq201705Result.pt.slfdf1701180018},
+        #{filterMap.bwq201705Result.pt.slfdf1701180019},
+        #{filterMap.bwq201705Result.pt.slfdf1701180020},
+        #{filterMap.bwq201705Result.pt.slfdf1701180021},
+        #{filterMap.bwq201705Result.pt.slfdf1701180022},
+        #{filterMap.bwq201705Result.pt.slfdf1701180023},
+        #{filterMap.bwq201705Result.pt.slfdf1701180024},
+        #{filterMap.bwq201705Result.pt.slfdf1701190001},
+        #{filterMap.bwq201705Result.pt.slfdf1701190002},
+        #{filterMap.bwq201705Result.pt.slfdf1701190003},
+        #{filterMap.bwq201705Result.pt.slfdf1701190004},
+        #{filterMap.bwq201705Result.pt.slfdf1701190005},
+        #{filterMap.bwq201705Result.pt.slfdf1701190006},
+        #{filterMap.bwq201705Result.pt.delFlg},
+        #{filterMap.bwq201705Result.pt.crtId},
+        SYSDATE(),
+        #{filterMap.bwq201705Result.pt.updId},
+        #{filterMap.bwq201705Result.pt.updTime},
+        #{filterMap.bwq201705Result.pt.actId},
+        #{filterMap.bwq201705Result.pt.actTime},
+        #{filterMap.bwq201705Result.pt.ver})
+    </insert>
+
+    <!--更新单一订单数据-->
+    <update id="updateWqOrderOne" parameterType="com.msk.core.bean.BaseParam">
+        update wq_order SET
+        WQ_ID=#{filterMap.bwq201705Result.pt.id},
+        ORDER_ID=#{filterMap.bwq201705Result.pt.sourceCode},
+        ORDER_TIME=#{filterMap.bwq201705Result.pt.slfdf1701180004},
+        BUYER_ID=#{filterMap.bwq201705Result.pt.slfdf1701180006},
+        BUYER_NAME=#{filterMap.bwq201705Result.pt.slfdf1701180006Name},
+        SELLER_CODE=#{filterMap.bwq201705Result.pt.slfdf1701180007},
+        SELLER_NAME=#{filterMap.bwq201705Result.pt.slfdf1701180008},
+        ORDER_STAUTS=#{filterMap.bwq201705Result.pt.slfdf1701180009},
+        ORDER_AMOUNT=#{filterMap.bwq201705Result.pt.slfdf1701180010},
+        ORDER_TYPE=#{filterMap.bwq201705Result.pt.slfdf1701180011},
+        ORDER_DISTRICT= #{filterMap.bwq201705Result.pt.slfdf1701180012},
+        PAYMENT_TYPE=#{filterMap.bwq201705Result.pt.slfdf1701180013},
+        PAID_AMOUNT=#{filterMap.bwq201705Result.pt.slfdf1701180014},
+        PAID_TIME=#{filterMap.bwq201705Result.pt.slfdf1701180015},
+        RECEIVER_NAME=#{filterMap.bwq201705Result.pt.slfdf1701180016},
+        RECEIVER_TEL=#{filterMap.bwq201705Result.pt.slfdf1701180017},
+        RECEIVER_PROVINCE=#{filterMap.bwq201705Result.pt.slfdf1701180018},
+        RECEIVER_CITY=#{filterMap.bwq201705Result.pt.slfdf1701180019},
+        RECEIVER_DISTRICT=#{filterMap.bwq201705Result.pt.slfdf1701180020},
+        RECEIVER_ADDR=#{filterMap.bwq201705Result.pt.slfdf1701180021},
+        RECEIVER_TIME=#{filterMap.bwq201705Result.pt.slfdf1701180022},
+        RECEIVER_EARLY=#{filterMap.bwq201705Result.pt.slfdf1701180023},
+        RECEIVER_LAST=#{filterMap.bwq201705Result.pt.slfdf1701180024},
+        MEMO1=#{filterMap.bwq201705Result.pt.slfdf1701190001},
+        MEMO2=#{filterMap.bwq201705Result.pt.slfdf1701190002},
+        MEMO3=#{filterMap.bwq201705Result.pt.slfdf1701190003},
+        MEMO4=#{filterMap.bwq201705Result.pt.slfdf1701190004},
+        MEMO5=#{filterMap.bwq201705Result.pt.slfdf1701190005},
+        MEMO6=#{filterMap.bwq201705Result.pt.slfdf1701190006},
+        DEL_FLG=#{filterMap.bwq201705Result.pt.delFlg},
+        UPD_ID=#{filterMap.bwq201705Result.pt.updId},
+        UPD_TIME=SYSDATE(),
+        VER=#{filterMap.bwq201705Result.pt.ver}
+        where ORDER_CODE=#{filterMap.bwq201705Result.pt.slfdf1701180002}
+    </update>
+
+    <!--更新订单产品数据-->
+    <update id="updateWqOrderProDuct" parameterType="com.msk.core.bean.BaseParam">
+        update wq_order_product set
+        PD_CODE=#{filterMap.bwq201705020201Bean.slfdf1701180025},
+        PD_NAME=#{filterMap.bwq201705020201Bean.slfdf1701180026},
+        PD_PRICE=#{filterMap.bwq201705020201Bean.slfdf1701180027},
+        ORDER_QTY=#{filterMap.bwq201705020201Bean.slfdf1701180028}
+        <where>
+            <if test="filterMap.bwq201705020201Bean.id!=null and filterMap.bwq201705020201Bean.id!=''">
+                and WQ_SUB_ID=#{filterMap.bwq201705020201Bean.id}
+            </if>
+            <if test="filterMap.orderId!=null and filterMap.orderId!=''">
+                and ORDER_ID=#{filterMap.orderId}
+            </if>
+        </where>
+    </update>
+
+    <!--查询订单最大ID值-->
+    <select id="queryMaxWqOrderId" parameterType="com.msk.core.bean.BaseParam" resultType="java.lang.Integer">
+        select max(TBL_ID)  from wq_order
+    </select>
+
+    <!--查询订单产品最大ID值-->
+    <select id="queryMaxWqOrderProDuctId" parameterType="com.msk.core.bean.BaseParam" resultType="java.lang.Integer">
+        select max(TBL_ID)  from wq_order_product
+    </select>
+
+    <!--添加订单产品数据-->
+    <insert id="saveWqOrderProDuct" parameterType="com.msk.core.bean.BaseParam">
+        insert into wq_order_product(
+        TBL_ID,
+        WQ_SUB_ID,
+        WQ_ID,
+        ORDER_ID,
+        PD_CODE,
+        PD_NAME,
+        PD_PRICE,
+        ORDER_QTY
+        ) values
+        <foreach collection="filterMap.listSts" item="li" separator=",">
+            (
+            #{li.tblId},
+            #{li.id},
+            #{filterMap.wqId},
+            #{filterMap.orderId},
+            #{li.slfdf1701180025},
+            #{li.slfdf1701180026},
+            #{li.slfdf1701180027},
+            #{li.slfdf1701180028}
+            )
+        </foreach>
+    </insert>
+
+    <!--查询订单和订单产品数据-->
+    <select id="queryOrderAndProduct" resultMap="queryOrderProductResult">
+        SELECT
+        SOO.ORDER_ID orderid,
+        SOO.ORDER_CODE orderCode,
+        SOO.ORDER_TIME AS orderTime,
+        SOO.BUYERS_ID AS buyersId,
+        SOO.BUYERS_CODE AS buyersCode,
+        SOO.BUYERS_NAME AS buyersName,
+        SOO.SELLER_CODE AS sellerCode,
+        SOO.SELLER_NAME AS sellerName,
+        SOO.ORDER_STATUS AS orderStatus,
+        COMCC.CONSTANT_NAME AS orderStatusName,
+        SOO.DEL_FLG AS delFlg,
+        SOO.ORDER_AMOUNT AS orderAmount,
+        SOO.ORDER_TYPE AS orderType,
+        COMCC1.CONSTANT_NAME orderTypeName,
+        SOO.DISTRICT_CODE AS districtCode,
+        MDD.LGCS_AREA_NAME as districtName,
+        SOO.PAYMENT_TYPE AS paymentType,
+        COMCC2.CONSTANT_NAME paymentTypeName,
+        SOO.VER AS ver,
+        NULL AS paidAmount,
+        NUll as paidTime,
+        SOO.SELLERS AS sellers,
+        SOO.ORDER_TAKER AS orderTaker,
+        SOO.NEED_INVOICE AS invoiceFlg,
+        NULL AS commentTime,
+        SOORD.RECEIVER_NAME AS receiverName,
+        SOORD.RECEIVER_QQ AS receiverQq,
+        SOORD.RECEIVER_WEIXIN AS receiverWeixin,
+        SOORD.RECEIVER_TEL AS receiverTel,
+        SOORD.RECEIVER_PROVINCE AS receiverProvince,
+        SOORD.RECEIVER_CITY AS receiverCity,
+        SOORD.RECEIVER_DISTRICT AS receiverDistrict,
+        SOORD.RECEIVER_ADDR AS receiverAddr,
+        SOORD.RECEIVE_TIME AS receiveTime,
+        SOORD.RECEIVE_EARLIEST AS receiveEarliest,
+        COMCC3.CONSTANT_NAME receiveEarltestName,
+        SOORD.RECEIVE_LAST AS receiveLast,
+        COMCC4.CONSTANT_NAME receiveLastName,
+        SOORD.PARKING_DISTANCE AS parkingDistance,
+        SOORD.REMARK AS remark,
+        SOORD.REMARK2 AS remark2,
+        SOORD.REMARK3 AS remark3,
+        SOORD.REMARK4 AS remark4,
+        IFNULL(SOORD.VIC_FLG, '0') AS vicFlg,
+        SOORD.UNLOAD_REQ AS unloadReq,
+        SOORD.PACKING_REQ AS packingReq,
+        SOORD.OTHER_DELIVERY_REQ AS otherDeliveryReq,
+        SOORD.THIS_DELIVERY_REQ AS thisDeliveryReq,
+        SOOD.PD_CODE AS pdCode,
+        CONCAT(SOOD.PD_NAME,' ',SOOD.FEATURE_NAME) pdname,
+        SOOD.FEATURE_NAME AS featureName,
+        IFNULL(SOOD.PD_PRICE, 0.00) AS pdPrice,
+        SOOD.NORMS_NAME AS normsName,
+        IFNULL(SOOD.WEIGHT, 0.00) AS weight,
+        SOOD.PD_GRADE_NAME AS pdGradeName,
+        SOOD.ORDER_QTY AS orderQty,
+        IFNULL(SOOD.SEND_QTY, 0.00) AS sendQty,
+        IFNULL(SOOD.CANCEL_QTY, 0.00) AS cancelQty,
+        IFNULL(SOOD.RETURN_QTY, 0.00) AS returnQty,
+        IFNULL(SOOD.REJECTION_QTY, 0.00) AS rejectionQty,
+        SOOD.ORDER_DETAIL_ID orderDetailId,
+        SODC.PD_CODE AS chPdCode,
+        CONCAT(SODC.PD_NAME,' ',SODC.FEATURE_NAME) AS chPdName,
+        SODC.FEATURE_NAME AS chFeatureName,
+        SODC.PD_PRICE AS chPdPrice,
+        SODC.NORMS_NAME AS chNormsName,
+        IFNULL(SODC.WEIGHT, 0.00) AS chWeight,
+        SODC.PD_GRADE_NAME AS chPdGradeName,
+        SODC.ORDER_QTY AS chOrderQty,
+        IFNULL(SODC.SEND_QTY, 0.00) AS chSendQty,
+        IFNULL(SODC.CANCEL_QTY, 0.00) AS chCancelQty,
+        IFNULL(SODC.RETURN_QTY, 0.00) AS chReturnQty,
+        IFNULL(SODC.REJECTION_QTY, 0.00) AS chRejectionQty,
+        SOO.ORDER_SOURCE AS orderSource,
+        COMC.CONSTANT_NAME AS buyerType,
+        t.deliverTime AS orderSendTime,
+        SOOR.CHILD_ORDER_CODE as childOrderCode,
+        SOOR.CHILD_ORDER_ID as childOrderId,
+        SOOR.MAIN_ORDER_ID as mainOrderId,
+        SOOR.MAIN_ORDER_CODE as mainOrderCode
+        FROM
+        SO_ORDER AS SOO
+        LEFT JOIN (
+        SELECT
+        MIN(sd.DELIVER_DATE) AS deliverTime,
+        sos.ORDER_ID AS orderId
+        FROM
+        SO_DELIVER sd
+        LEFT JOIN SO_ORDER_SHIP sos ON sd.SHIP_ID = sos.SHIP_ID
+        GROUP BY
+        sos.order_id
+        ) t ON t.orderid = soo.ORDER_ID
+        INNER JOIN SO_ORDER_RECEIVE_DEMAND AS SOORD ON SOO.ORDER_ID = SOORD.ORDER_ID
+        LEFT JOIN SO_ORDER_DETAIL AS SOOD ON SOO.ORDER_ID = SOOD.ORDER_ID
+        LEFT JOIN (
+        SELECT
+        SOOR.CHILD_ORDER_CODE,
+        SOOR.CHILD_ORDER_ID,
+        SOOR.MAIN_ORDER_ID,
+        SOOR.MAIN_ORDER_CODE
+        FROM
+        SO_ORDER_RELATION AS SOOR
+        ) AS SOOR ON SOOR.MAIN_ORDER_ID = SOO.ORDER_ID
+        AND SOOR.MAIN_ORDER_CODE = SOO.ORDER_CODE
+        LEFT JOIN SO_ORDER_DETAIL AS SODC ON SODC.ORDER_ID = SOOR.CHILD_ORDER_ID
+        AND SODC.ORDER_CODE = SOOR.CHILD_ORDER_CODE
+        LEFT JOIN COMM_CONSTANT COMC ON SOO.BUYERS_TYPE = COMC.CONSTANT_VALUE
+        AND COMC.CONSTANT_TYPE = 'BuyerType'
+        LEFT JOIN COMM_CONSTANT COMCC ON SOO.ORDER_STATUS = COMCC.CONSTANT_VALUE
+        AND COMCC.CONSTANT_TYPE = 'OrderStatus'
+        LEFT JOIN COMM_CONSTANT COMCC1 ON SOO.ORDER_TYPE = COMCC1.CONSTANT_VALUE
+        AND COMCC1.CONSTANT_TYPE = 'OrderType'
+        LEFT JOIN COMM_CONSTANT COMCC2 ON SOO.PAYMENT_TYPE = COMCC2.CONSTANT_VALUE
+        AND COMCC2.CONSTANT_TYPE = 'PaymentType'
+        LEFT JOIN COMM_CONSTANT COMCC3 ON SOORD.RECEIVE_EARLIEST = COMCC3.CONSTANT_VALUE
+        AND COMCC3.CONSTANT_TYPE = 'HabitReceivePeriodType'
+        LEFT JOIN COMM_CONSTANT COMCC4 ON SOORD.RECEIVE_LAST = COMCC4.CONSTANT_VALUE
+        AND COMCC4.CONSTANT_TYPE = 'HabitReceivePeriodType'
+        LEFT JOIN md_logistics_area MDD ON SOO.DISTRICT_CODE = MDD.LGCS_AREA_CODE
+        <where>
+                <if test="filterMap.flg!=null and filterMap.flg!='' and filterMap.flg==1">
+                    SOO.ORDER_TYPE IN (1)
+                </if>
+                <if test="filterMap.flg==null">
+                    SOO.ORDER_TYPE IN (5)
+                </if>
+                   /*and SOO.ORDER_STATUS!='99'*/
+                <if test="filterMap.orderCode!=null and filterMap.orderCode!=''">
+                    and SOO.ORDER_CODE=#{filterMap.orderCode}
+                </if>
+        </where>
+   </select>
+    <!--查询订单和订单产品数据-->
+    <select id="queryOrderCode" resultType="com.msk.batch.wq.entity.WqOrder">
+        SELECT
+        SOO.ORDER_CODE orderCode
+        FROM
+        SO_ORDER AS SOO
+        LEFT JOIN (
+        SELECT
+        MIN(sd.DELIVER_DATE) AS deliverTime,
+        sos.ORDER_ID AS orderId
+        FROM
+        SO_DELIVER sd
+        LEFT JOIN SO_ORDER_SHIP sos ON sd.SHIP_ID = sos.SHIP_ID
+        GROUP BY
+        sos.order_id
+        ) t ON t.orderid = soo.ORDER_ID
+        INNER JOIN SO_ORDER_RECEIVE_DEMAND AS SOORD ON SOO.ORDER_ID = SOORD.ORDER_ID
+        LEFT JOIN SO_ORDER_DETAIL AS SOOD ON SOO.ORDER_ID = SOOD.ORDER_ID
+        LEFT JOIN (
+        SELECT
+        SOOR.CHILD_ORDER_CODE,
+        SOOR.CHILD_ORDER_ID,
+        SOOR.MAIN_ORDER_ID,
+        SOOR.MAIN_ORDER_CODE
+        FROM
+        SO_ORDER_RELATION AS SOOR
+        ) AS SOOR ON SOOR.MAIN_ORDER_ID = SOO.ORDER_ID
+        AND SOOR.MAIN_ORDER_CODE = SOO.ORDER_CODE
+        LEFT JOIN SO_ORDER_DETAIL AS SODC ON SODC.ORDER_ID = SOOR.CHILD_ORDER_ID
+        AND SODC.ORDER_CODE = SOOR.CHILD_ORDER_CODE
+        LEFT JOIN COMM_CONSTANT COMC ON SOO.BUYERS_TYPE = COMC.CONSTANT_VALUE
+        AND COMC.CONSTANT_TYPE = 'BuyerType'
+        LEFT JOIN COMM_CONSTANT COMCC ON SOO.ORDER_STATUS = COMCC.CONSTANT_VALUE
+        AND COMCC.CONSTANT_TYPE = 'OrderStatus'
+        LEFT JOIN COMM_CONSTANT COMCC1 ON SOO.ORDER_TYPE = COMCC1.CONSTANT_VALUE
+        AND COMCC1.CONSTANT_TYPE = 'OrderType'
+        LEFT JOIN COMM_CONSTANT COMCC2 ON SOO.PAYMENT_TYPE = COMCC2.CONSTANT_VALUE
+        AND COMCC2.CONSTANT_TYPE = 'PaymentType'
+        <where>
+                SOO.ORDER_TYPE IN (1)
+             /*and SOO.ORDER_STATUS!='99'*/
+            <if test="filterMap.flg!=null and filterMap.flg!='' and filterMap.flg==1">
+                /*AND (DATE_FORMAT(NOW(),'%Y%m%d')-DATE_FORMAT(SOO.CRT_TIME,'%Y%m%d')&lt;=3 or DATE_FORMAT(NOW(),'%Y%m%d')-DATE_FORMAT(SOO.UPD_TIME,'%Y%m%d')&lt;=3)*/
+               and SOO.CRT_TIME> DATE_SUB(now(),INTERVAL 3 DAY) oR SOO.UPD_TIME> DATE_SUB(now(),INTERVAL 3 DAY)
+            </if>
+        </where>
+    </select>
+
+    <!--查询wqOrder是否为空-->
+    <select id="queryWqOrderCode" parameterType="com.msk.core.bean.BaseParam" resultType="java.lang.Integer">
+        select count(1) from wq_order
+    </select>
+
+    <!--查询外勤365返回数据和本地返回数据是否存在于wqOrder-->
+    <select id="queryWqOrder" parameterType="com.msk.core.bean.BaseParam" resultType="java.lang.Integer">
+        select count(1) from wq_order where ORDER_CODE=#{filterMap.orderCode}
+    </select>
+
+    <!--根据订单id和产品编码查询产品子表id-->
+    <select id="queryWqOrderProductId" parameterType="com.msk.core.bean.BaseParam" resultType="com.msk.batch.wq.bean.BWQ201705020201Bean">
+        select WQ_SUB_ID as id from wq_order_product
+        <where>
+            <if test="filterMap.orderId!=null and filterMap.orderId!=''">
+                and ORDER_ID=#{filterMap.orderId}
+            </if>
+            <if test="filterMap.pdCode!=null and filterMap.pdCode!=''">
+                and PD_CODE=#{filterMap.pdCode}
+            </if>
+        </where>
+    </select>
+
+    <!--根据买家id查询365买家id-->
+    <select id="queryWqCustomerId" parameterType="com.msk.core.bean.BaseParam" resultType="com.msk.batch.wq.bean.BWQ201701Bean">
+        select ID as id from wq_customer
+        <where>
+            <if test="filterMap.cmName!=null and filterMap.cmName!=''">
+                and CM_NAME=#{filterMap.cmName}
+            </if> limit 0,1
+        </where>
+    </select>
+
+    <!--查询时间段-->
+    <select id="queryCommTimeId" parameterType="com.msk.core.bean.BaseParam" resultType="com.msk.batch.wq.bean.BWQ2017050201Bean">
+        select a.CONSTANT_NAME as slfdf1701180022
+        from comm_constant as a
+        where a.CONSTANT_TYPE = 'HabitReceivePeriodType'
+        and a.CONSTANT_VALUE=#{filterMap.time}
+    </select>
+    <!--根据slcode取值slName-->
+    <select id="queryShowNameBySlCode" parameterType="com.msk.core.bean.BaseParam" resultType="com.msk.batch.wq.bean.BWQ2017050201Bean">
+        SELECT
+	    a.SL_SHOW_NAME as sellerName
+      FROM
+	  sl_bs_account AS a
+      WHERE
+	  a.SL_ACCOUNT = (
+		SELECT
+			b.SL_ACCOUNT
+		FROM
+			sl_bs_basic_info AS b
+		WHERE
+			b.SL_CODE = #{filterMap.slCode}
+	)
+    </select>
+
+
+</mapper>

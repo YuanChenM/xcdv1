@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.msk.common.logic.LogisticsAreaLogic">
+    <select id="findList" parameterType="BaseParam" resultType="com.msk.core.entity.MdLogisticsArea">
+        SELECT
+            LGCS_AREA_ID AS lgcsAreaId
+            ,LGCS_AREA_CODE AS lgcsAreaCode
+            ,LGCS_AREA_NAME AS lgcsAreaName
+            ,DIVISION_LEVEL AS divisionLevel
+        FROM MD_LOGISTICS_AREA
+        <include refid="whereCondition"/>
+        ORDER BY DIVISION_LEVEL,LGCS_AREA_ID
+    </select>
+    <sql id="whereCondition">
+        <where>
+            <if test="filterMap.lgcsCode!=null and filterMap.lgcsCode!=''">
+                AND LGCS_AREA_CODE = #{filterMap.lgcsCode}
+            </if>
+            <if test="filterMap.lgcsBaseLevel!=null and filterMap.lgcsBaseLevel!=''">
+                AND DIVISION_LEVEL = #{filterMap.lgcsBaseLevel}
+            </if>
+        </where>
+    </sql>
+</mapper>

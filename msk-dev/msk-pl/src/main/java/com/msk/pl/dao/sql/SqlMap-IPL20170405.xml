@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170405Logic">
+
+
+
+
+    <select id="findPageList" parameterType="com.msk.pl.bean.IPL20170405Param" resultType="com.msk.pl.bean.PlDeclareInfo">
+    SELECT
+        info.DT_DETAIL_ID AS dtDetailId,
+        info.DT_ID AS dtId,
+        info.PARTNER_ID AS partnerId,
+        info.LGCS_CODE AS lgcsCode,
+        info.LGCS_NAME AS lgcsName,
+        info.TERMINAL_ID AS terminalId,
+        info.DOMAIN_ID AS domainId,
+        info.BS_CODE AS bsCode,
+        info.BS_NAME AS bsName,
+        info.PD_ID AS pdId,
+	 	info.CLASSES_CODE AS classesCode,
+	 	info.CLASSES_NAME AS classesName,
+	 	info.MACHINING_CODE AS machiningCode,
+	 	info.MACHINING_NAME AS machiningName,
+	 	info.BREED_CODE AS breedCode,
+	 	info.BREED_NAME AS breedName,
+	 	info.FEATURE_CODE AS featureCode,
+	 	info.FEATURE_NAME AS featureName,
+	 	info.WEIGHT_CODE AS weightCode,
+	 	info.WEIGHT_NAME AS weightName,
+	 	info.GRADE_CODE AS gradeCode,
+	 	info.GRADE_NAME AS gradeName,
+	 	info.BRAND_CODE AS brandCode,
+	 	info.BRAND_NAME AS brandName,
+	 	info.PD_CODE AS pdCode,
+	 	info.PD_NAME AS pdName,
+	 	info.SKU_CODE AS skuCode,
+	 	info.SKU_NAME AS skuName,
+	 	info.NEEDS_GRADE_CODE AS needsGradeCode,
+	 	info.NEEDS_GRADE_NAME AS needsGradeName,
+	 	info.SMALL_PACK_FEATURE AS smallPackFeature,
+	 	info.SMALL_PACK_NUMBER AS smallPackNumber,
+	 	info.NETWEIGHT AS netweight,
+	 	info.GROSSWEIGHT AS grossweight,
+	 	info.CARTON_SIZE AS cartonSize,
+	 	info.PD_GRADE AS pdGrade,
+	 	info.PALLET_NUMBER AS palletNumber,
+	 	info.PD_ORIGIN AS pdOrigin,
+	 	info.PD_UOM AS pdUom,
+	 	info.ON_SHELF_STATUS AS onShelfStatus,
+	 	info.SUPPLIER_NAME AS supplierName,
+	 	info.MANUFACTURE_NAME AS manufactureName,
+	 	info.FACTORY_NAME AS factoryName,
+	 	info.OEM_NAME AS oemName,
+        info.DECLARE_PRICE AS declarePrice,
+        info.PRICE_WAY_NAME AS priceWayName,
+        info.DEL_FLG AS delFlg,
+		info.CRT_ID AS crtId,
+		info.CRT_TIME AS crtTime,
+		info.UPD_ID AS updId,
+		info.UPD_TIME AS updTime,
+		info.ACT_ID AS actId,
+		info.ACT_TIME AS actTime,
+	 	info.VER AS ver
+      FROM
+        PL_DECLARE_INFO info
+        LEFT JOIN PL_DECLARE_TASK task ON info.DT_ID = task.DT_ID AND info.DEL_FLG = task.DEL_FLG
+      WHERE
+        info.DEL_FLG = FALSE
+        <if test="classesCode != null and classesCode != ''">
+            AND info.CLASSES_CODE = #{classesCode}
+        </if>
+        <if test="machiningCode != null and machiningCode != ''">
+            AND info.MACHINING_CODE = #{machiningCode}
+        </if>
+      	AND task.PP_ID = #{ppId}
+      	AND info.BS_CODE = #{bsCode}
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageCount};
+        </if>
+    </select>
+
+    <select id="getPageCount" resultType="Integer" parameterType="com.msk.pl.bean.IPL20170405Param">
+        SELECT
+        count(1)
+        FROM
+        PL_DECLARE_INFO info
+        LEFT JOIN PL_DECLARE_TASK task ON info.DT_ID = task.DT_ID AND info.DEL_FLG = task.DEL_FLG
+        WHERE
+        info.DEL_FLG = FALSE
+        <if test="classesCode != null and classesCode != ''">
+            AND info.CLASSES_CODE = #{classesCode}
+        </if>
+        <if test="machiningCode != null and machiningCode != ''">
+            AND info.MACHINING_CODE = #{machiningCode}
+        </if>
+        AND task.PP_ID = #{ppId}
+        AND info.BS_CODE = #{bsCode}
+    </select>
+
+
+    <select id="plDeclareInfoList" parameterType="com.msk.pl.bean.IPL20170406Param"
+            resultType="com.msk.pl.bean.PlDeclareInfo">
+        SELECT
+        info.PD_CODE AS pdCode,
+        info.PD_NAME AS pdName,
+        info.DECLARE_PRICE AS declarePrice
+        FROM
+        PL_DECLARE_INFO info
+        LEFT JOIN PL_DECLARE_TASK task ON info.DT_ID = task.DT_ID AND info.DEL_FLG = task.DEL_FLG
+        WHERE
+        info.DEL_FLG = FALSE
+        AND info.BS_CODE = #{bsCode}
+        AND task.PP_ID = #{ppId}
+        AND info.PD_CODE IN
+        <foreach collection="pdCodeList" index="index" item="item" open="(" separator="," close=")">
+            #{item.pdCode}
+        </foreach>
+    </select>
+
+    <update id="modify" parameterType="com.msk.pl.bean.IPL20170407Param">
+    UPDATE PL_DECLARE_INFO info
+    LEFT JOIN PL_DECLARE_TASK task ON info.DT_ID = task.DT_ID AND info.DEL_FLG = task.DEL_FLG
+    SET info.DECLARE_PRICE = #{declarePrice},
+        info.UPD_ID = #{updId},
+        info.UPD_TIME = #{updTime}
+    WHERE
+        	info.DEL_FLG = FALSE
+        AND info.PD_CODE = #{pdCode}
+        AND info.PD_NAME = #{pdName}
+        AND info.BS_CODE = #{bsCode}
+        <if test="dtDetailId != null">
+            AND  info.DT_DETAIL_ID = #{dtDetailId}
+        </if>
+        AND task.DT_ID =  #{taskId}
+        AND task.PP_ID = #{ppId}
+    </update>
+
+
+</mapper>

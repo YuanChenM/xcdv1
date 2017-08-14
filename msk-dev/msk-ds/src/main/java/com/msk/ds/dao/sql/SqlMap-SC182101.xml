@@ -1,0 +1,610 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.msk.ds.logic.SC182101Logic">
+
+    <!-- 表字段 -->
+    <!--<sql id="selectFiled">
+        DS.DELIVERY_STOCK_ID AS deliveryStockId,
+        DS.DIST_MONTH AS distMonth,
+        IFNULL(DS.LGCS_CODE,'') AS lgcsCode,
+        IFNULL(LOG.LGCS_AREA_NAME,'') AS lgcsName,
+        IFNULL(DS.SUPP_CODE,'') AS suppCode,
+        IFNULL(SL.EP_NAME,'') AS suppName,
+        IFNULL(DS.HALF_CODE,'') AS halfCode,
+        IFNULL(CONS.CONSTANT_NAME,'') AS halfName,
+        IFNULL(DS.DELIVERY_STOCK_STATUS,'') AS deliveryStockStatus,
+        IFNULL(CONST.CONSTANT_NAME,'') AS statusName,
+        IFNULL(SELLER.SL_CODE_MANUFACTURE,'') AS manuCode,
+        IFNULL(AGENT.AUTH_EP_NAME,'') AS manuName,
+        IFNULL(DS.DELIVERY_STOCK_TIME_REQ,'') AS deliveryStockTimeReq,
+        IFNULL(DS.DELIVERY_RECEIVE_STOCK_TIME,'') AS deliveryReceiveStockTime,
+        DS.DELIVERY_WAREHOUSE_ADDR AS deliveryWarehouseAddr,
+        DS.DELIVERY_RESPON_NAME AS deliveryResponName,
+        DS.DELIVERY_RESPON_TEL AS deliveryResponTel,
+        DS.DELIVERY_EXECUTE_NAME AS deliveryExecuteName,
+        DS.DELIVERY_EXECUTE_TEL AS deliveryExecuteTel,
+        DS.TRANSPORT_UNIT_NAME AS transportUnitName,
+        DS.TRANSPORT_UNIT_RESPON_NAME AS transportUnitResponName,
+        DS.TRANSPORT_UNIT_RESPON_TEL AS transportUnitResponTel,
+        DS.TRANSPORT_UNIT_EXECUTE_NAME AS transportUnitExecuteName,
+        DS.TRANSPORT_UNIT_EXECUTE_TEL AS transportUnitExecuteTel,
+        DS.DELIVERY_MEMO AS deliveryMemo,
+        DS.STOCK_MEMO AS stockMemo,
+        DS.STOCK_ADDR AS stockAddr,
+        DS.STOCK_RESPON_NAME AS stockResponName,
+        DS.STOCK_RESPON_TEL AS stockResponTel,
+        DS.STOCK_EXECUTE_NAME AS stockExecuteName,
+        DS.STOCK_EXECUTE_TEL AS stockExecuteTel
+    </sql>
+    <sql id="selectFrom">
+        FROM ds_delivery_stock AS DS
+        LEFT JOIN md_logistics_area AS LOG
+        ON DS.LGCS_CODE = LOG.LGCS_AREA_CODE
+        LEFT JOIN SL_SELLER AS SELLER
+        ON DS.SUPP_CODE = SELLER.SL_CODE AND DS.DEL_FLG = 0
+        LEFT JOIN SL_ENTERPRISE AS SL
+        ON SELLER.EP_ID = SL.EP_ID
+        LEFT JOIN sl_ep_agent_auth AS AGENT ON DS.SUPP_CODE = AGENT.SL_CODE AND SL.EP_ID = AGENT.PRODUCER_EP_ID
+        LEFT JOIN comm_constant AS CONS ON CONS.CONSTANT_TYPE="HalfCodeType"
+        AND DS.HALF_CODE = CONS.CONSTANT_VALUE
+        LEFT JOIN comm_constant AS CONST ON CONST.CONSTANT_TYPE="DeliveryStockStatus"
+        AND DS.DELIVERY_STOCK_STATUS = CONST.CONSTANT_VALUE
+    </sql>-->
+    <!--条件 -->
+    <sql id="whereCondition">
+        <where>
+            <if test="filterMap.deliveryStockId!=null and filterMap.deliveryStockId!=''">
+                AND DS.DELIVERY_STOCK_ID like #{filterMap.deliveryStockId}
+            </if>
+            <if test="filterMap.distMonth!=null and filterMap.distMonth!=''">
+                AND DS.DIST_MONTH like #{filterMap.distMonth}
+            </if>
+            <if test="filterMap.lgcsName!=null and filterMap.lgcsName!=''">
+                AND LOG.LGCS_AREA_NAME like #{filterMap.lgcsName}
+            </if>
+            <if test="filterMap.suppName!=null and filterMap.suppName!=''">
+                AND SL.EP_NAME like #{filterMap.suppName}
+            </if>
+            <if test="filterMap.manuName!=null and filterMap.manuName!=''">
+                AND AGENT.AUTH_EP_NAME like #{filterMap.manuName}
+            </if>
+            <!--<if test="filterMap.halfCodes!=null">
+                AND DS.HALF_CODE IN
+                <foreach collection="filterMap.halfCodes" item="halfCode" open="(" separator="," close=")">
+                    #{halfCode}
+                </foreach>
+            </if>-->
+            <if test="filterMap.deliveryStocks!=null">
+                AND DS.DELIVERY_STOCK_STATUS IN
+                <foreach collection="filterMap.deliveryStocks" item="deliveryStockStatus" open="(" separator="," close=")">
+                    #{deliveryStockStatus}
+                </foreach>
+            </if>
+            <!--<if test="filterMap.deliveryWarehouseAddr!=null and filterMap.deliveryWarehouseAddr!=''">
+                AND DELIVERY_WAREHOUSE_ADDR like #{filterMap.deliveryWarehouseAddr}
+            </if>
+            <if test="filterMap.deliveryResponName!=null and filterMap.deliveryResponName!=''">
+                AND DELIVERY_RESPON_NAME like #{filterMap.deliveryResponName}
+            </if>
+            <if test="filterMap.deliveryResponTel!=null and filterMap.deliveryResponTel!=''">
+                AND DELIVERY_RESPON_TEL like #{filterMap.deliveryResponTel}
+            </if>
+            <if test="filterMap.deliveryExecuteName!=null and filterMap.deliveryExecuteName!=''">
+                AND DELIVERY_EXECUTE_NAME like #{filterMap.deliveryExecuteName}
+            </if>
+            <if test="filterMap.deliveryExecuteTel!=null and filterMap.deliveryExecuteTel!=''">
+                AND DELIVERY_EXECUTE_TEL like #{filterMap.deliveryExecuteTel}
+            </if>
+            <if test="filterMap.transportUnitName!=null and filterMap.transportUnitName!=''">
+                AND TRANSPORT_UNIT_NAME like #{filterMap.transportUnitName}
+            </if>
+            <if test="filterMap.transportUnitResponName!=null and filterMap.transportUnitResponName!=''">
+                AND TRANSPORT_UNIT_RESPON_NAME like #{filterMap.transportUnitResponName}
+            </if>
+            <if test="filterMap.transportUnitResponTel!=null and filterMap.transportUnitResponTel!=''">
+                AND TRANSPORT_UNIT_RESPON_TEL like #{filterMap.transportUnitResponTel}
+            </if>
+            <if test="filterMap.transportUnitExecuteName!=null and filterMap.transportUnitExecuteName!=''">
+                AND TRANSPORT_UNIT_EXECUTE_NAME like #{filterMap.transportUnitExecuteName}
+            </if>
+            <if test="filterMap.transportUnitExecuteTel!=null and filterMap.transportUnitExecuteTel!=''">
+                AND TRANSPORT_UNIT_EXECUTE_TEL like #{filterMap.transportUnitExecuteTel}
+            </if>
+            <if test="filterMap.deliveryMemo!=null and filterMap.deliveryMemo!=''">
+                AND DELIVERY_MEMO like #{filterMap.deliveryMemo}
+            </if>
+            <if test="filterMap.stockMemo!=null and filterMap.stockMemo!=''">
+                AND STOCK_MEMO like #{filterMap.stockMemo}
+            </if>
+            <if test="filterMap.deliveryStockTimeReq!=null and filterMap.deliveryStockTimeReq!=''">
+                AND DELIVERY_STOCK_TIME_REQ like #{filterMap.deliveryStockTimeReq}
+            </if>
+            <if test="filterMap.stockAddr!=null and filterMap.stockAddr!=''">
+                AND STOCK_ADDR like #{filterMap.stockAddr}
+            </if>
+            <if test="filterMap.stockResponName!=null and filterMap.stockResponName!=''">
+                AND STOCK_RESPON_NAME like #{filterMap.stockResponName}
+            </if>
+            <if test="filterMap.stockResponTel!=null and filterMap.stockResponTel!=''">
+                AND STOCK_RESPON_TEL like #{filterMap.stockResponTel}
+            </if>
+            <if test="filterMap.stockExecuteName!=null and filterMap.stockExecuteName!=''">
+                AND STOCK_EXECUTE_NAME like #{filterMap.stockExecuteName}
+            </if>
+            <if test="filterMap.stockExecuteTel!=null and filterMap.stockExecuteTel!=''">
+                AND STOCK_EXECUTE_TEL like #{filterMap.stockExecuteTel}
+            </if>-->
+            <if test="filterMap.crtId!=null and filterMap.crtId!=''">
+                AND DS.CRT_ID = #{filterMap.crtId}
+            </if>
+            <if test="filterMap.deliveryReceiveStockTime!=null and filterMap.deliveryReceiveStockTime!=''">
+                AND DS.DELIVERY_RECEIVE_STOCK_TIME like #{filterMap.deliveryReceiveStockTime}
+            </if>
+            <!--<if test="filterMap.senPlanNum!=null and filterMap.senPlanNum!=''">
+                AND DETAIL.PLAN_DELIVERY_NUM like #{filterMap.senPlanNum}
+            </if>
+            <if test="filterMap.sendActualNum!=null and filterMap.sendActualNum!=''">
+                AND DETAIL.ACTUAL_DELIVERY_NUM like #{filterMap.sendActualNum}
+            </if>
+            <if test="filterMap.receiveNum!=null and filterMap.receiveNum!=''">
+                AND DETAIL.ACTUAL_RECEIVE_NUM like #{filterMap.receiveNum}
+            </if>-->
+            AND (DS.DEL_FLG = 0 OR DS.DEL_FLG IS NULL)
+        </where>
+    </sql>
+
+    <!-- 修改分页查询sql create by likai on 2016/8/16 start -->
+    <sql id="selectFiled">
+            deliveryStockId,
+            distMonth,
+            lgcsCode,
+            lgcsName,
+            suppCode,
+            suppName,
+            halfCode,
+            halfName,
+            deliveryStockStatus,
+            statusName,
+            manuCode,
+            manuName,
+            deliveryStockTimeReq,
+            deliveryReceiveStockTime,
+            deliveryWarehouseAddr,
+            deliveryResponName,
+            deliveryResponTel,
+            deliveryExecuteName,
+            deliveryExecuteTel,
+            transportUnitName,
+            transportUnitResponName,
+            transportUnitExecuteName,
+            transportUnitExecuteTel,
+            deliveryMemo,
+            stockMemo,
+            stockAddr,
+            stockResponName,
+            stockResponTel,
+            stockExecuteName,
+            stockExecuteTel,
+            SUM(sendPlanQty) AS sendPlanQty,
+            SUM(sendActualQty) AS sendActualQty,
+            SUM(recriveQty) AS recriveQty,
+            SUM(differQty) AS differQty,
+            SUM(sendPlanNum) AS sendPlanNum,
+            SUM(sendActualNum) AS sendActualNum,
+            SUM(receiveNum) AS receiveNum,
+            SUM(differNum) AS differNum
+    </sql>
+    <sql id="selectFrom">
+        FROM
+	      (
+		    SELECT
+                DS.DELIVERY_STOCK_ID AS deliveryStockId,
+                DS.DIST_MONTH AS distMonth,
+                IFNULL(DS.LGCS_CODE,'') AS lgcsCode,
+                IFNULL(LOG.LGCS_AREA_NAME,'') AS lgcsName,
+                IFNULL(DS.SUPP_CODE,'') AS suppCode,
+                IFNULL(SL.EP_NAME,'') AS suppName,
+                IFNULL(DS.HALF_CODE,'') AS halfCode,
+                IFNULL(CONS.CONSTANT_NAME,'') AS halfName,
+                IFNULL(DS.DELIVERY_STOCK_STATUS,'') AS deliveryStockStatus,
+                IFNULL(CONST.CONSTANT_NAME,'') AS statusName,
+                IFNULL(SELLER.SL_CODE_MANUFACTURE,'') AS manuCode,
+                IFNULL(AGENT.AUTH_EP_NAME,'') AS manuName,
+                IFNULL(DS.DELIVERY_STOCK_TIME_REQ,'') AS deliveryStockTimeReq,
+                IFNULL(DS.DELIVERY_RECEIVE_STOCK_TIME,'') AS deliveryReceiveStockTime,
+                DS.DELIVERY_WAREHOUSE_ADDR AS deliveryWarehouseAddr,
+                DS.DELIVERY_RESPON_NAME AS deliveryResponName,
+                DS.DELIVERY_RESPON_TEL AS deliveryResponTel,
+                DS.DELIVERY_EXECUTE_NAME AS deliveryExecuteName,
+                DS.DELIVERY_EXECUTE_TEL AS deliveryExecuteTel,
+                DS.TRANSPORT_UNIT_NAME AS transportUnitName,
+                DS.TRANSPORT_UNIT_RESPON_NAME AS transportUnitResponName,
+                DS.TRANSPORT_UNIT_RESPON_TEL AS transportUnitResponTel,
+                DS.TRANSPORT_UNIT_EXECUTE_NAME AS transportUnitExecuteName,
+                DS.TRANSPORT_UNIT_EXECUTE_TEL AS transportUnitExecuteTel,
+                DS.DELIVERY_MEMO AS deliveryMemo,
+                DS.STOCK_MEMO AS stockMemo,
+                DS.STOCK_ADDR AS stockAddr,
+                DS.STOCK_RESPON_NAME AS stockResponName,
+                DS.STOCK_RESPON_TEL AS stockResponTel,
+                DS.STOCK_EXECUTE_NAME AS stockExecuteName,
+                DS.STOCK_EXECUTE_TEL AS stockExecuteTel,
+                IFNULL(actual.OUT_NW, 0) * IFNULL(
+                    stockDetail.PLAN_DELIVERY_NUM,
+                    0
+                ) AS sendPlanQty,
+                IFNULL(actual.OUT_NW, 0) * IFNULL(
+                    stockDetail.ACTUAL_DELIVERY_NUM,
+                    0
+                ) AS sendActualQty,
+                IFNULL(actual.OUT_NW, 0) * IFNULL(
+                    stockDetail.ACTUAL_RECEIVE_NUM,
+                    0
+                ) AS recriveQty,
+                IFNULL(actual.OUT_NW, 0) * (
+                    IFNULL(
+                        stockDetail.ACTUAL_RECEIVE_NUM,
+                        0
+                    ) - IFNULL(
+                        stockDetail.PLAN_DELIVERY_NUM,
+                        0
+                    )
+                ) AS differQty,
+                IFNULL(
+                    stockDetail.PLAN_DELIVERY_NUM,
+                    0
+                ) AS sendPlanNum,
+                IFNULL(
+                    stockDetail.ACTUAL_DELIVERY_NUM,
+                    0
+                ) AS sendActualNum,
+                IFNULL(
+                    stockDetail.ACTUAL_RECEIVE_NUM,
+                    0
+                ) AS receiveNum,
+                IFNULL(
+                    stockDetail.ACTUAL_RECEIVE_NUM,
+                    0
+                ) - IFNULL(
+                    stockDetail.PLAN_DELIVERY_NUM,
+                    0
+                ) AS differNum
+            FROM
+                ds_delivery_stock DS
+            LEFT JOIN md_logistics_area AS LOG ON DS.LGCS_CODE = LOG.LGCS_AREA_CODE
+            LEFT JOIN SL_SELLER AS SELLER ON DS.SUPP_CODE = SELLER.SL_CODE
+            AND DS.DEL_FLG = 0
+            LEFT JOIN SL_ENTERPRISE AS SL ON SELLER.EP_ID = SL.EP_ID
+            LEFT JOIN sl_ep_agent_auth AS AGENT ON DS.SUPP_CODE = AGENT.SL_CODE
+            AND SL.EP_ID = AGENT.PRODUCER_EP_ID
+            LEFT JOIN comm_constant AS CONS ON CONS.CONSTANT_TYPE = "HalfCodeType"
+            AND DS.HALF_CODE = CONS.CONSTANT_VALUE
+            LEFT JOIN comm_constant AS CONST ON CONST.CONSTANT_TYPE = "DeliveryStockStatus"
+            AND DS.DELIVERY_STOCK_STATUS = CONST.CONSTANT_VALUE
+            LEFT JOIN ds_delivery_stock_detail stockDetail ON stockDetail.DELIVERY_STOCK_ID = DS.DELIVERY_STOCK_ID
+            LEFT JOIN ds_pd_virtual_stock_actual actual ON actual.PD_CODE = stockDetail.PD_CODE
+            AND actual.DIST_MONTH = DS.DIST_MONTH
+            AND actual.HALF_CODE = DS.HALF_CODE
+            AND DS.LGCS_CODE = actual.LGCS_CODE
+            AND DS.SUPP_CODE = actual.SUPP_CODE
+            <include refid="whereCondition"/>
+            GROUP BY
+                DS.DELIVERY_STOCK_ID,
+                actual.PD_CODE,
+                actual.OUT_SPEC,
+                actual.OUT_NW,
+                actual.NORMS_CODE
+            ) AS A
+    </sql>
+    <!-- 修改分页查询sql create by likai on 2016/8/16 end -->
+    <select id="findAll" resultType="com.msk.ds.bean.SC182101Bean">
+        select
+        <include refid="selectFiled"/>
+        from ds_delivery_stock
+    </select>
+
+    <select id="findPageList" resultType="com.msk.ds.bean.SC182101Bean"
+            parameterType="BasePageParam">
+        SELECT
+        <include refid="selectFiled" />
+        <include refid="selectFrom" />
+        <!--<include refid="whereCondition" />-->
+        group by  deliveryStockId
+        order by deliveryStockId desc,distMonth,lgcsCode
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+
+    <select id="getPageCount" resultType="Integer" parameterType="BasePageParam">
+        <!--select count(1) FROM (-->
+        <!--SELECT-->
+        <!--<include refid="selectFiled" />-->
+        <!--<include refid="selectFrom" />-->
+        <!--<include refid="whereCondition" />-->
+        <!--group by  deliveryStockId-->
+        <!--) A-->
+        <!-- create by likai on 2016/8/16 start -->
+        SELECT COUNT(1) FROM (
+            SELECT
+            <include refid="selectFiled" />
+            <include refid="selectFrom" />
+            group by  deliveryStockId
+            order by deliveryStockId desc,distMonth,lgcsCode
+        ) result
+
+        <!-- create by likai on 2016/8/16 end -->
+
+    </select>
+
+    <select id="findOne" parameterType="BaseParam" resultType="com.msk.ds.bean.SC182101Bean">
+        SELECT
+        DELIVERY_STOCK_ID AS deliveryStockId,
+        DIST_MONTH AS distMonth,
+        LGCS_CODE AS lgcsCode,
+        IFNULL(LOG.LGCS_AREA_NAME,'') AS lgcsName,
+        SUPP_CODE AS suppCode,
+        IFNULL(SL.EP_NAME,'') AS suppName,
+        HALF_CODE AS halfCode,
+        IFNULL(CONS.CONSTANT_NAME,'') AS halfName,
+        DELIVERY_STOCK_STATUS AS deliveryStockStatus,
+        IFNULL(CONST.CONSTANT_NAME,'') AS statusName,
+        IFNULL(DELIVERY_RECEIVE_STOCK_TIME,'') AS deliveryReceiveStockTime,
+        DELIVERY_WAREHOUSE_ADDR AS deliveryWarehouseAddr,
+        DELIVERY_RESPON_NAME AS deliveryResponName,
+        DELIVERY_RESPON_TEL AS deliveryResponTel,
+        DELIVERY_EXECUTE_NAME AS deliveryExecuteName,
+        DELIVERY_EXECUTE_TEL AS deliveryExecuteTel,
+        TRANSPORT_UNIT_NAME AS transportUnitName,
+        TRANSPORT_UNIT_RESPON_NAME AS transportUnitResponName,
+        TRANSPORT_UNIT_RESPON_TEL AS transportUnitResponTel,
+        TRANSPORT_UNIT_EXECUTE_NAME AS transportUnitExecuteName,
+        TRANSPORT_UNIT_EXECUTE_TEL AS transportUnitExecuteTel,
+        DELIVERY_MEMO AS deliveryMemo,
+        STOCK_MEMO AS stockMemo,
+        DELIVERY_STOCK_TIME_REQ AS deliveryStockTimeReq,
+        STOCK_ADDR AS stockAddr,
+        STOCK_RESPON_NAME AS stockResponName,
+        STOCK_RESPON_TEL AS stockResponTel,
+        STOCK_EXECUTE_NAME AS stockExecuteName,
+        STOCK_EXECUTE_TEL AS stockExecuteTel
+        FROM ds_delivery_stock AS DS
+        LEFT JOIN md_logistics_area AS LOG
+        ON DS.LGCS_CODE = LOG.LGCS_AREA_CODE
+        LEFT JOIN SL_SELLER AS SELLER
+        ON DS.SUPP_CODE = SELLER.SL_CODE AND DS.DEL_FLG = 0
+        LEFT JOIN SL_ENTERPRISE AS SL
+        ON SELLER.EP_ID = SL.EP_ID
+        LEFT JOIN comm_constant AS CONS ON CONS.CONSTANT_TYPE="HalfCodeType"
+        AND DS.HALF_CODE = CONS.CONSTANT_VALUE
+        LEFT JOIN comm_constant AS CONST ON CONST.CONSTANT_TYPE="DeliveryStockStatus"
+        AND DS.DELIVERY_STOCK_STATUS = CONST.CONSTANT_VALUE
+        WHERE DELIVERY_STOCK_ID = #{filterMap.deliveryStockId}
+    </select>
+     <!--应上海需求 #1791添加页面合计 modify by renyi on 2016/8/10 start-->
+    <select id="getCurrentInfo" resultType="com.msk.ds.bean.SC182101Bean"
+            parameterType="BasePageParam">
+        <!--SELECT
+        IFNULL(SUM(t1.sendPlanNum),'') AS currentSendPlanNum,
+        IFNULL(SUM(t1.sendActualNum),'') AS currentSendActualNum,
+        IFNULL(SUM(t1.receiveNum),'') AS currentReceiveNum,
+        IFNULL(SUM(t1.sendPlanQty),'') AS currentSendPlanQty,
+        IFNULL(SUM(t1.sendActualQty),'') AS currentSendActualQty,
+        IFNULL(SUM(t1.recriveQty),'') AS currentRecriveQty,
+        IFNULL(SUM(t1.differNum),'') AS currentDifferNum,
+        IFNULL(SUM(t1.differQty),'') AS currentDifferQty
+        from(
+        SELECT
+        actual.PD_CODE AS productCode,
+        actual.OUT_SPEC AS productSpecifical,
+        actual.OUT_NW AS netWeight,
+        actual.NORMS_CODE AS packageCode,
+        stockDetail.DELIVERY_STOCK_ID AS deliveryStockId,
+        IFNULL(stockDetail.ACTUAL_RECEIVE_NUM , 0) AS receiveNum,
+        IFNULL(stockDetail.PLAN_DELIVERY_NUM, 0) AS sendPlanNum,
+        IFNULL(stockDetail.ACTUAL_DELIVERY_NUM, 0) AS sendActualNum,
+        IFNULL(actual.OUT_NW, 0) * IFNULL(stockDetail.ACTUAL_DELIVERY_NUM, 0) AS sendActualQty,
+        IFNULL(actual.OUT_NW, 0) * IFNULL(stockDetail.PLAN_DELIVERY_NUM, 0) AS sendPlanQty,
+        IFNULL(actual.OUT_NW, 0) * IFNULL(stockDetail.ACTUAL_RECEIVE_NUM, 0) AS recriveQty,
+        IFNULL(stockDetail.ACTUAL_RECEIVE_NUM, 0) - IFNULL(stockDetail.PLAN_DELIVERY_NUM, 0) AS differNum,
+        IFNULL(actual.OUT_NW, 0) * (IFNULL(stockDetail.ACTUAL_RECEIVE_NUM, 0) - IFNULL(stockDetail.PLAN_DELIVERY_NUM, 0) )
+        AS differQty
+        FROM
+        ds_delivery_stock_detail AS stockDetail
+        LEFT JOIN ds_pd_virtual_stock_actual AS actual on stockDetail.PD_CODE = actual.PD_CODE
+        WHERE
+        <foreach collection="list" item="item" open="(" separator="OR" close=")">
+            stockDetail.DELIVERY_STOCK_ID = #{item.deliveryStockId}
+            AND	actual.DIST_MONTH = #{item.distMonth}
+            AND actual.LGCS_CODE=#{item.lgcsCode}
+            AND actual.SUPP_CODE=#{item.suppCode}
+            AND actual.DEL_FLG = 0
+            AND actual.PD_STOCK_TYPE = 2
+            AND actual.HALF_CODE = #{item.halfCode}
+            AND stockDetail.DEL_FLG = 0
+        </foreach>-->
+        <!--<if test="filterMap.senPlanNum!=null and filterMap.senPlanNum!=''">
+            AND stockDetail.PLAN_DELIVERY_NUM like #{filterMap.senPlanNum}
+        </if>
+        <if test="filterMap.sendActualNum!=null and filterMap.sendActualNum!=''">
+            AND stockDetail.ACTUAL_DELIVERY_NUM like #{filterMap.sendActualNum}
+        </if>
+        <if test="filterMap.receiveNum!=null and filterMap.receiveNum!=''">
+            AND stockDetail.ACTUAL_RECEIVE_NUM like #{filterMap.receiveNum}
+        </if>-->
+        /*GROUP BY
+        stockDetail.DELIVERY_STOCK_ID,
+        actual.PD_CODE,
+        actual.OUT_SPEC,
+        actual.OUT_NW,
+        actual.NORMS_CODE
+        ORDER BY stockDetail.DELIVERY_STOCK_ID
+        )
+        as t1*/
+        SELECT
+        SUM(sendPlanQty) as CurrentSendPlanQty,
+        SUM(sendActualQty)as currentSendActualQty,
+        SUM(recriveQty)as currentRecriveQty,
+        SUM(differQty)as currentDifferQty,
+        SUM(sendPlanNum)as currentSendPlanNum,
+        SUM(sendActualNum)as currentSendActualNum,
+        SUM(receiveNum)as currentReceiveNum,
+        SUM(differNum)as currentDifferNum
+        FROM
+        (
+            SELECT
+                DS.DELIVERY_STOCK_ID AS deliveryStockId,
+                DS.DIST_MONTH AS distMonth,
+                IFNULL(DS.LGCS_CODE,'') AS lgcsCode,
+                IFNULL(actual.OUT_NW, 0) * IFNULL(
+                stockDetail.PLAN_DELIVERY_NUM,
+                0
+                ) AS sendPlanQty,
+                IFNULL(actual.OUT_NW, 0) * IFNULL(
+                stockDetail.ACTUAL_DELIVERY_NUM,
+                0
+                ) AS sendActualQty,
+                IFNULL(actual.OUT_NW, 0) * IFNULL(
+                stockDetail.ACTUAL_RECEIVE_NUM,
+                0
+                ) AS recriveQty,
+                IFNULL(actual.OUT_NW, 0) * (
+                IFNULL(
+                stockDetail.ACTUAL_RECEIVE_NUM,
+                0
+                ) - IFNULL(
+                stockDetail.PLAN_DELIVERY_NUM,
+                0
+                )
+                ) AS differQty,
+                IFNULL(
+                stockDetail.PLAN_DELIVERY_NUM,
+                0
+                ) AS sendPlanNum,
+                IFNULL(
+                stockDetail.ACTUAL_DELIVERY_NUM,
+                0
+                ) AS sendActualNum,
+                IFNULL(
+                stockDetail.ACTUAL_RECEIVE_NUM,
+                0
+                ) AS receiveNum,
+                IFNULL(
+                stockDetail.ACTUAL_RECEIVE_NUM,
+                0
+                ) - IFNULL(
+                stockDetail.PLAN_DELIVERY_NUM,
+                0
+                ) AS differNum
+            FROM
+            ds_delivery_stock DS
+            LEFT JOIN md_logistics_area AS LOG ON DS.LGCS_CODE = LOG.LGCS_AREA_CODE
+            LEFT JOIN SL_SELLER AS SELLER ON DS.SUPP_CODE = SELLER.SL_CODE
+            AND DS.DEL_FLG = 0
+            LEFT JOIN SL_ENTERPRISE AS SL ON SELLER.EP_ID = SL.EP_ID
+            LEFT JOIN sl_ep_agent_auth AS AGENT ON DS.SUPP_CODE = AGENT.SL_CODE
+            AND SL.EP_ID = AGENT.PRODUCER_EP_ID
+            LEFT JOIN comm_constant AS CONS ON CONS.CONSTANT_TYPE = "HalfCodeType"
+            AND DS.HALF_CODE = CONS.CONSTANT_VALUE
+            LEFT JOIN comm_constant AS CONST ON CONST.CONSTANT_TYPE = "DeliveryStockStatus"
+            AND DS.DELIVERY_STOCK_STATUS = CONST.CONSTANT_VALUE
+            LEFT JOIN ds_delivery_stock_detail stockDetail ON stockDetail.DELIVERY_STOCK_ID = DS.DELIVERY_STOCK_ID
+            LEFT JOIN ds_pd_virtual_stock_actual actual ON actual.PD_CODE = stockDetail.PD_CODE
+            AND actual.DIST_MONTH = DS.DIST_MONTH
+            AND actual.HALF_CODE = DS.HALF_CODE
+            AND DS.LGCS_CODE = actual.LGCS_CODE
+            AND DS.SUPP_CODE = actual.SUPP_CODE
+            <include refid="whereCondition"/>
+            GROUP BY
+            DS.DELIVERY_STOCK_ID,
+            actual.PD_CODE,
+            actual.OUT_SPEC,
+            actual.OUT_NW,
+            actual.NORMS_CODE
+        ) AS A
+
+    </select>
+<!--   应上海需求 #1791添加页面合计 modify by renyi on 2016/8/10 end -->
+
+    <update id="modify" parameterType="com.msk.ds.bean.SC182101Bean">
+        update ds_delivery_stock
+        set
+        DIST_MONTH=#{distMonth},
+        LGCS_CODE=#{lgcsCode},
+        SUPP_CODE=#{suppCode},
+        HALF_CODE=#{halfCode},
+        DELIVERY_STOCK_STATUS=#{deliveryStockStatus},
+        DELIVERY_RECEIVE_STOCK_TIME = #{deliveryReceiveStockTime},
+        DELIVERY_WAREHOUSE_ADDR=#{deliveryWarehouseAddr},
+        DELIVERY_RESPON_NAME=#{deliveryResponName},
+        DELIVERY_RESPON_TEL=#{deliveryResponTel},
+        DELIVERY_EXECUTE_NAME=#{deliveryExecuteName},
+        DELIVERY_EXECUTE_TEL=#{deliveryExecuteTel},
+        TRANSPORT_UNIT_NAME=#{transportUnitName},
+        TRANSPORT_UNIT_RESPON_NAME=#{transportUnitResponName},
+        TRANSPORT_UNIT_RESPON_TEL=#{transportUnitResponTel},
+        TRANSPORT_UNIT_EXECUTE_NAME=#{transportUnitExecuteName},
+        TRANSPORT_UNIT_EXECUTE_TEL=#{transportUnitExecuteTel},
+        DELIVERY_MEMO=#{deliveryMemo},
+        STOCK_MEMO=#{stockMemo},
+        DELIVERY_STOCK_TIME_REQ=#{deliveryStockTimeReq},
+        STOCK_ADDR=#{stockAddr},
+        STOCK_RESPON_NAME=#{stockResponName},
+        STOCK_RESPON_TEL=#{stockResponTel},
+        STOCK_EXECUTE_NAME=#{stockExecuteName},
+        STOCK_EXECUTE_TEL=#{stockExecuteTel},
+        DEL_FLG = #{delFlg}
+        WHERE
+        DELIVERY_STOCK_ID=#{deliveryStockId}
+    </update>
+
+    <select id="findQtyList" resultType="com.msk.ds.bean.SC182101Bean"
+            parameterType="Map">
+        SELECT
+            actual.PD_CODE AS productCode,
+            actual.OUT_SPEC AS productSpecifical,
+            actual.OUT_NW AS netWeight,
+            actual.NORMS_CODE AS packageCode,
+            stockDetail.DELIVERY_STOCK_ID AS deliveryStockId,
+            IFNULL(stockDetail.ACTUAL_RECEIVE_NUM , 0) AS receiveNum,
+            IFNULL(stockDetail.PLAN_DELIVERY_NUM, 0) AS sendPlanNum,
+            IFNULL(stockDetail.ACTUAL_DELIVERY_NUM, 0) AS sendActualNum,
+            IFNULL(actual.OUT_NW, 0) * IFNULL(stockDetail.ACTUAL_DELIVERY_NUM, 0) AS sendActualQty,
+            IFNULL(actual.OUT_NW, 0) * IFNULL(stockDetail.PLAN_DELIVERY_NUM, 0) AS sendPlanQty,
+            IFNULL(actual.OUT_NW, 0) * IFNULL(stockDetail.ACTUAL_RECEIVE_NUM, 0) AS recriveQty,
+            IFNULL(stockDetail.ACTUAL_RECEIVE_NUM, 0) - IFNULL(stockDetail.PLAN_DELIVERY_NUM, 0) AS differNum,
+            IFNULL(actual.OUT_NW, 0) * (IFNULL(stockDetail.ACTUAL_RECEIVE_NUM, 0) - IFNULL(stockDetail.PLAN_DELIVERY_NUM, 0) )
+            AS differQty
+        FROM
+            ds_delivery_stock_detail AS stockDetail
+        LEFT JOIN ds_pd_virtual_stock_actual AS actual on stockDetail.PD_CODE = actual.PD_CODE
+        WHERE
+        <foreach collection="list" item="item" open="(" separator="OR" close=")">
+        stockDetail.DELIVERY_STOCK_ID = #{item.deliveryStockId}
+        AND	actual.DIST_MONTH = #{item.distMonth}
+        AND actual.LGCS_CODE=#{item.lgcsCode}
+        AND actual.SUPP_CODE=#{item.suppCode}
+        AND actual.DEL_FLG = 0
+        AND actual.PD_STOCK_TYPE = 2
+        AND actual.HALF_CODE = #{item.halfCode}
+        AND stockDetail.DEL_FLG = 0
+        </foreach>
+        <!--<if test="filterMap.senPlanNum!=null and filterMap.senPlanNum!=''">
+            AND stockDetail.PLAN_DELIVERY_NUM like #{filterMap.senPlanNum}
+        </if>
+        <if test="filterMap.sendActualNum!=null and filterMap.sendActualNum!=''">
+            AND stockDetail.ACTUAL_DELIVERY_NUM like #{filterMap.sendActualNum}
+        </if>
+        <if test="filterMap.receiveNum!=null and filterMap.receiveNum!=''">
+            AND stockDetail.ACTUAL_RECEIVE_NUM like #{filterMap.receiveNum}
+        </if>-->
+        GROUP BY
+        stockDetail.DELIVERY_STOCK_ID,
+        actual.PD_CODE,
+        actual.OUT_SPEC,
+        actual.OUT_NW,
+        actual.NORMS_CODE
+        ORDER BY stockDetail.DELIVERY_STOCK_ID
+    </select>
+</mapper>

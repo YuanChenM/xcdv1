@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170408Logic">
+    <select id="selectPricePeriodMstByNewDate" resultType="com.msk.pl.bean.PlDeclarePriceperiodMst">
+    SELECT
+        	PP_ID AS ppId,
+        	PRICE_PERIOD_DATE AS pricePeriodDate,
+        	PRICE_PERIOD_MONTH AS pricePeriodMonth,
+        	PRICE_PERIOD AS pricePeriod,
+        	PRICE_PERIOD_DATE AS pricePeriodDate,
+        	CRT_TIME AS crtTime
+    FROM
+        	pl_declare_priceperiod_mst
+    WHERE
+	  NOW() BETWEEN INPUT_START_DATE
+		AND date_add(
+			INPUT_END_DATE,
+			INTERVAL 1 DAY
+		)
+		AND DEL_FLG = FALSE
+    </select>
+
+    <select id="selectPricePeriodMstByPpId" resultType="com.msk.pl.bean.PlDeclarePriceperiodMst"
+            parameterType="com.msk.pl.bean.IPL20170408Param">
+        SELECT
+        PP_ID AS ppId,
+        PRICE_PERIOD_DATE AS pricePeriodDate,
+        PRICE_PERIOD_MONTH AS pricePeriodMonth,
+        PRICE_PERIOD AS pricePeriod,
+        CRT_TIME AS crtTime
+        FROM
+        pl_declare_priceperiod_mst
+        WHERE
+        DEL_FLG = FALSE
+        AND PP_ID = #{ppId}
+    </select>
+
+    <select id="selectPeriods" resultType="com.msk.pl.bean.PlDeclareTask"
+            parameterType="com.msk.pl.bean.PlDeclareTask">
+        SELECT
+        DT_ID AS dtId,
+        PARTNER_ID partnerId,
+        LGCS_CODE AS lgcsCode,
+        LGCS_NAME AS lgcsName,
+        TERMINAL_ID AS terminalId,
+        DOMAIN_ID AS domainId,
+        BS_CODE AS bsCode,
+        BS_NAME AS bsName,
+        PP_ID AS ppId,
+        PRICE_PERIOD AS pricePeriod,
+        DT_DATE AS dtDate,
+        DT_STATUS AS dtStatus
+        FROM
+        PL_DECLARE_TASK
+        WHERE
+        DEL_FLG = FALSE
+        AND PP_ID = #{ppId}
+        AND BS_CODE = #{bsCode}
+    </select>
+
+    <select id="selectDeclareInfo" resultType="int" parameterType="com.msk.pl.bean.PlDeclareInfo">
+        SELECT
+        count(1)
+        FROM
+        PL_DECLARE_INFO
+        WHERE
+        DEL_FLG = FALSE
+        AND PD_ID = #{pdId}
+        AND DT_ID = #{dtId}
+        AND BS_CODE = #{bsCode}
+    </select>
+
+    <insert id="save" parameterType="com.msk.pl.bean.PlDeclareTask">
+        INSERT INTO PL_DECLARE_TASK(
+        DT_ID,
+        PARTNER_ID,
+        LGCS_CODE,
+        LGCS_NAME,
+        TERMINAL_ID,
+        DOMAIN_ID,
+        BS_CODE,
+        BS_NAME,
+        PP_ID,
+        PRICE_PERIOD,
+        DT_DATE,
+        DT_STATUS,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER
+        )
+        VALUE
+        (
+        #{dtId},
+        #{partnerId},
+        #{lgcsCode},
+        #{lgcsName},
+        #{terminalId},
+        #{domainId},
+        #{bsCode},
+        #{bsName},
+        #{ppId},
+        #{pricePeriod},
+        #{dtDate},
+        0,
+        FALSE,
+        #{crtId},
+        #{crtTime},
+        #{updId},
+        #{updTime},
+        #{actId},
+        #{actTime},
+        1
+        )
+    </insert>
+
+    <select id="findList" parameterType="com.msk.pl.bean.IPL20170408Param" resultType="com.msk.pl.bean.PlPdMst">
+        SELECT
+        PD_ID AS pdId,
+        CLASSES_CODE AS classesCode,
+        CLASSES_NAME AS classesName,
+        MACHINING_CODE AS machiningCode,
+        MACHINING_NAME AS machiningName,
+        BREED_CODE AS breedCode,
+        BREED_NAME AS breedName,
+        FEATURE_CODE AS featureCode,
+        FEATURE_NAME AS featureName,
+        WEIGHT_CODE AS weightCode,
+        WEIGHT_NAME AS weightName,
+        GRADE_CODE AS gradeCode,
+        GRADE_NAME AS gradeName,
+        BRAND_CODE AS brandCode,
+        BRAND_NAME AS brandName,
+        PD_CODE AS pdCode,
+        PD_NAME AS pdName,
+        SKU_CODE AS skuCode,
+        SKU_NAME AS skuName,
+        COMMODITY_CODE AS commodityCode,
+        COMMODITY_NAME AS commodityName,
+        NEEDS_GRADE_CODE AS needsGradeCode,
+        NEEDS_GRADE_NAME AS needsGradeName,
+        SMALL_PACK_FEATURE AS smallPackFeature,
+        SMALL_PACK_NUMBER AS smallPackNumber,
+        NETWEIGHT AS netweight,
+        GROSSWEIGHT AS grossweight,
+        CARTON_SIZE AS cartonSize,
+        PD_GRADE AS pdGrade,
+        PALLET_NUMBER AS palletNumber,
+        PD_ORIGIN AS pdOrigin,
+        PD_UOM AS pdUom,
+        ON_SHELF_STATUS AS onShelfStatus,
+        SUPPLIER_NAME AS supplierName,
+        MANUFACTURE_NAME AS manufactureName,
+        FACTORY_NAME AS factoryName,
+        OEM_NAME AS oemName,
+        VALID_FLG AS validFlg,
+        DEL_FLG AS delFlg,
+        CRT_ID AS crtId,
+        CRT_TIME AS crtTime,
+        UPD_ID AS updId,
+        UPD_TIME AS updTime,
+        ACT_ID AS actId,
+        ACT_TIME AS actTime,
+        VER AS ver
+        FROM pl_pd_mst
+        WHERE
+        DEL_FLG = FALSE
+    </select>
+
+
+    <insert id="batchSave" parameterType="List">
+        INSERT INTO PL_DECLARE_INFO(
+        DT_DETAIL_ID,
+        DT_ID,
+        PARTNER_ID,
+        LGCS_CODE,
+        LGCS_NAME,
+        TERMINAL_ID,
+        DOMAIN_ID,
+        BS_CODE,
+        BS_NAME,
+        PD_ID,
+        PD_CODE,
+        PD_NAME,
+        CLASSES_CODE,
+        CLASSES_NAME,
+        MACHINING_CODE,
+        MACHINING_NAME,
+        BREED_CODE,
+        BREED_NAME,
+        FEATURE_CODE,
+        FEATURE_NAME,
+        WEIGHT_CODE,
+        WEIGHT_NAME,
+        GRADE_CODE,
+        GRADE_NAME,
+        BRAND_CODE,
+        BRAND_NAME,
+        SKU_CODE,
+        SKU_NAME,
+        COMMODITY_CODE,
+        COMMODITY_NAME,
+        NEEDS_GRADE_CODE,
+        NEEDS_GRADE_NAME,
+        SMALL_PACK_FEATURE,
+        SMALL_PACK_NUMBER,
+        NETWEIGHT,
+        GROSSWEIGHT,
+        CARTON_SIZE,
+        PD_GRADE,
+        PALLET_NUMBER,
+        PD_ORIGIN,
+        PD_UOM,
+        ON_SHELF_STATUS,
+        SUPPLIER_NAME,
+        MANUFACTURE_NAME,
+        FACTORY_NAME,
+        OEM_NAME,
+        DECLARE_PRICE,
+        PRICE_WAY_NAME,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER
+        )
+        VALUES
+        <foreach collection="list" index="index" item="param" separator=",">
+            (
+            #{param.dtDetailId},
+            #{param.dtId},
+            #{param.partnerId},
+            #{param.lgcsCode},
+            #{param.lgcsName},
+            #{param.terminalId},
+            #{param.domainId},
+            #{param.bsCode},
+            #{param.bsName},
+            #{param.pdId},
+            #{param.pdCode},
+            #{param.pdName},
+            #{param.classesCode},
+            #{param.classesName},
+            #{param.machiningCode},
+            #{param.machiningName},
+            #{param.breedCode},
+            #{param.breedName},
+            #{param.featureCode},
+            #{param.featureName},
+            #{param.weightCode},
+            #{param.weightName},
+            #{param.gradeCode},
+            #{param.gradeName},
+            #{param.brandCode},
+            #{param.brandName},
+            #{param.skuCode},
+            #{param.skuName},
+            #{param.commodityCode},
+            #{param.commodityName},
+            #{param.needsGradeCode},
+            #{param.needsGradeName},
+            #{param.smallPackFeature},
+            #{param.smallPackNumber},
+            #{param.netweight},
+            #{param.grossweight},
+            #{param.cartonSize},
+            #{param.pdGrade},
+            #{param.palletNumber},
+            #{param.pdOrigin},
+            #{param.pdUom},
+            #{param.onShelfStatus},
+            #{param.supplierName},
+            #{param.manufactureName},
+            #{param.factoryName},
+            #{param.oemName},
+            #{param.declarePrice},
+            #{param.priceWayName},
+            FALSE,
+            #{param.crtId},
+            #{param.crtTime},
+            #{param.updId},
+            #{param.updTime},
+            #{param.actId},
+            #{param.actTime},
+            1
+            )
+        </foreach>
+
+    </insert>
+
+
+    <select id="selectPlDomainBs" resultType="com.msk.pl.bean.PlTerminalPartnerResult" parameterType="com.msk.pl.bean.IPL20170408Param">
+       SELECT
+        	bs.DOMAIN_ID AS domainId,
+        	bs.TERMINAL_ID AS terminalId,
+        	bs.BS_NAME AS bsName,
+        	par.PARTNER_ID AS partnerId,
+        	par.PARTNER_NAME AS partnerName
+        FROM
+        	PL_DOMAIN_BS bs
+        LEFT JOIN pl_terminal_partner par ON bs.TERMINAL_ID = par.TERMINAL_ID
+          AND bs.DEL_FLG = par.DEL_FLG
+        WHERE
+	      bs.DEL_FLG = FALSE
+          AND bs.BS_CODE = #{bsCode}
+    </select>
+
+
+</mapper>

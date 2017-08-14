@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.ds.logic.BarCodeLogic">
+    <select id="findPageList" resultType="com.msk.core.entity.TempBarcode" parameterType="BaseParam">
+        SELECT
+        BARCODE_ID AS barcodeId,
+        BRAND AS brand,
+        GRADE AS grade,
+        BARCODE AS barcode,
+        READCODE AS readcode
+        FROM temp_barcode
+        WHERE DEL_FLG = 0
+        <if test="filterMap.barcodeId!=null and filterMap.barcodeId!=''">
+            AND BARCODE_ID = #{filterMap.barcodeId}
+        </if>
+        <if test="filterMap.brand!=null and filterMap.brand!=''">
+            AND BRAND like #{filterMap.brand}
+        </if>
+        <if test="filterMap.grade!=null and filterMap.grade!=''">
+            AND GRADE like #{filterMap.grade}
+        </if>
+        <if test="filterMap.barcode!=null and filterMap.barcode!=''">
+            AND BARCODE like #{filterMap.barcode}
+        </if>
+        <if test="filterMap.readcode!=null and filterMap.readcode!=''">
+            AND READCODE like #{filterMap.readcode}
+        </if>
+        ORDER BY BARCODE_ID
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize}
+        </if>
+    </select>
+
+    <select id="getPageCount" resultType="Integer" parameterType="BaseParam">
+        select count(1)
+        FROM temp_barcode
+        WHERE DEL_FLG = 0
+        <if test="filterMap.barcodeId!=null and filterMap.barcodeId!=''">
+            AND BARCODE_ID like #{filterMap.barcodeId}
+        </if>
+        <if test="filterMap.brand!=null and filterMap.brand!=''">
+            AND BRAND like #{filterMap.brand}
+        </if>
+        <if test="filterMap.grade!=null and filterMap.grade!=''">
+            AND GRADE like #{filterMap.grade}
+        </if>
+        <if test="filterMap.barcode!=null and filterMap.barcode!=''">
+            AND BARCODE like #{filterMap.barcode}
+        </if>
+        <if test="filterMap.readcode!=null and filterMap.readcode!=''">
+            AND READCODE like #{filterMap.readcode}
+        </if>
+    </select>
+
+    <update id="delete" parameterType="com.msk.core.entity.TempBarcode">
+        UPDATE temp_barcode
+           SET DEL_FLG = '1',
+               UPD_ID = #{updId},
+               UPD_TIME = #{updTime}
+         WHERE ID = #{id}
+    </update>
+
+    <insert id="save" parameterType="com.msk.core.entity.TempBarcode">
+        INSERT INTO temp_barcode
+        (
+            ID,
+            BARCODE_ID,
+            BRAND,
+            GRADE,
+            BARCODE,
+            READCODE,
+            DEL_FLG,
+            CRT_ID,
+            CRT_TIME,
+            UPD_ID,
+            UPD_TIME,
+            ACT_ID,
+            ACT_TIME,
+            VER
+        )
+        SELECT ifnull(max(ID), 0) + 1,
+            #{barcodeId},
+            #{brand},
+            #{grade},
+            #{barcode},
+            #{readcode},
+            #{delFlg},
+            #{crtId},
+            #{crtTime},
+            #{updId},
+            #{updTime},
+            #{actId},
+            #{actTime},
+            #{ver}
+        from temp_barcode
+    </insert>
+</mapper>

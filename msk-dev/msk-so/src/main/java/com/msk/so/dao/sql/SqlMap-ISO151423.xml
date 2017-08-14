@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151423Logic">
+
+    <select id="getOrderInfoByHouseId" parameterType="BaseParam" resultType="com.msk.so.bean.ISO151423OrdersRsResult">
+        SELECT
+          COUNT(*) AS statusQty,
+          so.ORDER_STATUS AS orderStatusNum
+        FROM
+          (SELECT DISTINCT
+            sor.main_order_id AS orderId
+          FROM
+            so_order_relation sor
+            LEFT JOIN so_order soo
+              ON soo.order_id = sor.child_order_id
+            WHERE
+                1=1
+                <if test="@com.msk.core.utils.MybatisTag@notEmpty(sellers)">
+                    AND soo.SELLERS = #{sellers}
+                </if>
+                AND soo.DEL_FLG = 0
+                AND sor.DEL_FLG = 0
+          UNION
+          SELECT
+            sod.order_id AS orderId
+          FROM
+            so_order sod
+            WHERE
+                1=1
+                <if test="@com.msk.core.utils.MybatisTag@notEmpty(sellers)">
+                    AND sod.SELLERS = #{sellers}
+                </if>
+                AND NOT EXISTS
+                (SELECT
+                1
+                FROM
+                so_order_relation sood
+                WHERE sood.child_order_id = sod.order_id
+                AND sood.DEL_FLG = 0)
+              AND sod.DEL_FLG = 0
+          ) a
+          LEFT JOIN so_order so
+            ON a.orderId = so.ORDER_ID
+          WHERE so.DEL_FLG = 0
+        GROUP BY so.ORDER_STATUS
+    </select>
+
+    <select id="getOrderInfoBySlId" parameterType="BaseParam" resultType="com.msk.so.bean.ISO151423OrdersRsResult">
+        SELECT
+        COUNT(*) AS statusQty,
+        so.ORDER_STATUS AS orderStatusNum
+        FROM
+        (SELECT DISTINCT
+        soda.ORDER_ID AS orderId
+        FROM
+        so_order_detail_availability soda
+        WHERE
+        1=1
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(sellers)">
+            AND soda.SUPPLIER_CODE = #{sellers}
+        </if>
+        AND NOT EXISTS
+        (SELECT
+        1
+        FROM
+        so_order_relation sor
+        WHERE sor.CHILD_ORDER_ID = soda.ORDER_ID
+        AND sor.DEL_FLG = 0)
+        AND soda.DEL_FLG = 0)a
+        LEFT JOIN so_order so
+        ON a.orderId = so.ORDER_ID
+        WHERE so.DEL_FLG = 0
+        GROUP BY so.ORDER_STATUS
+    </select>
+
+    <select id="getOrderInfoByBuyerId" parameterType="BaseParam" resultType="com.msk.so.bean.ISO151423OrdersRsResult">
+        SELECT
+            COUNT(*) AS statusQty,
+            so.ORDER_STATUS AS orderStatusNum
+            FROM
+            (SELECT DISTINCT
+            sor.main_order_id AS orderId
+            FROM
+            so_order_relation sor
+            LEFT JOIN so_order soo
+            ON soo.order_id = sor.child_order_id
+            WHERE
+            1=1
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(sellers)">
+                AND soo.BUYERS_CODE = #{sellers}
+            </if>
+            AND sor.DEL_FLG = 0
+            AND soo.DEL_FLG = 0
+            UNION
+            SELECT
+            order_id AS orderId
+            FROM
+            so_order sod
+            where
+            1=1
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(sellers)">
+                AND sod.BUYERS_CODE = #{sellers}
+            </if>
+            AND NOT EXISTS
+            (SELECT
+            1
+            FROM
+            so_order_relation sood
+            WHERE sood.child_order_id = sod.order_id
+            AND sood.DEL_FLG = 0)
+            AND sod.DEL_FLG = 0
+            ) a
+            LEFT JOIN so_order so
+            ON a.orderId = so.ORDER_ID
+            WHERE so.DEL_FLG = 0
+        GROUP BY so.ORDER_STATUS
+    </select>
+</mapper>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.SO151404Logic">
+	<select id = "findOne" parameterType = "BaseParam" resultType = "com.msk.core.entity.SoOrderDetail">
+		SELECT
+		  IFNULL(PD_PRICE,'') AS pdPrice,
+		  ORDER_DETAIL_ID AS orderDetailId,
+		  ORDER_ID AS orderID
+		FROM
+		  so_order_detail
+		WHERE ORDER_DETAIL_ID = #{filterMap.orderDetailId}
+	</select>
+
+	<update id="modify" parameterType = "com.msk.core.entity.SoOrderDetail">
+		UPDATE
+		  so_order_detail
+		SET
+		  PD_PRICE = #{pdPrice},
+		  UPD_TIME = #{updTime},
+		  UPD_ID = #{updId},
+		  VER = VER + 1
+		WHERE ORDER_DETAIL_ID = #{orderDetailId}
+	</update>
+
+	<select id = "getMainOrderAmount" parameterType = "BaseParam" resultType = "com.msk.core.entity.SoOrder">
+		SELECT
+		IFNULL(SUM(
+		PD_PRICE
+		*
+		ORDER_QTY),'')
+		AS orderAmount
+		FROM
+		so_order_detail
+		WHERE ORDER_ID = #{filterMap.orderId}
+	</select>
+
+	<select id = "getChildOrderAmount" parameterType = "BaseParam" resultType = "com.msk.core.entity.SoOrder">
+		SELECT
+		IFNULL(SUM(
+		PD_PRICE
+		*
+		ORDER_QTY),'')
+		AS orderAmount
+		FROM
+		so_order_detail
+		WHERE ORDER_ID =#{filterMap.childId}
+	</select>
+
+	<select id = "getOrderRelation" parameterType = "BaseParam" resultType = "java.lang.Integer">
+		SELECT COUNT(1) from so_order_relation WHERE MAIN_ORDER_ID = #{filterMap.orderId} OR CHILD_ORDER_ID = #{filterMap.orderId}
+	</select>
+
+	<select id = "getChildOrder" parameterType = "BaseParam" resultType = "com.msk.core.entity.SoOrderRelation">
+		SELECT CHILD_ORDER_ID AS childOrderId ,MAIN_ORDER_ID AS mainOrderId FROM so_order_relation WHERE MAIN_ORDER_ID=#{filterMap.orderId} OR CHILD_ORDER_ID = #{filterMap.orderId}
+	</select>
+
+	<update id="modifyOrderAmount" parameterType = "BaseParam">
+		UPDATE
+		so_order so
+		SET
+		ORDER_AMOUNT = #{filterMap.orderAmount},
+		UPD_TIME = #{updTime},
+		UPD_ID = #{updId},
+		VER = VER + 1
+		WHERE ORDER_ID = #{filterMap.orderId}
+	</update>
+
+	<update id="modifyChildOrderAmount" parameterType = "BaseParam">
+		UPDATE
+		so_order so
+		SET
+		ORDER_AMOUNT = #{filterMap.childAmount},
+		UPD_TIME = #{updTime},
+		UPD_ID = #{updId},
+		VER = VER + 1
+		WHERE ORDER_ID = #{filterMap.childId}
+	</update>
+
+</mapper>

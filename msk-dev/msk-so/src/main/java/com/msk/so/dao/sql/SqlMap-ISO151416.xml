@@ -1,0 +1,927 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.rs.ISO151416Logic">
+
+    <resultMap id="BaseOrderSearchResult" type="com.msk.so.bean.order.BaseOrderSearchResult">
+        <result property="orderId" column="orderId"/>
+        <result property="orderCode" column="orderCode"/>
+        <result property="orderSource" column="orderSource"/>
+        <result property="orderTime" column="orderTime"/>
+        <result property="buyersCode" column="buyersCode"/>
+        <result property="buyersName" column="buyersName"/>
+        <result property="buyerType" column="buyerType"/>
+        <result property="sellerCode" column="sellerCode"/>
+        <result property="sellerName" column="sellerName"/>
+        <!--订单状态 -->
+        <result property="orderStatus" column="orderStatus"/>
+        <!--版本号 -->
+        <result property="ver" column="ver"/>
+        <!--删除标志 -->
+        <result property="delFlg" column="delFlg"/>
+        <result property="orderAmount" column="orderAmount"/>
+        <result property="orderType" column="orderType"/>
+        <result property="districtCode" column="districtCode"/>
+        <result property="paymentType" column="paymentType"/>
+        <result property="paidAmount" column="paidAmount"/>
+        <!--支付时间 -->
+        <!--<result property="paidTime" column="paidTime" /> -->
+        <!--直销员 -->
+        <result property="sellers" column="sellers"/>
+        <result property="orderTaker" column="orderTaker"/>
+        <result property="invoiceFlg" column="invoiceFlg"/>
+        <result property="commentTime" column="commentTime"/>
+        <result property="orderSendTime" column="orderSendTime"/>
+        <association property="receiveInfo" javaType="com.msk.so.bean.order.BaseReceiverInfo">
+            <result column="receiverName" property="receiverName"/>
+            <result column="receiverQq" property="receiverQQ"/>
+            <result column="receiverWeixin" property="receiverWeixin"/>
+            <result column="receiverTel" property="receiverTel"/>
+            <result column="receiverProvince" property="receiverProvince"/>
+            <result column="receiverCity" property="receiverCity"/>
+            <result column="receiverDistrict" property="receiverDistrict"/>
+            <result column="receiverAddr" property="receiverAddr"/>
+            <result column="receiveTime" property="receiveTime"/>
+            <result column="receiveLast" property="receiveLast"/>
+            <!--习惯最早收货时间-->
+            <result column="receiveEarliest" property="receiveEarliest"/>
+            <result column="remark" property="remark"/>
+            <result column="remark2" property="remark2"/>
+            <result column="remark3" property="remark3"/>
+            <result column="remark4" property="remark4"/>
+        </association>
+        <association property="deliveryReq" javaType="com.msk.so.bean.order.BaseDeliveryReq">
+            <result column="parkingDistance" property="parkingDistance"/>
+            <result column="vicFlg" property="vicFlg"/>
+            <result column="unloadReq" property="unloadReq"/>
+            <result column="packingReq" property="packingReq"/>
+            <result column="otherDeliveryReq" property="otherDeliveryReq"/>
+            <result column="thisDeliveryReq" property="thisDeliveryReq"/>
+        </association>
+        <collection property="orderDetail" ofType="com.msk.core.entity.SoOrderDetail">
+            <result column="pdCode" property="pdCode"/>
+            <result column="pdName" property="pdName"/>
+            <result column="pdPrice" property="pdPrice"/>
+            <result column="orderQty" property="orderQty"/>
+            <result column="normsName" property="normsName"/>
+            <result column="weight" property="weight"/>
+            <result column="pdGradeName" property="pdGradeName"/>
+            <result column="sendQty" property="sendQty"/>
+            <result column="cancelQty" property="cancelQty"/>
+            <result column="returnQty" property="returnQty"/>
+            <result column="rejectionQty" property="rejectionQty"/>
+        </collection>
+        <collection property="childOrderDetaillist" ofType="com.msk.core.entity.SoOrderDetail">
+            <result column="chPdCode" property="pdCode"/>
+            <result column="chPdName" property="pdName"/>
+            <result column="chPdPrice" property="pdPrice"/>
+            <result column="chOrderQty" property="orderQty"/>
+            <result column="chNormsName" property="normsName"/>
+            <result column="chWeight" property="weight"/>
+            <result column="chPdGradeName" property="pdGradeName"/>
+            <result column="chSendQty" property="sendQty"/>
+            <result column="chCancelQty" property="cancelQty"/>
+            <result column="chReturnQty" property="returnQty"/>
+            <result column="chRejectionQty" property="rejectionQty"/>
+        </collection>
+    </resultMap>
+
+
+    <!--订单查询共通返回的字段 -->
+    <sql id="commonFiled">
+          SOO.ORDER_ID AS orderId
+        , SOO.ORDER_CODE AS orderCode
+        , SOO.ORDER_TIME AS orderTime
+        , SOO.BUYERS_CODE AS buyersCode
+        , SOO.BUYERS_NAME AS buyersName
+        , SOO.SELLER_CODE AS sellerCode
+        , SOO.SELLER_NAME AS sellerName
+        , SOO.ORDER_STATUS AS orderStatus
+        , SOO.DEL_FLG AS delFlg
+        , SOO.ORDER_AMOUNT AS orderAmount
+        , SOO.ORDER_TYPE AS orderType
+        , SOO.DISTRICT_CODE AS districtCode
+        , SOO.PAYMENT_TYPE AS paymentType
+        , SOO.VER AS ver
+        , '' AS paidAmount
+        , SOO.SELLERS AS sellers
+        , SOO.ORDER_TAKER AS orderTaker
+        , SOO.NEED_INVOICE AS invoiceFlg
+        , NULL AS commentTime
+        , SOORD.RECEIVER_NAME AS receiverName
+        , SOORD.RECEIVER_QQ AS receiverQq
+        , SOORD.RECEIVER_WEIXIN AS receiverWeixin
+        , SOORD.RECEIVER_TEL AS receiverTel
+        , SOORD.RECEIVER_PROVINCE AS receiverProvince
+        , SOORD.RECEIVER_CITY AS receiverCity
+        , SOORD.RECEIVER_DISTRICT AS receiverDistrict
+        , SOORD.RECEIVER_ADDR AS receiverAddr
+        , SOORD.RECEIVE_TIME AS receiveTime
+        , SOORD.RECEIVE_EARLIEST AS receiveEarliest
+        , SOORD.RECEIVE_LAST AS receiveLast
+        , SOORD.PARKING_DISTANCE AS parkingDistance
+        , SOORD.REMARK AS remark
+        , SOORD.REMARK2 AS remark2
+        , SOORD.REMARK3 AS remark3
+        , SOORD.REMARK4 AS remark4
+        , IFNULL(SOORD.VIC_FLG,'0') AS vicFlg
+        , SOORD.UNLOAD_REQ AS unloadReq
+        , SOORD.PACKING_REQ AS packingReq
+        , SOORD.OTHER_DELIVERY_REQ AS otherDeliveryReq
+        , SOORD.THIS_DELIVERY_REQ AS thisDeliveryReq
+    </sql>
+    <sql id="commCondtion">
+        <where>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(buyersId)">
+                AND SOO.BUYERS_ID = #{buyersId}
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(sellerCode)">
+                AND SOO.SELLER_CODE = #{sellerCode}
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderTaker)">
+                AND SOO.ORDER_TAKER = #{orderTaker}
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderSource)">
+                AND SOO.ORDER_SOURCE = #{orderSource}
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notListEmpty(orders)">
+                AND SOO.ORDER_ID IN
+                <foreach collection="orders" item="order" open="(" close=")" separator=",">
+                    #{order.orderId}
+                </foreach>
+                AND SOO.ORDER_CODE IN
+                <foreach collection="orders" item="order" open="(" close=")" separator=",">
+                    #{order.orderCode}
+                </foreach>
+            </if>
+        </where>
+    </sql>
+    <select id="findList" resultMap="BaseOrderSearchResult" parameterType="BaseParam">
+        SELECT
+        <include refid="commonFiled"/>
+        ,SOOD.PD_CODE AS pdCode
+        ,SOOD.PD_NAME AS pdName
+        ,IFNULL(SOOD.PD_PRICE,0.00) AS pdPrice
+        <!-- ,SOOD.PD_PRICE AS pdPrice-->
+        ,SOOD.NORMS_NAME AS normsName
+        ,IFNULL(SOOD.WEIGHT,0.00) AS weight
+        ,SOOD.PD_GRADE_NAME AS pdGradeName
+        ,SOOD.ORDER_QTY AS orderQty
+        ,IFNULL(SOOD.SEND_QTY,0.00) AS sendQty
+        ,IFNULL(SOOD.CANCEL_QTY,0.00) AS cancelQty
+        ,IFNULL(SOOD.RETURN_QTY,0.00) AS returnQty
+        ,IFNULL(SOOD.REJECTION_QTY,0.00) AS rejectionQty
+        <!--子订单信息 -->
+        ,SODC.PD_CODE AS chPdCode
+        ,SODC.PD_NAME AS chPdName
+        ,SODC.PD_PRICE AS chPdPrice
+        ,SODC.NORMS_NAME AS chNormsName
+        ,IFNULL(SODC.WEIGHT,0.00) AS chWeight
+        ,SODC.PD_GRADE_NAME AS chPdGradeName
+        <!--,SODC.PD_PRICE AS chPdPrice-->
+        ,SODC.ORDER_QTY AS chOrderQty
+        ,IFNULL(SODC.SEND_QTY,0.00) AS chSendQty
+        ,IFNULL(SODC.CANCEL_QTY,0.00) AS chCancelQty
+        ,IFNULL(SODC.RETURN_QTY,0.00) AS chReturnQty
+        ,IFNULL(SODC.REJECTION_QTY,0.00) AS chRejectionQty
+        ,SOO.ORDER_SOURCE AS orderSource
+        ,COMC.CONSTANT_NAME AS buyerType
+        ,t.deliverTime AS orderSendTime
+        FROM
+        SO_ORDER AS SOO
+        LEFT JOIN (
+        SELECT
+        MIN(sd.DELIVER_DATE) as deliverTime
+        , sos.ORDER_ID as orderId
+        FROM SO_DELIVER sd
+        LEFT JOIN SO_ORDER_SHIP sos
+        ON sd.SHIP_ID = sos.SHIP_ID
+        GROUP BY sos.order_id
+        ) t
+        ON t.orderid = soo.ORDER_ID
+        INNER JOIN SO_ORDER_RECEIVE_DEMAND AS SOORD ON SOO.ORDER_ID = SOORD.ORDER_ID
+        LEFT JOIN SO_ORDER_DETAIL AS SOOD ON SOO.ORDER_ID = SOOD.ORDER_ID
+        LEFT JOIN(
+        SELECT
+        SOOR.CHILD_ORDER_CODE
+        ,SOOR.CHILD_ORDER_ID
+        ,SOOR.MAIN_ORDER_ID
+        ,SOOR.MAIN_ORDER_CODE
+        FROM SO_ORDER_RELATION AS SOOR
+        ) AS SOOR ON SOOR.MAIN_ORDER_ID = SOO.ORDER_ID AND SOOR.MAIN_ORDER_CODE = SOO.ORDER_CODE
+        LEFT JOIN SO_ORDER_DETAIL AS SODC ON SODC.ORDER_ID = SOOR.CHILD_ORDER_ID AND SODC.ORDER_CODE =
+        SOOR.CHILD_ORDER_CODE
+        LEFT JOIN COMM_CONSTANT COMC ON SOO.BUYERS_TYPE = COMC.CONSTANT_VALUE
+        AND COMC.CONSTANT_TYPE = 'BuyerType'
+        <include refid="commCondtion"/>
+    </select>
+
+    <!-- List接口-->
+    <select id="findPageList" resultMap="BaseOrderSearchResult" parameterType="BaseParam">
+        SELECT
+        DISTINCT
+        <include refid="commonFiled"/>
+        , SODC.PD_CODE AS pdCode
+        , SODC.PD_NAME AS pdName
+        , SODC.PD_PRICE AS pdPirce
+        , SODC.ORDER_QTY AS orderQty
+        FROM SO_ORDER AS SOO
+        INNER JOIN SO_ORDER_RECEIVE_DEMAND AS SOORD ON SOO.ORDER_ID = SOORD.ORDER_ID
+        LEFT JOIN SO_ORDER_DETAIL AS SODC ON SODC.ORDER_ID = SOO.ORDER_ID
+        <include refid="conditionfindPage"/>
+        ORDER BY SOO.ORDER_ID desc,SOO.UPD_TIME DESC
+        LIMIT #{startPos},#{pageCount}
+    </select>
+    <select id="getPageCount" resultType="Integer" parameterType="com.msk.core.bean.BasePageParam">
+        SELECT
+        COUNT(1)
+        FROM (
+        SELECT DISTINCT
+        SOO.ORDER_ID
+        FROM SO_ORDER AS SOO
+        INNER JOIN
+        SO_ORDER_RECEIVE_DEMAND AS SOORD ON SOO.ORDER_ID = SOORD.ORDER_ID
+        LEFT JOIN
+        SO_ORDER_DETAIL AS SODC ON SODC.ORDER_ID = SOO.ORDER_ID
+        <!--<include refid="commCondtion"/>-->
+        <include refid="conditionfindPage"/>) AS A
+
+    </select>
+
+    <sql id="conditionfindPage">
+        <where>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(buyersId)">
+                AND SOO.BUYERS_ID = #{buyersId}
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notListEmpty(orders)">
+                AND SOO.ORDER_ID IN
+                <foreach collection="orders" item="order" open="(" close=")" separator=",">
+                    #{order.orderId}
+                </foreach>
+                AND SOO.ORDER_CODE IN
+                <foreach collection="orders" item="order" open="(" close=")" separator=",">
+                    #{order.orderCode}
+                </foreach>
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(sellerCode)">
+                AND SOO.SELLER_CODE = #{sellerCode}
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderType)">
+                AND SOO.ORDER_TYPE = #{orderType}
+            </if>
+            <!-- Modify for bug#1207 at 2016/07/13 by wang_jianzhou Start.-->
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderStatus)">
+                AND SOO.ORDER_STATUS IN
+                <foreach item="item" collection="statusArry" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <!-- Modify for bug#1207 at 2016/07/13 by wang_jianzhou end.-->
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(filterMap.orderTimeFrom)">
+                <![CDATA[AND SOO.ORDER_TIME >= '${filterMap.orderTimeFrom} 00:00:00']]>
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(filterMap.orderTimeTo)">
+                <![CDATA[AND SOO.ORDER_TIME <= '${filterMap.orderTimeTo} 23:59:59']]>
+            </if>
+            <!--<if test="@com.msk.core.utils.MybatisTag@notEmpty(orderTimeFrom)">
+                <![CDATA[ AND SOO.ORDER_TIME >= DATE_FORMAT(#{orderTimeFrom},'%Y-%m-%d')  ]]>
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderTimeTo)">
+                <![CDATA[ AND SOO.ORDER_TIME <= DATE_FORMAT(#{orderTimeTo},'%Y-%m-%d')  ]]>
+            </if>-->
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(delFlg)">
+                AND SOO.DEL_FLG = #{delFlg}
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderSource)">
+                AND SOO.ORDER_SOURCE = #{orderSource}
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(districtCode)">
+                AND SOO.DISTRICT_CODE = #{districtCode}
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(paymentType)">
+                AND SOO.PAYMENT_TYPE = #{paymentType}
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderLevel)">
+                AND SODC.ORDER_DETAIL_LEVEL = #{orderLevel}
+            </if>
+
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderAmountMax) and @com.msk.core.utils.MybatisTag@notEmpty(orderAmountMin)">
+                <!--   <![CDATA[AND SOO.ORDER_AMOUNT >= #{orderAmountMax}]]>-->
+                AND SOO.ORDER_AMOUNT BETWEEN #{orderAmountMin} AND #{orderAmountMax}
+            </if>
+
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(needInvoice)">
+                AND SOO.NEED_INVOICE = #{needInvoice}
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(returnFlg)">
+                AND SOO.RETURN_FLG = #{returnFlg}
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(selfDeliveryFlg)">
+                AND SOO.SELF_DELIVERY_FLG = #{selfDeliveryFlg}
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(splitDeliveryFlg)">
+                AND SOO.SPLIT_DELIVERY_FLG = #{splitDeliveryFlg}
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(sellers)">
+                AND SOO.SELLERS = #{sellers}
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderTaker)">
+                AND SOO.ORDER_TAKER = #{orderTaker}
+            </if>
+            AND
+            SOO.ORDER_ID NOT IN (SELECT CHILD_ORDER_ID FROM SO_ORDER_RELATION AS SOOR)
+        </where>
+    </sql>
+
+    <select id="getOrderInfo" parameterType="BaseParam" resultType="com.msk.so.bean.order.BaseOrderSearchResult">
+        SELECT
+        DISTINCT
+        SOO.ORDER_ID AS orderId
+        , SOO.ORDER_CODE AS orderCode
+        , SOO.ORDER_TIME AS orderTime
+        , SOO.BUYERS_CODE AS buyersCode
+        , SOO.BUYERS_NAME AS buyersName
+        , SOO.SELLER_CODE AS sellerCode
+        , SOO.SELLER_NAME AS sellerName
+        , SOO.ORDER_STATUS AS orderStatus
+        , SOO.DUSTBIN_FLG AS delFlg
+        , SOO.ORDER_AMOUNT AS orderAmount
+        , SOO.ORDER_TYPE AS orderType
+        , SOO.DISTRICT_CODE AS districtCode
+        , SOO.PAYMENT_TYPE AS paymentType
+        , '' AS paidAmount
+        , '' AS paidTime
+        , SOO.SELLERS AS sellers
+        , SOO.ORDER_TAKER AS orderTaker
+        , SOO.NEED_INVOICE AS invoiceFlg
+        , SOO.RETURN_FLG AS returnFlg
+        , NULL AS commentTime
+        , SOO.VER AS ver
+        , CASE WHEN SOO.ORDER_STATUS = 13 THEN SOO.UPD_TIME
+        ELSE NULL END AS finishTime
+        FROM SO_ORDER AS SOO
+        WHERE
+        1=1
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderCode)">
+            AND SOO.ORDER_CODE = #{orderCode}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(buyersId)">
+            AND SOO.BUYERS_ID = #{buyersId}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(buyersId)">
+            AND NOT EXISTS (SELECT
+            1
+            FROM
+            SO_ORDER_RELATION SOR
+            WHERE SOO.ORDER_ID = SOR.CHILD_ORDER_ID)
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(sellers)">
+            AND (SOO.SELLERS = #{sellers}
+            OR
+            EXISTS
+            (SELECT
+            1
+            FROM
+            SO_ORDER SO
+            LEFT JOIN SO_ORDER_RELATION SOR
+            ON SOR.CHILD_ORDER_ID = SO.ORDER_ID
+            WHERE SO.SELLERS = #{sellers}
+            AND SOO.ORDER_ID = SOR.MAIN_ORDER_ID))
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(sellerCode)">
+            AND SOO.SELLER_CODE = #{sellerCode}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notListEmpty(orders)">
+            AND SOO.ORDER_ID IN
+            <foreach collection="orders" item="order" open="(" close=")" separator=",">
+                #{order.orderId}
+            </foreach>
+            AND SOO.ORDER_CODE IN
+            <foreach collection="orders" item="order" open="(" close=")" separator=",">
+                #{order.orderCode}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getBaseDeliveryReq" resultType="com.msk.so.bean.order.BaseDeliveryReq" parameterType="BaseParam">
+        SELECT
+        SOORD.PARKING_DISTANCE AS parkingDistance
+        , IFNULL(SOORD.VIC_FLG,'0') AS vicFlg
+        , SOORD.UNLOAD_REQ AS unloadReq
+        , SOORD.PACKING_REQ AS packingReq
+        , SOORD.OTHER_DELIVERY_REQ AS otherDeliveryReq
+        , SOORD.THIS_DELIVERY_REQ AS thisDeliveryReq
+        FROM
+        SO_ORDER AS SOO
+        INNER JOIN SO_ORDER_RECEIVE_DEMAND AS SOORD ON SOO.ORDER_ID = SOORD.ORDER_ID
+        WHERE SOO.ORDER_ID = #{filterMap.orderId}
+    </select>
+
+    <select id="getBaseReceiverInfo" resultType="com.msk.so.bean.order.BaseReceiverInfo" parameterType="BaseParam">
+        SELECT
+        SOORD.RECEIVER_NAME AS receiverName
+        , SOORD.RECEIVER_QQ AS receiverQq
+        , SOORD.RECEIVER_WEIXIN AS receiverWeixin
+        , SOORD.RECEIVER_TEL AS receiverTel
+        , SOORD.RECEIVER_PROVINCE AS receiverProvince
+        , SOORD.RECEIVER_CITY AS receiverCity
+        , SOORD.RECEIVER_DISTRICT AS receiverDistrict
+        , SOORD.RECEIVER_ADDR AS receiverAddr
+        , SOORD.RECEIVE_TIME AS receiveTime
+        , SOORD.RECEIVE_EARLIEST AS receiveEarliest
+        , SOORD.RECEIVE_LAST AS receiveLast
+        , SOORD.REMARK AS remark
+        , SOORD.REMARK2 AS remark2
+        , SOORD.REMARK3 AS remark3
+        , SOORD.REMARK4 AS remark4
+        FROM
+        SO_ORDER AS SOO
+        INNER JOIN SO_ORDER_RECEIVE_DEMAND AS SOORD ON SOO.ORDER_ID = SOORD.ORDER_ID
+        WHERE SOO.ORDER_ID = #{filterMap.orderId}
+    </select>
+
+    <select id="getOrderDetailsInfo" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderDetail">
+        SELECT
+         sod.PD_CODE AS pdCode
+        ,sod.PD_NAME AS pdName
+        ,IFNULL(sod.PD_PRICE,0.00) AS pdPrice
+        ,sod.ORDER_QTY AS orderQty
+        FROM
+          so_order_detail sod
+          LEFT JOIN so_order so
+            ON sod.ORDER_ID = so.ORDER_ID
+        WHERE sod.ORDER_ID = #{filterMap.orderId}
+        UNION ALL
+        SELECT
+         sod.PD_CODE AS pdCode
+        ,sod.PD_NAME AS pdName
+        ,IFNULL(sod.PD_PRICE,0.00) AS pdPrice
+        ,sod.ORDER_QTY AS orderQty
+        FROM
+          so_order_detail sod
+          LEFT JOIN so_order_relation sor
+            ON sod.ORDER_ID = sor.CHILD_ORDER_ID
+        WHERE sor.MAIN_ORDER_ID = #{filterMap.orderId}
+    </select>
+
+    <select id="getOrderCodeByOrderId" parameterType="BaseParam" resultType="String">
+        SELECT DISTINCT so.order_code FROM so_order so where so.order_id = #{filterMap.orderId}
+    </select>
+
+    <select id="getOrderIdByOrderCode" parameterType="BaseParam" resultType="String">
+        SELECT DISTINCT so.order_id FROM so_order so where so.order_code = #{filterMap.orderCode}
+    </select>
+
+
+    <select id="getByOrderCount" resultType="Integer" parameterType="com.msk.so.bean.order.OrderListSearchParam">
+        SELECT
+        COUNT(DISTINCT SOO.ORDER_ID)
+        FROM
+        SO_ORDER AS SOO
+        INNER JOIN SO_ORDER_RECEIVE_DEMAND AS SOORD
+        ON SOO.ORDER_ID = SOORD.ORDER_ID
+        LEFT JOIN SO_ORDER_DETAIL AS SODC
+        ON SODC.ORDER_ID = SOO.ORDER_ID
+        WHERE
+        SOO.BUYERS_ID = #{buyersId}
+        AND SOO.ORDER_ID NOT IN (
+        SELECT
+        CHILD_ORDER_ID
+        FROM
+        SO_ORDER_RELATION AS SOOR
+        )
+        <include refid="conditionForDifferentOrder"/>
+    </select>
+
+    <select id="getSlOrderCount" resultType="Integer" parameterType="com.msk.so.bean.order.OrderListSearchParam">
+        SELECT
+        COUNT(DISTINCT SOO.ORDER_ID)
+        FROM
+        SO_ORDER AS SOO
+        INNER JOIN SO_ORDER_RECEIVE_DEMAND AS SOORD
+        ON SOO.ORDER_ID = SOORD.ORDER_ID
+        LEFT JOIN SO_ORDER_DETAIL AS SODC
+        ON SODC.ORDER_ID = SOO.ORDER_ID
+        WHERE
+        SOO.SELLER_CODE = #{sellerCode}
+        AND SOO.ORDER_SOURCE = #{orderSource}
+        AND SOO.ORDER_ID NOT IN (
+        SELECT
+        CHILD_ORDER_ID
+        FROM
+        SO_ORDER_RELATION AS SOOR
+        )
+        <!--<if test="@com.msk.core.utils.MybatisTag@notEmpty(orderSource)">
+            AND SOO.ORDER_SOURCE = #{orderSource}
+        </if>-->
+        <include refid="conditionForDifferentOrder"/>
+    </select>
+
+    <select id="getBbsOrderCount" resultType="Integer" parameterType="com.msk.so.bean.order.OrderListSearchParam">
+        SELECT
+        COUNT(DISTINCT SOO.ORDER_ID)
+        FROM
+        SO_ORDER AS SOO
+        INNER JOIN SO_ORDER_RECEIVE_DEMAND AS SOORD
+        ON SOO.ORDER_ID = SOORD.ORDER_ID
+        LEFT JOIN SO_ORDER_DETAIL AS SODC
+        ON SODC.ORDER_ID = SOO.ORDER_ID
+        WHERE
+        SOO.SELLER_CODE = #{sellerCode}
+        <!-- AND SOO.ORDER_SOURCE = #{orderSource}-->
+        AND SOO.ORDER_TYPE = #{orderType}
+        <include refid="conditionForDifferentOrder"/>
+    </select>
+
+
+    <select id="getBbsgOrderCount" resultType="Integer" parameterType="com.msk.so.bean.order.OrderListSearchParam">
+        SELECT
+        COUNT(DISTINCT SOO.ORDER_ID)
+        FROM
+        SO_ORDER AS SOO
+        INNER JOIN SO_ORDER_RECEIVE_DEMAND AS SOORD
+        ON SOO.ORDER_ID = SOORD.ORDER_ID
+        LEFT JOIN SO_ORDER_DETAIL AS SODC
+        ON SODC.ORDER_ID = SOO.ORDER_ID
+        WHERE
+        SOO.BUYERS_ID = #{buyersId}
+        AND SOO.ORDER_TYPE = #{orderType}
+        <include refid="conditionForDifferentOrder"/>
+    </select>
+
+    <sql id="conditionForDifferentOrder">
+
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderSource)">
+            AND SOO.ORDER_SOURCE = #{orderSource}
+        </if>
+
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(sellerCode)">
+            AND SOO.SELLER_CODE = #{sellerCode}
+        </if>
+
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderType)">
+            AND SOO.ORDER_TYPE = #{orderType}
+        </if>
+        <!-- Modify for bug#1207 at 2016/07/13 by wang_jianzhou Start.-->
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderStatus)">
+            AND SOO.ORDER_STATUS IN
+            <foreach item="item" collection="statusArry" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <!-- Modify for bug#1207 at 2016/07/13 by wang_jianzhou end.-->
+
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderTimeFrom)">
+            <![CDATA[AND SOO.ORDER_TIME >= '${orderTimeFrom} 00:00:00']]>
+        </if>
+
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderTimeTo)">
+            <![CDATA[AND SOO.ORDER_TIME <= '${orderTimeTo} 23:59:59']]>
+        </if>
+
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(delFlg)">
+            AND SOO.DEL_FLG = #{delFlg}
+        </if>
+
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(districtCode)">
+            AND SOO.DISTRICT_CODE = #{districtCode}
+        </if>
+
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(paymentType)">
+            AND SOO.PAYMENT_TYPE = #{paymentType}
+        </if>
+
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderAmountMax) and @com.msk.core.utils.MybatisTag@notEmpty(orderAmountMin)">
+            AND SOO.ORDER_AMOUNT BETWEEN #{orderAmountMin} AND #{orderAmountMax}
+        </if>
+
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderLevel)">
+            AND SODC.ORDER_DETAIL_LEVEL = #{orderLevel}
+        </if>
+
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(needInvoice)">
+            AND SOO.NEED_INVOICE = #{needInvoice}
+        </if>
+
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(returnFlg)">
+            AND SOO.RETURN_FLG = #{returnFlg}
+        </if>
+
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(selfDeliveryFlg)">
+            AND SOO.SELF_DELIVERY_FLG = #{selfDeliveryFlg}
+        </if>
+
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(splitDeliveryFlg)">
+            AND SOO.SPLIT_DELIVERY_FLG = #{splitDeliveryFlg}
+        </if>
+
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(sellers)">
+            AND SOO.SELLERS = #{sellers}
+        </if>
+
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderTaker)">
+            AND SOO.ORDER_TAKER = #{orderTaker}
+        </if>
+
+        <if test="@com.msk.core.utils.MybatisTag@notListEmpty(orders)">
+            AND SOO.ORDER_ID IN
+            <foreach collection="orders" item="order" open="(" close=")" separator=",">
+                #{order.orderId}
+            </foreach>
+            AND SOO.ORDER_CODE IN
+            <foreach collection="orders" item="order" open="(" close=")" separator=",">
+                #{order.orderCode}
+            </foreach>
+        </if>
+    </sql>
+    <select id="getByOrderInfo" parameterType="BaseParam" resultType="com.msk.so.bean.order.BaseOrderSearchResult">
+        SELECT DISTINCT
+        SOO.ORDER_ID AS orderId
+        , SOO.ORDER_CODE AS orderCode
+        , DATE_FORMAT(SOO.ORDER_TIME,'%Y-%m-%d %T') AS orderTime
+        , SOO.BUYERS_CODE AS buyersCode
+        , SOO.BUYERS_NAME AS buyersName
+        , SOO.SELLER_CODE AS sellerCode
+        , SOO.SELLER_NAME AS sellerName
+        , SOO.ORDER_STATUS AS orderStatus
+        , SOO.DEL_FLG AS delFlg
+        , SOO.ORDER_AMOUNT AS orderAmount
+        , SOO.ORDER_TYPE AS orderType
+        , SOO.DISTRICT_CODE AS districtCode
+        , SOO.PAYMENT_TYPE AS paymentType
+        , SOO.VER AS ver
+        , '' AS paidAmount
+        , '' AS paidTime
+        , SOO.SELLERS AS sellers
+        , SOO.ORDER_TAKER AS orderTaker
+        , SOO.NEED_INVOICE AS invoiceFlg
+        , NULL AS commentTime
+        , SOORD.RECEIVER_NAME AS receiverName
+        , SOORD.RECEIVER_QQ AS receiverQq
+        , SOORD.RECEIVER_WEIXIN AS receiverWeixin
+        , SOORD.RECEIVER_TEL AS receiverTel
+        , SOORD.RECEIVER_PROVINCE AS receiverProvince
+        , SOORD.RECEIVER_CITY AS receiverCity
+        , SOORD.RECEIVER_DISTRICT AS receiverDistrict
+        , SOORD.RECEIVER_ADDR AS receiverAddr
+        , SOORD.RECEIVE_TIME AS receiveTime
+        , SOORD.RECEIVE_EARLIEST AS receiveEarliest
+        , SOORD.RECEIVE_LAST AS receiveLast
+        , SOORD.PARKING_DISTANCE AS parkingDistance
+        , SOORD.REMARK AS remark
+        , SOORD.REMARK2 AS remark2
+        , SOORD.REMARK3 AS remark3
+        , SOORD.REMARK4 AS remark4
+        , IFNULL(SOORD.VIC_FLG, '0') AS vicFlg
+        , SOORD.UNLOAD_REQ AS unloadReq
+        , SOORD.PACKING_REQ AS packingReq
+        , SOORD.OTHER_DELIVERY_REQ AS otherDeliveryReq
+        , SOORD.THIS_DELIVERY_REQ AS thisDeliveryReq
+        FROM
+        SO_ORDER AS SOO
+        INNER JOIN SO_ORDER_RECEIVE_DEMAND AS SOORD
+        ON SOO.ORDER_ID = SOORD.ORDER_ID
+        LEFT JOIN SO_ORDER_DETAIL AS SODC
+        ON SODC.ORDER_ID = SOO.ORDER_ID
+        WHERE
+        SOO.BUYERS_ID = #{buyersId}
+        AND SOO.ORDER_ID NOT IN (
+        SELECT
+        CHILD_ORDER_ID
+        FROM
+        SO_ORDER_RELATION AS SOOR
+        )
+        <include refid="conditionForDifferentOrder"/>
+        ORDER BY
+        SOO.ORDER_ID desc
+        , SOO.UPD_TIME DESC
+        LIMIT #{startPos},#{pageCount}
+    </select>
+
+    <select id="getSlOrderInfo" parameterType="BaseParam" resultType="com.msk.so.bean.order.BaseOrderSearchResult">
+        SELECT DISTINCT
+        SOO.ORDER_ID AS orderId
+        , SOO.ORDER_CODE AS orderCode
+        , DATE_FORMAT(SOO.ORDER_TIME,'%Y-%m-%d %T') AS orderTime
+        , SOO.BUYERS_CODE AS buyersCode
+        , SOO.BUYERS_NAME AS buyersName
+        , SOO.SELLER_CODE AS sellerCode
+        , SOO.SELLER_NAME AS sellerName
+        , SOO.ORDER_STATUS AS orderStatus
+        , SOO.DEL_FLG AS delFlg
+        , SOO.ORDER_AMOUNT AS orderAmount
+        , SOO.ORDER_TYPE AS orderType
+        , SOO.DISTRICT_CODE AS districtCode
+        , SOO.PAYMENT_TYPE AS paymentType
+        , SOO.VER AS ver
+        , '' AS paidAmount
+        , '' AS paidTime
+        , SOO.SELLERS AS sellers
+        , SOO.ORDER_TAKER AS orderTaker
+        , SOO.NEED_INVOICE AS invoiceFlg
+        , NULL AS commentTime
+        , SOORD.RECEIVER_NAME AS receiverName
+        , SOORD.RECEIVER_QQ AS receiverQq
+        , SOORD.RECEIVER_WEIXIN AS receiverWeixin
+        , SOORD.RECEIVER_TEL AS receiverTel
+        , SOORD.RECEIVER_PROVINCE AS receiverProvince
+        , SOORD.RECEIVER_CITY AS receiverCity
+        , SOORD.RECEIVER_DISTRICT AS receiverDistrict
+        , SOORD.RECEIVER_ADDR AS receiverAddr
+        , SOORD.RECEIVE_TIME AS receiveTime
+        , SOORD.RECEIVE_EARLIEST AS receiveEarliest
+        , SOORD.RECEIVE_LAST AS receiveLast
+        , SOORD.PARKING_DISTANCE AS parkingDistance
+        , SOORD.REMARK AS remark
+        , SOORD.REMARK2 AS remark2
+        , SOORD.REMARK3 AS remark3
+        , SOORD.REMARK4 AS remark4
+        , IFNULL(SOORD.VIC_FLG, '0') AS vicFlg
+        , SOORD.UNLOAD_REQ AS unloadReq
+        , SOORD.PACKING_REQ AS packingReq
+        , SOORD.OTHER_DELIVERY_REQ AS otherDeliveryReq
+        , SOORD.THIS_DELIVERY_REQ AS thisDeliveryReq
+        FROM
+        SO_ORDER AS SOO
+        INNER JOIN SO_ORDER_RECEIVE_DEMAND AS SOORD
+        ON SOO.ORDER_ID = SOORD.ORDER_ID
+        LEFT JOIN SO_ORDER_DETAIL AS SODC
+        ON SODC.ORDER_ID = SOO.ORDER_ID
+        WHERE
+        SOO.SELLER_CODE = #{sellerCode}
+        AND SOO.ORDER_SOURCE = #{orderSource}
+        AND SOO.ORDER_ID NOT IN (
+        SELECT
+        CHILD_ORDER_ID
+        FROM
+        SO_ORDER_RELATION AS SOOR
+        )
+        <!--<if test="@com.msk.core.utils.MybatisTag@notEmpty(orderSource)">
+            AND SOO.ORDER_SOURCE = #{orderSource}
+        </if>-->
+        <include refid="conditionForDifferentOrder"/>
+        ORDER BY
+        SOO.ORDER_ID desc
+        , SOO.UPD_TIME DESC
+        LIMIT #{startPos},#{pageCount}
+    </select>
+
+    <select id="getBbsOrderInfo" parameterType="BaseParam" resultType="com.msk.so.bean.order.BaseOrderSearchResult">
+        SELECT DISTINCT
+        SOO.ORDER_ID AS orderId
+        , SOO.ORDER_CODE AS orderCode
+        , DATE_FORMAT(SOO.ORDER_TIME,'%Y-%m-%d %T') AS orderTime
+        , SOO.BUYERS_CODE AS buyersCode
+        , SOO.BUYERS_NAME AS buyersName
+        , SOO.SELLER_CODE AS sellerCode
+        , SOO.SELLER_NAME AS sellerName
+        , SOO.ORDER_STATUS AS orderStatus
+        , SOO.DEL_FLG AS delFlg
+        , SOO.ORDER_AMOUNT AS orderAmount
+        , SOO.ORDER_TYPE AS orderType
+        , SOO.DISTRICT_CODE AS districtCode
+        , SOO.PAYMENT_TYPE AS paymentType
+        , SOO.VER AS ver
+        , '' AS paidAmount
+        , '' AS paidTime
+        , SOO.SELLERS AS sellers
+        , SOO.ORDER_TAKER AS orderTaker
+        , SOO.NEED_INVOICE AS invoiceFlg
+        , NULL AS commentTime
+        , SOORD.RECEIVER_NAME AS receiverName
+        , SOORD.RECEIVER_QQ AS receiverQq
+        , SOORD.RECEIVER_WEIXIN AS receiverWeixin
+        , SOORD.RECEIVER_TEL AS receiverTel
+        , SOORD.RECEIVER_PROVINCE AS receiverProvince
+        , SOORD.RECEIVER_CITY AS receiverCity
+        , SOORD.RECEIVER_DISTRICT AS receiverDistrict
+        , SOORD.RECEIVER_ADDR AS receiverAddr
+        , SOORD.RECEIVE_TIME AS receiveTime
+        , SOORD.RECEIVE_EARLIEST AS receiveEarliest
+        , SOORD.RECEIVE_LAST AS receiveLast
+        , SOORD.PARKING_DISTANCE AS parkingDistance
+        , SOORD.REMARK AS remark
+        , SOORD.REMARK2 AS remark2
+        , SOORD.REMARK3 AS remark3
+        , SOORD.REMARK4 AS remark4
+        , IFNULL(SOORD.VIC_FLG, '0') AS vicFlg
+        , SOORD.UNLOAD_REQ AS unloadReq
+        , SOORD.PACKING_REQ AS packingReq
+        , SOORD.OTHER_DELIVERY_REQ AS otherDeliveryReq
+        , SOORD.THIS_DELIVERY_REQ AS thisDeliveryReq
+        FROM
+        SO_ORDER AS SOO
+        INNER JOIN SO_ORDER_RECEIVE_DEMAND AS SOORD
+        ON SOO.ORDER_ID = SOORD.ORDER_ID
+        LEFT JOIN SO_ORDER_DETAIL AS SODC
+        ON SODC.ORDER_ID = SOO.ORDER_ID
+        WHERE
+        SOO.SELLER_CODE = #{sellerCode}
+        <!--AND SOO.ORDER_SOURCE = #{orderSource}-->
+        AND SOO.ORDER_TYPE = #{orderType}
+        <include refid="conditionForDifferentOrder"/>
+        ORDER BY
+        SOO.ORDER_ID desc
+        , SOO.UPD_TIME DESC
+        LIMIT #{startPos},#{pageCount}
+    </select>
+
+    <select id="getBbsgOrderInfo" parameterType="BaseParam" resultType="com.msk.so.bean.order.BaseOrderSearchResult">
+        SELECT DISTINCT
+        SOO.ORDER_ID AS orderId
+        , SOO.ORDER_CODE AS orderCode
+        , DATE_FORMAT(SOO.ORDER_TIME,'%Y-%m-%d %T') AS orderTime
+        , SOO.BUYERS_CODE AS buyersCode
+        , SOO.BUYERS_NAME AS buyersName
+        , SOO.SELLER_CODE AS sellerCode
+        , SOO.SELLER_NAME AS sellerName
+        , SOO.ORDER_STATUS AS orderStatus
+        , SOO.DEL_FLG AS delFlg
+        , SOO.ORDER_AMOUNT AS orderAmount
+        , SOO.ORDER_TYPE AS orderType
+        , SOO.DISTRICT_CODE AS districtCode
+        , SOO.PAYMENT_TYPE AS paymentType
+        , SOO.VER AS ver
+        , '' AS paidAmount
+        , '' AS paidTime
+        , SOO.SELLERS AS sellers
+        , SOO.ORDER_TAKER AS orderTaker
+        , SOO.NEED_INVOICE AS invoiceFlg
+        , NULL AS commentTime
+        , SOORD.RECEIVER_NAME AS receiverName
+        , SOORD.RECEIVER_QQ AS receiverQq
+        , SOORD.RECEIVER_WEIXIN AS receiverWeixin
+        , SOORD.RECEIVER_TEL AS receiverTel
+        , SOORD.RECEIVER_PROVINCE AS receiverProvince
+        , SOORD.RECEIVER_CITY AS receiverCity
+        , SOORD.RECEIVER_DISTRICT AS receiverDistrict
+        , SOORD.RECEIVER_ADDR AS receiverAddr
+        , SOORD.RECEIVE_TIME AS receiveTime
+        , SOORD.RECEIVE_EARLIEST AS receiveEarliest
+        , SOORD.RECEIVE_LAST AS receiveLast
+        , SOORD.PARKING_DISTANCE AS parkingDistance
+        , SOORD.REMARK AS remark
+        , SOORD.REMARK2 AS remark2
+        , SOORD.REMARK3 AS remark3
+        , SOORD.REMARK4 AS remark4
+        , IFNULL(SOORD.VIC_FLG, '0') AS vicFlg
+        , SOORD.UNLOAD_REQ AS unloadReq
+        , SOORD.PACKING_REQ AS packingReq
+        , SOORD.OTHER_DELIVERY_REQ AS otherDeliveryReq
+        , SOORD.THIS_DELIVERY_REQ AS thisDeliveryReq
+        FROM
+        SO_ORDER AS SOO
+        INNER JOIN SO_ORDER_RECEIVE_DEMAND AS SOORD
+        ON SOO.ORDER_ID = SOORD.ORDER_ID
+        LEFT JOIN SO_ORDER_DETAIL AS SODC
+        ON SODC.ORDER_ID = SOO.ORDER_ID
+        WHERE
+        SOO.BUYERS_ID = #{buyersId}
+        AND SOO.ORDER_TYPE = #{orderType}
+        <include refid="conditionForDifferentOrder"/>
+        ORDER BY
+        SOO.ORDER_ID desc
+        , SOO.UPD_TIME DESC
+        LIMIT #{startPos},#{pageCount}
+    </select>
+
+    <select id="getByBasicInfo" parameterType="com.msk.so.bean.order.OrderListSearchParam"
+            resultType="com.msk.core.entity.ByBuyerBasicInfo">
+       SELECT
+          a.BUYER_ID AS buyerId,
+          a.BUYER_CODE AS buyerCode,
+          a.BUYER_NAME AS buyerName,
+          a.SUPERIOR_TYPE AS superiorType
+        FROM
+          BY_BUYER_BASIC_INFO a
+          LEFT JOIN BY_BUYER_ACCOUNT bba
+            ON bba.BUYER_ID = a.BUYER_ID
+        WHERE bba.TEL_NO = #{tel}
+          AND bba.DEL_FLG = 0
+          AND a.del_flg = 0
+    </select>
+
+    <select id="getByBasicCount" parameterType="com.msk.so.bean.order.OrderListSearchParam" resultType="int">
+        SELECT
+        COUNT(*)
+        FROM
+        BY_BUYER_BASIC_INFO a
+        LEFT JOIN BY_BUYER_ACCOUNT bba
+        ON bba.BUYER_ID = a.BUYER_ID
+        WHERE bba.TEL_NO = #{tel}
+        AND bba.DEL_FLG = 0
+        AND a.del_flg = 0
+    </select>
+
+
+    <select id="getPayByOrderId" parameterType="BaseParam" resultType="com.msk.so.bean.order.BaseOrderSearchResult">
+        SELECT
+	    SUM(IFNULL(soPay.PAY_AMOUNT, 0)) as paidAmount,
+        DATE_FORMAT(soPay.PAY_TIME,"%Y-%m-%d %T") as paidTime
+        FROM
+	    (SELECT PAY_AMOUNT,PAY_TIME,ORDER_ID FROM so_payment  WHERE  DEL_FLG=0 ORDER BY PAY_TIME DESC ) AS soPay
+		GROUP BY
+		soPay.ORDER_ID
+		HAVING
+		soPay.ORDER_ID =#{filterMap.orderId};
+    </select>
+</mapper>

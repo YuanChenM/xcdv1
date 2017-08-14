@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.rs.ISO151418Logic">
+    <select id = "getPageCount" resultType="Integer" parameterType="com.msk.so.bean.ISO151418RsParam">
+        SELECT
+        COUNT(1)
+        FROM
+        so_evaluate_detail sed
+        LEFT JOIN so_evaluate se
+        ON se.evaluate_id = sed.evaluate_id
+        WHERE 1 = 1
+        AND sed.del_flg = 0
+        AND se.del_flg = 0
+        <if test="orderId!=null and orderId!=''">
+            AND se.order_id = #{orderId}
+        </if>
+        <if test="pdCode!=null and pdCode!=''">
+            AND sed.PD_CODE = #{pdCode}
+        </if>
+        <if test="proDate!=null and proDate!=''">
+            AND sed.PRO_DATE = #{proDate}
+        </if>
+    </select>
+
+    <select id = "findPageList" resultType = "com.msk.so.bean.ISO151418ProductResult" parameterType = "com.msk.so.bean.ISO151418RsParam">
+        SELECT
+          se.ORDER_ID AS orderId,
+          se.EVALUATE_ID AS evaluateId,
+          DATE_FORMAT(sed.PRO_DATE, "%Y-%m-%d") AS proDate,
+          sed.PD_CODE AS pdCode,
+          sed.EVALUATE_SCORE AS score,
+          DATE_FORMAT(se.EVALUATE_DATE, "%Y-%m-%d %T") AS evaluateDate,
+          sed.EVALUATE_DESC AS evaluateDesc,
+          sed.EVALUATE_IMG AS evaluateImg,
+          sed.EVALUATE_REMARK AS remark
+        FROM
+          so_evaluate_detail sed
+          LEFT JOIN so_evaluate se
+            ON se.evaluate_id = sed.evaluate_id
+        WHERE 1 = 1
+            AND sed.del_flg = 0
+            AND se.del_flg = 0
+        <if test="orderId!=null and orderId!=''">
+            AND se.order_id = #{orderId}
+        </if>
+        <if test="pdCode!=null and pdCode!=''">
+            AND sed.PD_CODE = #{pdCode}
+        </if>
+        <if test="proDate!=null and proDate!=''">
+            AND sed.PRO_DATE = #{proDate}
+        </if>
+        LIMIT #{startPos},#{pageSize};
+    </select>
+
+
+    <select id = "getOrderDetailInfo" parameterType = "com.msk.so.bean.ISO151418ProductResult" resultType="com.msk.so.bean.ISO151418ProductResult">
+        SELECT
+          IFNULL(
+            CONCAT(
+              IFNULL(pc.CLASSES_NAME, ''),
+              "/",
+              IFNULL(pm.MACHINING_NAME, ''),
+              "/",
+              IFNULL(pb.BREED_NAME, ''),
+              "/",
+              IFNULL(pf.FEATURE_NAME, ''),
+              "/",
+              IFNULL(pw.WEIGHT_NAME, ''),
+              "/",
+              IFNULL(pg.GRADE_NAME, '')
+            ),
+            '未知产品'
+          ) AS pdName,
+          sod.FEATURE_CODE AS featureCode,
+          sod.FEATURE_NAME AS featureName,
+          so.BUYERS_ID AS buyerId,
+          so.BUYERS_NAME AS buyerName,
+          sod.ORDER_QTY AS orderQty
+        FROM
+          so_order_detail sod
+          LEFT JOIN so_order so
+            ON so.order_id = sod.order_id
+          LEFT JOIN PD_CLASSES PC
+            ON SUBSTRING(sod.PD_CODE, 1, 2) = PC.CLASSES_CODE
+          LEFT JOIN PD_MACHINING PM
+            ON SUBSTRING(sod.PD_CODE, 1, 3) = PM.CLASSESTREE_CODE
+          LEFT JOIN PD_BREED PB
+            ON SUBSTRING(sod.PD_CODE, 1, 5) = PB.CLASSESTREE_CODE
+          LEFT JOIN PD_FEATURE PF
+            ON SUBSTRING(sod.PD_CODE, 1, 7) = PF.CLASSESTREE_CODE
+          LEFT JOIN PD_WEIGHT PW
+            ON SUBSTRING(sod.PD_CODE, 1, 9) = PW.CLASSESTREE_CODE
+          LEFT JOIN PD_GRADE PG
+            ON SUBSTRING(sod.PD_CODE, 10, 1) = PG.GRADE_CODE
+        WHERE (
+            sod.order_id = #{orderId}
+            OR EXISTS
+            (SELECT
+              1
+            FROM
+              so_order_relation sor
+            WHERE sor.main_order_id = #{orderId}
+              AND sor.CHILD_ORDER_id = sod.order_id
+              AND sor.del_flg = 0)
+          )
+          AND sod.del_flg = 0
+          AND so.del_flg = 0
+          AND PC.del_flg = 0
+          AND PM.del_flg = 0
+          AND PB.del_flg = 0
+          AND PF.del_flg = 0
+          AND PW.del_flg = 0
+          AND PG.del_flg = 0
+          AND sod.PD_CODE = #{pdCode}
+        <if test="proDate!=null and proDate!=''">
+            AND sod.PRO_DATE = #{proDate}
+        </if>
+    </select>
+</mapper>

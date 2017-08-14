@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.SO151403Logic">
+	<update id="updateSoOrderDetailAvailability" parameterType="com.msk.core.entity.SoOrderDetailAvailability">
+		update SO_ORDER_DETAIL_AVAILABILITY set
+		SUPP_QTY = #{suppQty},
+		SEND_QTY = #{sendQty},
+		RECEIVE_QTY = #{receiveQty},
+		CANCEL_QTY = #{cancelQty},
+		RETURN_QTY = #{returnQty},
+		REJECTION_QTY = #{rejectionQty},
+		UPD_TIME = #{updTime},
+		UPD_ID = #{updId},
+		VER = VER + 1
+		where ORDER_DETAIL_AVAILABILITY_ID=#{orderDetailAvailabilityId}
+	</update>
+</mapper>

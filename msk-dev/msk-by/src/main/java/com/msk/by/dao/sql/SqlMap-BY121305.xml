@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.by.logic.BY121305Logic">
+    <select id="findTerMarketInfo" parameterType="BaseParam" resultType="com.msk.core.entity.ByMarketTerminal">
+        SELECT
+        TER_MARKET_ID AS terMarketId,
+        MARKET_CODE AS marketCode,
+        MARKET_NAME AS marketName,
+        MARKET_ADDR AS marketAddr,
+        MARKET_LEVEL AS marketLevel,
+        MARKET_LEVEL_NAME AS marketLevelName,
+        LGCS_AREA_CODE AS lgcsAreaCode,
+        CITY_CODE AS cityCode,
+        DISTRICT_CODE AS districtCode
+        FROM
+        by_market_terminal
+        WHERE
+        DEL_FLG = 0
+        AND TER_MARKET_ID = #{filterMap.terMarketId}
+    </select>
+
+    <update id="saveTerMarketInfo" parameterType = "BaseEntity">
+        UPDATE
+        by_market_terminal
+        SET MARKET_CODE = #{marketCode}
+            ,MARKET_NAME = #{marketName}
+            ,MARKET_ADDR = #{marketAddr}
+            ,MARKET_LEVEL = #{marketLevel}
+            ,MARKET_LEVEL_NAME = #{marketLevelName}
+            ,LGCS_AREA_CODE = #{lgcsAreaCode}
+            ,CITY_CODE = #{cityCode}
+            ,DISTRICT_CODE = #{districtCode}
+            ,UPD_ID = #{updId}
+            ,UPD_TIME = #{updTime}
+        WHERE
+        TER_MARKET_ID = #{terMarketId}
+    </update>
+
+    <!--数据插入 -->
+    <insert id="addTerMarketInfo" parameterType="com.msk.core.entity.ByMarketTerminal">
+        INSERT INTO by_market_terminal(
+        TER_MARKET_ID,
+        MARKET_CODE,
+        MARKET_NAME,
+        MARKET_ADDR,
+        MARKET_LEVEL,
+        MARKET_LEVEL_NAME,
+        LGCS_AREA_CODE,
+        CITY_CODE,
+        DISTRICT_CODE,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        VER
+        )VALUES (
+        #{terMarketId},
+        #{marketCode},
+        #{marketName},
+        #{marketAddr},
+        #{marketLevel},
+        #{marketLevelName},
+        #{lgcsAreaCode},
+        #{cityCode},
+        #{districtCode},
+        0,
+        #{crtId},
+        #{crtTime},
+        0
+        )
+    </insert>
+</mapper>
+

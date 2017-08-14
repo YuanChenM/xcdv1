@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.SO151411Logic">
+    <select id="findOrderAvailability" parameterType="BaseParam" resultType="com.msk.so.bean.SO151411Bean">
+        SELECT
+        A.ORDER_ID AS orderId
+        ,A.ORDER_CODE AS orderCode
+        ,A.ORDER_DETAIL_ID AS orderDetailId
+        ,A.ORDER_DETAIL_AVAILABILITY_ID AS orderDetailAvailabilityId
+		,IFNULL(
+		  (
+		  SELECT DISTINCT
+		  ss.SL_CODE_DIS
+		  FROM
+		  sl_seller ss
+		  WHERE
+		  ss.SL_CODE = A.SUPPLIER_CODE
+		  )
+		  , ''
+		  ) AS supplierCodeShow
+		,A.SUPPLIER_CODE AS supplierCode
+		,IFNULL(
+		  (
+		  SELECT DISTINCT
+		  se.EP_NAME
+		  FROM
+		  sl_seller ss
+		  LEFT JOIN sl_enterprise se
+		  ON se.EP_ID = ss.EP_ID
+		  WHERE
+		  ss.SL_CODE = A.SUPPLIER_CODE
+		  )
+		  , ''
+		  ) AS supplierName
+        ,B.CLASSES_CODE AS classesCode
+        ,B.CLASSES_CODE AS classesName
+        ,B.BREED_CODE AS breedCode
+        ,B.BREED_NAME AS breedName
+        ,B.FEATURE_CODE AS featureCode
+        ,B.FEATURE_NAME AS featureName
+        ,B.NORMS_CODE AS normsCode
+        ,B.NORMS_NAME AS normsName
+        ,A.PD_CODE AS pdCode
+        ,B.PD_NAME AS pdName
+        ,B.PD_PRICE AS pdPrice
+        ,B.PD_GRADE_CODE AS pdGradeCode
+        ,B.PD_GRADE_NAME AS pdGradeName
+        ,A.SUPP_QTY AS suppqty
+        ,A.SEND_QTY AS sendQty
+        ,A.RECEIVE_QTY AS receiveQty
+        ,A.CANCEL_QTY AS cancelQty
+        ,A.RETURN_QTY AS returnedQty
+        ,0 AS returnQty
+        ,A.REJECTION_QTY AS rejectionQty
+        ,A.STATUS AS status
+	    ,COMM.CONSTANT_NAME AS statusName
+	    ,C.DISTRICT_CODE AS lgcsCode
+	    ,C.BUYERS_ID AS sellerCode
+	    ,C.ORDER_TYPE AS orderType
+        FROM SO_ORDER_DETAIL_AVAILABILITY A
+		INNER JOIN SO_ORDER_DETAIL B
+		ON A.ORDER_DETAIL_ID = B.ORDER_DETAIL_ID
+		INNER JOIN SO_ORDER C
+		ON A.ORDER_ID = C.ORDER_ID
+		LEFT JOIN COMM_CONSTANT AS COMM
+	  	ON A.STATUS = COMM.CONSTANT_VALUE
+	  	AND COMM.CONSTANT_TYPE = 'OrderDetailAvailabilityStatus'
+		WHERE A.ORDER_ID = #{filterMap.orderId}
+    </select>
+
+    <select id="findReturn" parameterType="BaseEntity" resultType="com.msk.core.entity.SoReturn">
+		SELECT
+		 A.ORDER_ID AS orderId
+		 ,C.BUYERS_ID AS buyersId
+		,A.ORDER_CODE AS orderCode
+		,C.BUYERS_CODE AS buyersCode
+		,C.BUYERS_NAME AS buyersName
+		,C.SELLER_CODE AS sellerCode
+		,C.SELLER_NAME AS sellerName
+		,C.DISTRICT_CODE AS districtCode
+		,C.ORDER_SOURCE AS returnSource
+		,3 AS returnType
+		,#{updId} AS applyMan
+		,#{updTime} AS applyTime
+		,D.RECEIVER_NAME AS receiverName
+		,D.RECEIVER_TEL AS receiverTel
+		,1 AS isPaid
+		,8 AS returnStatus
+		,#{updId} AS crtId
+		,#{updTime} AS crtTime
+		,99 AS returnReason
+		,#{updId} AS inboundManId
+		,#{updId} AS inboundManName
+		,#{updTime} AS inboundTime
+		FROM SO_ORDER_DETAIL_AVAILABILITY A
+		INNER JOIN SO_ORDER_DETAIL B
+		ON A.ORDER_DETAIL_ID = B.ORDER_DETAIL_ID
+		INNER JOIN SO_ORDER C
+		ON A.ORDER_ID = C.ORDER_ID
+		INNER JOIN so_order_receive_demand D
+		ON A.ORDER_ID = D.ORDER_ID
+		WHERE A.ORDER_DETAIL_AVAILABILITY_ID = #{orderDetailAvailabilityId}
+	</select>
+
+    <select id="findReturnDetail" parameterType="BaseEntity" resultType="com.msk.core.entity.SoReturnDetail">
+		SELECT
+		 A.ORDER_DETAIL_AVAILABILITY_ID AS orderDetailAvailabilityId
+		,A.SUPPLIER_CODE AS supplierCode
+		,A.SUPPLIER_NAME AS supplierName
+		,B.CLASSES_CODE AS classesCode
+		,B.CLASSES_NAME AS classesName
+		,B.BREED_CODE AS breedCode
+		,B.BREED_NAME AS breedName
+		,B.FEATURE_CODE AS featureCode
+		,B.FEATURE_NAME AS featureName
+		,B.NORMS_CODE AS normsCode
+		,B.NORMS_NAME AS normsName
+		,A.PD_CODE AS pdCode
+		,B.PD_NAME AS pdName
+		,B.PD_LEVEL AS pdLevel
+		,B.PD_GRADE_CODE AS pdGradeCode
+		,B.PD_GRADE_NAME AS pdGradeName
+		,A.SKU_CODE AS skuCode
+		,B.UNIT AS unit
+		,B.PACKING_VOLUME AS packingVolume
+		,B.WEIGHT AS weight
+		,B.VOLUME AS volume
+		,#{returnQty} AS returnQty
+		,#{returnQty} AS inboundQty
+		,8 AS detailStatus
+		,#{updId} AS crtId
+		,#{updTime} AS crtTime
+		,99 AS detailReason
+		FROM SO_ORDER_DETAIL_AVAILABILITY A
+		INNER JOIN SO_ORDER_DETAIL B
+		ON A.ORDER_DETAIL_ID = B.ORDER_DETAIL_ID
+		INNER JOIN SO_ORDER C
+		ON A.ORDER_ID = C.ORDER_ID
+		WHERE A.ORDER_DETAIL_AVAILABILITY_ID = #{orderDetailAvailabilityId}
+	</select>
+
+    <update id="modifyAvaDetail" parameterType="BaseEntity">
+        UPDATE
+        so_order_detail_availability soda
+        SET
+        <!--ADD for Bug#3358 at 2016/10/17 by sun_jiaju Start-->
+        soda.STATUS = CASE WHEN IFNULL(soda.RETURN_QTY, 0) + #{returnQty} - soda.SUPP_QTY = 0 THEN 7 ELSE soda.STATUS
+        END,
+        <!--ADD for Bug#3358 at 2016/10/17 by sun_jiaju End-->
+        soda.RETURN_QTY = IFNULL(soda.RETURN_QTY, 0) + #{returnQty},
+        soda.UPD_ID = #{updId},
+        soda.UPD_TIME = #{updTime}
+        WHERE soda.ORDER_DETAIL_AVAILABILITY_ID = #{orderDetailAvailabilityId}
+    </update>
+
+    <update id="modifyDetail" parameterType="BaseEntity">
+      UPDATE
+        so_order_detail sod
+      LEFT JOIN so_order_detail_availability soda
+      ON soda.ORDER_DETAIL_ID = sod.ORDER_DETAIL_ID
+      SET
+        sod.RETURN_QTY = IFNULL(sod.RETURN_QTY, 0) + #{returnQty},
+        sod.UPD_ID = #{updId},
+        sod.UPD_TIME = #{updTime},
+        sod.VER = sod.VER + 1
+      WHERE soda.ORDER_DETAIL_AVAILABILITY_ID = #{orderDetailAvailabilityId}
+	</update>
+
+    <insert id="save" parameterType="com.msk.core.entity.SoReturn">
+		INSERT INTO so_return (
+		RETURN_ID,
+		RETURN_CODE,
+		ORDER_ID,
+		ORDER_CODE,
+		BUYERS_CODE,
+		BUYERS_NAME,
+		SELLER_CODE,
+		SELLER_NAME,
+		DISTRICT_CODE,
+		RETURN_SOURCE,
+		RETURN_TYPE,
+		RETURN_MODE,
+		RETURN_AMOUNT,
+		RETURN_REASON,
+		APPLY_MAN,
+		APPLY_TIME,
+		RECEIVER_NAME,
+		RECEIVER_TEL,
+		IS_PAID,
+		INBOUND_MAN_ID,
+		INBOUND_MAN_NAME,
+		INBOUND_TIME,
+		RETURN_STATUS,
+		ROLE_TYPE,
+        BUYERS_ID,
+		DEL_FLG,
+		CRT_ID,
+		CRT_TIME,
+		VER
+		)
+		VALUES(
+		#{returnId},
+		#{returnCode},
+		#{orderId},
+		#{orderCode},
+		#{buyersCode},
+		#{buyersName},
+		#{sellerCode},
+		#{sellerName},
+		#{districtCode},
+		#{returnSource},
+		#{returnType},
+		#{returnMode},
+		#{returnAmount},
+		#{returnReason},
+		#{applyMan},
+		#{applyTime},
+		#{receiverName},
+		#{receiverTel},
+		#{isPaid},
+		#{inboundManId},
+		#{inboundManName},
+		#{inboundTime},
+		#{returnStatus},
+		#{roleType},
+        #{buyersId},
+		0,
+		#{crtId},
+		#{crtTime},
+		1
+		)
+	</insert>
+
+    <insert id="batchSave" parameterType="List">
+        INSERT INTO so_return_detail(
+        DETAIL_ID,
+        RETURN_ID,
+        ORDER_DETAIL_AVAILABILITY_ID,
+        SUPPLIER_CODE,
+        SUPPLIER_NAME,
+        CLASSES_CODE,
+        CLASSES_NAME,
+        BREED_CODE,
+        BREED_NAME,
+        FEATURE_CODE,
+        FEATURE_NAME,
+        NORMS_CODE,
+        NORMS_NAME,
+        PD_CODE,
+        PD_NAME,
+        PD_LEVEL,
+        PD_GRADE_CODE,
+        PD_GRADE_NAME,
+        SKU_CODE,
+        UNIT,
+        PACKING_VOLUME,
+        WEIGHT,
+        VOLUME,
+        RETURN_QTY,
+        DETAIL_REASON,
+        DETAIL_STATUS,
+        INBOUND_QTY,
+        INBOUND_BATCH,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        VER
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.detailId},
+            #{item.returnId},
+            #{item.orderDetailAvailabilityId},
+            #{item.supplierCode},
+            #{item.supplierName},
+            #{item.classesCode},
+            #{item.classesName},
+            #{item.breedCode},
+            #{item.breedName},
+            #{item.featureCode},
+            #{item.featureName},
+            #{item.normsCode},
+            #{item.normsName},
+            #{item.pdCode},
+            #{item.pdName},
+            #{item.pdLevel},
+            #{item.pdGradeCode},
+            #{item.pdGradeName},
+            #{item.skuCode},
+            #{item.unit},
+            #{item.packingVolume},
+            #{item.weight},
+            #{item.volume},
+            #{item.returnQty},
+            #{item.detailReason},
+            #{item.detailStatus},
+            #{item.inboundQty},
+            #{item.inboundBatch},
+            0,
+            #{item.crtId},
+            #{item.crtTime},
+            1
+            )
+        </foreach>
+    </insert>
+
+    <insert id="saveReturnStatus" parameterType="com.msk.core.entity.SoReturnStatus">
+		INSERT INTO so_return_status (
+		STATUS_ID,
+		RETURN_ID,
+		RETURN_CODE,
+		RETURN_STATUS,
+		DEL_FLG,
+		CRT_ID,
+		CRT_TIME,
+		VER
+		)
+		VALUES
+		(
+		#{statusId},
+		#{returnId},
+		#{returnCode},
+		#{returnStatus},
+		0,
+		#{crtId},
+		#{crtTime},
+		1
+		)
+	</insert>
+
+    <update id="updateSoStockSp" parameterType="BaseParam">
+		UPDATE so_stock_sp
+		SET so_stock_sp.STOCK_QTY = so_stock_sp.STOCK_QTY - #{stockNum},
+		so_stock_sp.UPD_ID = #{updId},
+		so_stock_sp.UPD_TIME = #{updTime},
+		so_stock_sp.VER = so_stock_sp.VER +1
+		WHERE so_stock_sp.LGCS_CODE = #{lgcsCode}
+		AND so_stock_sp.WAREHOUSE_CODE = #{warehouseCode}
+		AND so_stock_sp.SUPPLY_PLATFORM = #{supplyPlatform}
+		AND so_stock_sp.STOCK_TYPE = #{stockType}
+		AND so_stock_sp.SL_CODE = #{slCode}
+		AND so_stock_sp.SUPPLIER_CODE = #{supplierCode}
+		AND so_stock_sp.PD_CODE = #{pdCode}
+	</update>
+
+    <update id="updateSoStockSl" parameterType="BaseParam">
+		UPDATE so_stock_sl
+		SET so_stock_sl.STOCK_QTY = so_stock_sl.STOCK_QTY - #{stockNum},
+		so_stock_sl.UPD_ID = #{updId},
+		so_stock_sl.UPD_TIME = #{updTime},
+		so_stock_sl.VER = so_stock_sl.VER +1
+		WHERE so_stock_sl.LGCS_CODE = #{lgcsCode}
+		AND so_stock_sl.WAREHOUSE_CODE = #{warehouseCode}
+		AND so_stock_sl.STOCK_TYPE = #{stockType}
+		AND so_stock_sl.SL_CODE = #{slCode}
+		AND so_stock_sl.PD_CODE = #{pdCode}
+		AND so_stock_sl.SALE_PLATFORM = #{supplyPlatform}
+	</update>
+
+    <update id="updateSoOrder" parameterType="BaseParam">
+		UPDATE so_order so
+		LEFT JOIN (
+		SELECT sod.order_id, SUM(sod.order_qty - ifnull(sod.return_qty, 0)) AS leftQty
+		FROM so_order_detail sod
+		WHERE sod.order_id = #{filterMap.orderId}
+		) t
+		ON so.order_id = t.order_id
+		SET so.RETURN_FLG = CASE WHEN t.leftQty = 0 THEN 1 ELSE 2 END,
+		so.UPD_ID = #{updId},
+		so.UPD_TIME = #{updTime},
+		so.VER = so.VER +1
+		WHERE so.order_id = #{filterMap.orderId}
+	</update>
+
+</mapper>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.batch.base.logic.BatchRecordLogic">
+    <select id="getPageCount" parameterType="BaseParam" resultType="int">
+        SELECT
+                COUNT(1)
+        FROM BATCH_RECORD
+        WHERE BATCH_CODE=#{filterMap.batchCode} AND STATUS=#{filterMap.batchStatus}
+    </select>
+    <insert id="save" parameterType="BaseEntity">
+        INSERT INTO BATCH_RECORD(RUN_ID,BATCH_CODE,STATUS,RESULT,DEL_FLG,CRT_ID,CRT_TIME,VER)
+        VALUES(#{runId},#{batchCode},#{status},#{result},0,#{crtId},#{crtTime},1)
+    </insert>
+    <update id="modify" parameterType="BaseParam">
+        UPDATE BATCH_RECORD
+        SET STATUS=#{filterMap.batchStatus}
+        ,UPD_ID=#{filterMap.updId}
+        ,UPD_TIME=#{filterMap.updTime}
+        ,RESULT=#{filterMap.result}
+        ,VER = VER+1
+        WHERE BATCH_CODE=#{filterMap.batchCode} AND STATUS=#{filterMap.runStatus}
+    </update>
+    <select id="maxBatchId" resultType="java.lang.Long">
+        SELECT
+                MAX(RUN_ID)
+        FROM BATCH_RECORD
+    </select>
+</mapper>

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL241130Logic">
+    <insert id="save" parameterType="com.msk.sl.bean.SL241130Param">
+        INSERT INTO pd_tc_provider_package (
+        TC_PROVIDER_ID,
+        PROVIDER_CODE,
+        PROVIDER_NAME,
+        CLASSES_CODE,
+        CLASSES_NAME,
+        MACHINING_CODE,
+        MACHINING_NAME,
+        <if test="chooseInfo==1">
+            BREED_NAME,
+        </if>
+        <if test="chooseInfo==2">
+            BREED_CODE,
+            BREED_NAME,
+            FEATURE_NAME,
+        </if>
+        <if test="chooseInfo==3">
+            BREED_CODE,
+            BREED_NAME,
+            FEATURE_CODE,
+            FEATURE_NAME,
+            WEIGHT_NAME,
+            WEIGHT_VAL,
+        </if>
+        FEATURE_FLG,
+        <if test="chooseInfo==4">
+            BREED_CODE,
+            BREED_NAME,
+            FEATURE_CODE,
+            FEATURE_NAME,
+            WEIGHT_CODE,
+            WEIGHT_NAME,
+            WEIGHT_VAL,
+            NORMS_CODE,
+            NORMS_NAME,
+            NORMS_SUTTLE,
+            NORMS_ERROR,
+            NORMS_NUMBER,
+            NORMS_SIZE,
+            NORMS_TEXTURE,
+            NORMS_OUT,
+            NORMS_KG,
+            NORMS_OUT_SIZE,
+            NORMS_OUT_TEXTURE,
+            NORMS_TEN,
+            NORMS_LENGTH,
+            NORMS_WIDTH,
+            NORMS_HEIGHT,
+            NORMS_VOLUME,
+            NETWEIGHT_INNER,
+            NETWEIGHT_OUT,
+            GROSSWEIGHT_OUT,
+        </if>
+        APPLY_DATE,
+        DEL_FLG,
+        AUDIT_STATUS,
+        CRT_ID,
+        CRT_TIME
+        )
+        VALUES
+        (
+        #{tcProviderId},
+        #{providerCode},
+        #{providerName},
+        #{classesCode},
+        #{classesName},
+        #{machiningCode},
+        #{machiningName},
+        <if test="chooseInfo==1">
+            #{breedName},
+        </if>
+        <if test="chooseInfo==2">
+            #{breedCode},
+            #{breedName},
+            #{featureName},
+        </if>
+        <if test="chooseInfo==3">
+            #{breedCode},
+            #{breedName},
+            #{featureCode},
+            #{featureName},
+            #{weightName},
+            #{weightVal},
+        </if>
+        #{featureFlg},
+        <if test="chooseInfo==4">
+            #{breedCode},
+            #{breedName},
+            #{featureCode},
+            #{featureName},
+            #{weightCode},
+            #{weightName},
+            #{weightVal},
+            #{normsCode},
+            #{normsName},
+            #{normsSuttle},
+            #{normsError},
+            #{normsNumber},
+            #{normsSize},
+            #{normsTexture},
+            #{normsOut},
+            #{normsKg},
+            #{normsOutSize},
+            #{normsOutTexture},
+            #{normsTen},
+            #{normsLength},
+            #{normsWidth},
+            #{normsHeight},
+            #{normsVolume},
+            #{netweightInner},
+            #{netweightOut},
+            #{grossweightOut},
+        </if>
+        now(),
+        #{delFlg},
+        #{auditStatus},
+        #{crtId},
+        now()
+        )
+    </insert>
+</mapper>

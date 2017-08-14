@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>申报单任务表</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link rel="stylesheet" href="../css/sm.min.css">
+    <link rel="stylesheet" href="../css/sm-extend.min.css">
+    <link rel="stylesheet" href="../css/laypage.css">
+    <style type="text/css">
+
+        .rj-table {
+            /*padding:8px;*/
+            margin-bottom: 0 !important;
+            border: 1px solid #ddd;
+            border-collapse: collapse !important;
+            border-radius: 1px;
+            width: 100%;
+            font-size: 12px;
+            margin-left: 2px;
+            margin-right: 2px;
+        }
+
+        .rj-table td {
+            margin-bottom: 0 !important;
+            border: 1px solid #d2dcf8;
+            border-collapse: collapse !important;
+            border-radius: 1px;
+        }
+
+        .rj-table thead td {
+            /*font-weight: bold;*/
+            text-align: center;
+            background: #DCDCDC;
+        }
+
+        .rj-table tbody td {
+            text-align: center;
+        }
+    </style>
+
+    <script src="../js/common.js"></script>
+</head>
+<body>
+<div class="page-group">
+    <div class="page page-current" id="page1">
+        <header class="bar bar-nav">
+            <a class="button button-link button-nav pull-left back" href="buyer_agent_declaration_list.html" id="back">
+                <span class="icon icon-left"></span>
+                <!--返回-->
+            </a>
+            <a class="button button-link button-nav pull-right back" href="buyer_agent_declaration_operations.html"
+               id="home">
+                <span class="icon icon-home"></span>
+            </a>
+            <h1 class="title">查看详情</h1>
+        </header>
+
+
+        <div class="content" style="background: white">
+            <div class="row" style="margin-top:10px; ">
+                <div class="col-66">
+                    <div style="font-size: 16px;">
+                        <label id="pricePeriodAndDate"></label>
+                    </div>
+                </div>
+                <div class="33">
+                    <div style="font-size: 16px;">
+                        <label id="status"></label>
+                    </div>
+                </div>
+
+            </div>
+            <table class="rj-table" style="margin-top:10px;">
+                <thead>
+                <tr>
+                    <td>品牌</td>
+                    <td>品种/单品</td>
+                    <td>单箱净重</td>
+                    <td>申报价(元）
+                    </td>
+                </tr>
+                </thead>
+                <tbody id="tBodyDate">
+                </tbody>
+            </table>
+            <div class="row" style="margin-top:10px;margin-left: 10px">
+                <div id="pageBar" style="font-size: 8px;"></div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+</div>
+<script type='text/javascript' src='../js/zepto.min.js' charset='utf-8'></script>
+<script type="text/javascript">
+    $.config = {router: false}
+</script>
+<script type='text/javascript' src='../js/touch.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type="text/javascript" src="../js/common.js"></script>
+<script type="text/javascript" src="../js/zepto.cookie.min.js"></script>
+<script type="text/javascript" src="../js/laypage.js"></script>
+
+<script type="text/javascript">
+    var id = $.fn.cookie("id");
+    var name = $.fn.cookie("name");
+    var ppId = getUrlParam("ppId");
+    var classesCode = getUrlParam("classesCode");
+    var machiningCode = getUrlParam("machiningCode");
+    var pricePeriodAndDate = getUrlParam("pricePeriodAndDate");
+    var status = getUrlParam("status");
+
+    var curPage = 1; //当前页码
+    var total, pageSize, totalPage;
+    var tBody = "";
+    var dataExist = "1";
+
+    $(function () {
+        $("#pricePeriodAndDate").text("申报价盘期：" + pricePeriodAndDate);
+        $("#status").text("状态：" + status);
+        loadDate(false);
+        if(dataExist == "1"){
+            getPageBar();
+        }
+
+    });
+
+    function loadDate(flag) {
+        $.ajax({
+            type: "post",
+            url: "/" + _webroot + "/api/v1/pl/bs_declaration_detail",
+            data: JSON.stringify({
+                "siteCode": "318",
+                "auth": "pl",
+                "loginId": id,
+                "param": {
+                    "bsCode": id,
+                    "ppId": ppId,
+                    "classesCode": classesCode,
+                    "machiningCode": machiningCode,
+                    "paging": true,
+                    "pageCount": 10,
+                    "pageNo": curPage
+                }
+            }),
+            contentType: "application/json",
+            async: false,
+            success: function (data) {
+                if (data.status == "S" && data.result) {
+                    var dataList = data.result.dtList;
+                    var view;
+                    total = data.result.totalCount; //总记录数
+                    totalPage = data.result.totalPage; //总页数
+                    pageSize = 10; //每页显示条数
+                    curPage = data.result.pageNo; //当前页
+                    $("tbody").find("tr").remove();
+                    if (flag) {
+                        $.each(dataList, function (index, element) {
+                            if (element.declarePrice != null && element.declarePrice != undefined) {
+                                view = element.declarePrice;
+                            } else {
+                                view = "未填";
+                            }
+                            tBody += "<tr><td>" + element.brandName + "</td><td>" + element.breedName + element.featureName + "</td><td>" + element.weightName + "</td><td>" + view + "</td></tr>";
+                        });
+                    }
+                    dataExist = "1";
+                } else {
+                    dataExist = 0;
+                    $("tbody").find("tr").remove();
+                    $("tbody").append("<tr ><td colspan='4'>未查询到数据 !</td></tr>");
+                    $.alert(data.message);
+                }
+            }
+        });
+    }
+    function getPageBar() {
+        laypage({
+            cont: 'pageBar',
+            pages: totalPage,
+            jump: function (obj) {
+                curPage = obj.curr;
+                loadDate(true);
+                document.getElementById('tBodyDate').innerHTML = tBody;
+                tBody = "";
+            }
+        })
+    }
+
+</script>
+</body>
+</html>

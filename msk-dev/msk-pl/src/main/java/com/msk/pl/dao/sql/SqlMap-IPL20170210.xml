@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170210Logic">
+
+
+    <!-- 查询进货单产品数据 -->
+    <select id="findOne" parameterType="BaseParam" resultType="com.msk.pl.bean.IPL20170210Result">
+		SELECT
+	    PL_PD_ID AS plPdId,
+        PL_ID AS plId,
+        PD_CODE AS pdCode,
+        PD_NAME AS pdName,
+        PD_NAME_TYPE AS pdNameType,
+        SMALL_PACK_FEATURE AS smallPackFeature,
+        SMALL_PACK_NUMBER AS smallPackNumber,
+        BIG_PACK_NUMBER AS bigPackNumber,
+        NETWEIGHT AS netweight,
+        GROSSWEIGHT AS grossweight,
+        CARTON_SIZE AS cartonSize,
+        PD_GRADE AS pdGrade,
+        PALLET_NUMBER AS palletNumber,
+        DATE_FORMAT(SALE_TIME,'%Y-%m-%d') AS saleTime,
+        PRICE_PERIOD AS pricePeriod,
+        PRICE_CHANNEL AS priceChannel,
+        UNIT_PRICE AS unitPrice,
+        SALES_VOLUME AS salesVolume,
+        CLIENT_OBJECT AS clientObject,
+        BRAND_OWNER AS brandOwner,
+        PD_NEED_GRADE AS pdNeedGrade,
+        MANUFACTURER AS manufacturer
+		 FROM PL_INFO_PD
+		WHERE
+		PL_PD_ID = #{plPdId} AND DEL_FLG = 0
+
+	</select>
+</mapper>

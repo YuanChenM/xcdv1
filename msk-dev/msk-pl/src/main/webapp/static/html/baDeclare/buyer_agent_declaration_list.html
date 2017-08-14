@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>申报单任务表</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link rel="stylesheet" href="../css/sm.min.css">
+    <link rel="stylesheet" href="../css/sm-extend.min.css">
+    <style type="text/css">
+
+        .rj-table {
+            /*padding:8px;*/
+            margin-bottom: 0 !important;
+            border: 1px solid #ddd;
+            border-collapse: collapse !important;
+            border-radius: 1px;
+            width: 100%;
+            font-size: 12px;
+            margin-left: 2px;
+            margin-right: 2px;
+        }
+
+        .rj-table td {
+            margin-bottom: 0 !important;
+            border: 1px solid #d2dcf8;
+            border-collapse: collapse !important;
+            border-radius: 1px;
+        }
+
+        .rj-table thead td {
+            /*font-weight: bold;*/
+            text-align: center;
+            background: #DCDCDC;
+        }
+
+        .rj-table tbody td {
+            text-align: center;
+        }
+    </style>
+
+    <script src="../js/common.js"></script>
+</head>
+<body>
+<div class="page-group">
+    <div class="page page-current" id="page1">
+        <header class="bar bar-nav">
+            <a class="button button-link button-nav pull-left back" href="buyer_agent_declaration_operations.html" id="back">
+                <span class="icon icon-left"></span>
+                <!--返回-->
+            </a>
+            <a class="button button-link button-nav pull-right back" href="buyer_agent_declaration_operations.html"
+               id="home">
+                <span class="icon icon-home"></span>
+            </a>
+            <h1 class="title">申报单任务列表</h1>
+        </header>
+
+
+        <div class="content" style="background: white">
+            <div class="row" style="margin-top:10px; ">
+                <div class="col-60">
+                    <select id="date">
+                    </select>
+                </div>
+                <div class="col-40">
+                    <div style="font-size: 14px;">
+                        <a href="#" id="search" class="button button-light">搜索</a>
+                    </div>
+                </div>
+
+            </div>
+            <table class="rj-table" style="margin-top:10px;">
+                <thead>
+                <tr>
+                    <td>申报价盘期</td>
+                    <td>日期区间</td>
+                    <td>完成情况</td>
+                    <td>操作</td>
+                </tr>
+                </thead>
+                <tbody id="periods_tbody">
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
+</div>
+<script type='text/javascript' src='../js/zepto.min.js' charset='utf-8'></script>
+<script type="text/javascript">
+    $.config = {router: false}
+</script>
+<script type='text/javascript' src='../js/touch.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type="text/javascript" src="../js/common.js"></script>
+<script type="text/javascript" src="../js/zepto.cookie.min.js"></script>
+
+<script type="text/javascript">
+    var id = $.fn.cookie("id");
+    var name = $.fn.cookie("name");
+
+    var ppId;
+    $(function () {
+
+        loadDate();
+
+        search();
+
+        $("#search").click(function () {
+            search();
+        });
+    });
+
+
+
+    function loadDate() {
+        $.ajax({
+            type: "post",
+            url: "/" + _webroot + "/api/v1/pl/bs_declaration_datelist",
+            data: JSON.stringify({
+                "siteCode": "318",
+                "auth": "pl",
+                "loginId": id,
+                "param": {}
+            }),
+            contentType: "application/json",
+            async: false,
+            success: function (data) {
+                if (data.status == "S") {
+                    var declareYMList = data.result;
+                    $.each(declareYMList, function (i, value) {
+                        $("#date").append("<option value='" + value.declareYM + "'>" + value.declareYM + "</option>");
+                    });
+                } else {
+                    $.alert(data.message);
+                }
+            }
+        });
+    }
+
+
+    function search() {
+        var mySelect = document.getElementById("date");
+        var declareYM = mySelect.options[mySelect.selectedIndex].value;
+        $.ajax({
+            type: "post",
+            url: "/" + _webroot + "/api/v1/pl/bs_declaration_list",
+            data: JSON.stringify({
+                "siteCode": "318",
+                "auth": "pl",
+                "loginId": id,
+                "param": {
+                    "declareYM": declareYM,
+                    "bsCode": id
+                }
+            }),
+            contentType: "application/json",
+            async: false,
+            success: function (data) {
+                if (data.status == "S" && data.result) {
+                    var dataList = data.result;
+                    var myDate = new Date();
+                    $("tbody").find("tr").remove();
+                    $.each(dataList, function (index, element) {
+                        var view;
+                        var viewSetting = '"' + element.ppId + "_" + element.pricePeriod + "_" + element.pricePeriodDate + "_" + getStateName(element.status) + '"';
+                        var eidtSetting = '"' + element.ppId + "_" + element.pricePeriod + "_" + element.pricePeriodDate + '"';
+                        if (myDate.toLocaleDateString() >= getDateTime(element.inputStartDate) && myDate.toLocaleDateString() <= getDateTime(element.inputEndDate)) {
+                            view = "<a href='javascript:void(0);' onclick='editPP(" + eidtSetting + ")'>填写</a>";
+                            $("tbody").append("<tr style='background: yellow;height:40px;'><td>" + element.pricePeriod + "</td><td>" + element.pricePeriodDate + "</td><td>" + getStateName(element.status) + "</td><td>" + view + "</td></tr>");
+                        }else {
+                            view = "<a href='javascript:void(0);' onclick='viewPP(" + viewSetting + ")'>查看</a>";
+                            $("tbody").append("<tr style='height:40px;'><td>" + element.pricePeriod + "</td><td>" + element.pricePeriodDate + "</td><td>" + getStateName(element.status) + "</td><td>" + view + "</td></tr>");
+                        }
+
+                    });
+                } else {
+                    $("tbody").find("tr").remove();
+                    $("tbody").append("<tr ><td colspan='4'>未查询到数据 !</td></tr>");
+                    $.alert(data.message);
+                }
+            }
+        });
+    }
+    function getStateName(state) {
+        if(state == undefined ){
+            return "未完成";
+        }else {
+            state=state.toString();
+            if(state==""){
+                return "未完成";
+            }else if(state=="1"){
+                return "已完成";
+            }else if(state=="0"){
+                return "未完成";
+            }
+        }
+    }
+
+    function editPP(editSetting) {
+        ppId = editSetting.split("_")[0];
+        location.href = "buyer_agent_declaration_edit_list.html?ppId=" + ppId + "&bsCode=" + id;
+    }
+
+    function viewPP(viewSetting) {
+        var ppIdS = viewSetting.split("_")[0];
+        var pricePeriodS = viewSetting.split("_")[1];
+        var pricePeriodDateS = viewSetting.split("_")[2];
+        var statusS = viewSetting.split("_")[3];
+        var pricePeriodAndDate = pricePeriodS + "(" + pricePeriodDateS + ")";
+        location.href = "buyer_agent_declaration_details.html?ppId=" + ppIdS + "&bsCode=" + id + "&pricePeriodAndDate=" + pricePeriodAndDate + "&status=" + statusS;
+    }
+
+    //json时间解析
+
+    function getDateTime(jsonDate) {
+        var jsonDates = "/Date(" + jsonDate + ")/";
+        var date = new Date(parseInt(jsonDates.replace("/Date(", "").replace(")/", ""), 10));
+        var year = date.getFullYear();
+        var month = date.getMonth() + 1;
+        var day = date.getDate();
+        return year + "/" + month + "/" + day;
+    }
+
+
+</script>
+</body>
+</html>

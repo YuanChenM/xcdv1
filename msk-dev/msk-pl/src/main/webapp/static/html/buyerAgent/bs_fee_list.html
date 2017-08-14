@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>买手计费查看页面</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link rel="stylesheet" href="../css/sm.min.css">
+    <link rel="stylesheet" href="../css/sm-extend.min.css">
+
+    <style type="text/css">
+
+        .rj-table{
+            /*padding:8px;*/
+            margin-bottom:0!important;
+            border:1px solid #ddd;
+            border-collapse:collapse!important;
+            border-radius:1px;
+            width:100%;
+            font-size:12px;
+            margin-left: 2px;
+            margin-right: 2px;
+        }
+        .rj-table td{
+            margin-bottom:0!important;
+            border:1px solid #d2dcf8;
+            border-collapse:collapse!important;
+            border-radius:1px;
+        }
+        .rj-table thead td{
+            /*font-weight: bold;*/
+            text-align: center;
+            background: #DCDCDC;
+        }
+        .rj-table tbody td{
+            text-align: center;
+        }
+    </style>
+
+</head>
+<body>
+<div class="page-group">
+    <div class="page page-current">
+
+        <!--标题栏-->
+        <header class="bar bar-nav">
+            <a class="button button-link button-nav pull-left back" href="#" id="back">
+            <span class="icon icon-left"></span>
+            <!--返回-->
+            </a>
+            <a class="button button-link button-nav pull-right back" href="buyer_agent_operations.html" id="home">
+                <span class="icon icon-home"></span>
+            </a>
+            <h1 class="title">买手计费查看</h1>
+        </header>
+
+        <!--内容区-->
+        <div class="content" style="background: white">
+           <div class="row" style="margin-top:3px; ">
+               <div class="col-60">
+                   <select id="status">
+                       <option value="">全部</option>
+                       <option value="1">有效</option>
+                       <option value="0">无效</option>
+                   </select>
+                   <select id="date">
+                       <!--<option value="2017-02">2017年02月</option>-->
+                       <!--<option value="2017-01">2017年01月</option>-->
+                       <!--<option value="2016-12">2016年12月</option>-->
+                   </select>
+               </div>
+               <div class="col-40" >
+                   <div style="font-size: 14px;">
+                        总金额:<span id="totalMoney">0</span>元
+                   </div>
+               </div>
+
+           </div>
+            <table class="rj-table" style="margin-top:2px;">
+                <thead>
+                <tr>
+                    <td>进货单编号</td>
+                    <td>时间</td>
+                    <td>状态</td>
+                    <td>费用(元)</td>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+
+</div>
+
+<script type='text/javascript' src='../js/zepto.min.js' charset='utf-8'></script>
+<script type="text/javascript">
+    $.config = {router: false}
+</script>
+<script type='text/javascript' src='../js/touch.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type="text/javascript" src="../js/common.js"></script>
+<script type="text/javascript" src="../js/zepto.cookie.min.js"></script>
+
+<script type="text/javascript">
+
+    var id=$.fn.cookie("id");
+    var name=$.fn.cookie("name");
+
+    $(function(){
+        $("#back").attr("href","buyer_agent_operations.html");
+
+        setQueryData();
+
+        queryList();
+
+        $("#status").change(function(){
+            queryList();
+        });
+
+        $("#date").change(function(){
+            queryList();
+        });
+    });
+
+    function setQueryData(){
+        var date=new Date();
+        for(var i=0;i<3;i++){
+            if(i!=0){
+                date=new Date(date.setMonth(date.getMonth()-1));
+            }
+            var value=Format(date,"yyyy-MM-dd");
+            var text=Format(date,"yyyy")+"年"+Format(date,"MM")+"月";
+            $("#date").append("<option value='"+value+"'>"+text+"</option>");
+        }
+    }
+
+    function queryList(){
+        $.ajax({
+            type:"post",
+            url:"/"+_webroot+"/api/v1/pl/bs_fee_list",
+            contentType:"application/json",
+            data:JSON.stringify({
+                "siteCode":"318",
+                "loginId":id,
+                "auth":"pl",
+                "param":{
+                    "bsCode":id,
+                    "nowMonth":$("#date").val(),
+                    "status":$("#status").val()
+                }
+            }),
+            success:function(data){
+                if(data.status=="S"&&data.result){
+                    var data=data.result;
+                    var totalAmount=data.totalAmount
+                    if(!totalAmount){
+                        totalAmount=0;
+                    }
+                    var feeList=data.feeList;
+
+                    $("#totalMoney").text(totalAmount);
+                    $("tbody").find("tr").remove();
+                    $.each(feeList,function(index,element){
+                        var incentiveFee=element.incentiveFee;
+                        if(!incentiveFee){
+                            incentiveFee=0;
+                        }
+                        $("tbody").append("<tr><td>"+element.plId+"</td><td>"+element.crtTimes+"</td><td>"+getStateName(element.status)+"</td><td>"+incentiveFee+"</td></tr>");
+                    });
+                }else{
+                    $("tbody").find("tr").remove();
+                    $("#totalMoney").text(0);
+                    $.alert(data.message);
+                }
+            }
+        });
+
+    }
+
+    function getStateName(state){
+        state=state.toString();
+        if(state==""){
+            return "全部";
+        }else if(state=="1"){
+            return "有效";
+        }else if(state=="0"){
+            return "无效";
+        }
+
+    }
+</script>
+
+</body>
+</html>

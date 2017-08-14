@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151404Logic">
+    <select id = "getCount" resultType = "com.msk.so.bean.ISO151404RsResult" parameterType = "BaseParam">
+        SELECT count(1) as count
+        FROM so_return
+        WHERE RETURN_CODE = #{backNo}
+        AND ORDER_CODE = #{transCode}
+    </select>
+</mapper>

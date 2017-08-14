@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.ds.logic.DS174102Logic">
+    <sql id="select">
+        SELECT LOT_ID AS lotId
+             , SERIAL_ID AS serialId
+             , LOT_CODE AS lotCode
+    </sql>
+    <sql id="whereCondition">
+        <where>
+            <if test="lotId!=null and lotId!=''">
+                AND LOT_ID = #{lotId}
+            </if>
+        </where>
+    </sql>
+    <select id="getPageCount" parameterType="BaseParam" resultType="int">
+        SELECT count(1)
+        FROM ds_lot_serial
+        <include refid="whereCondition" />
+    </select>
+    <select id="findPageList" parameterType="BaseParam" resultType="com.msk.core.entity.DsLotSerial">
+        <include refid="select" />
+        FROM ds_lot_serial
+        <include refid="whereCondition" />
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize}
+        </if>
+    </select>
+    <select id="selectMax" parameterType="BaseParam" resultType="int">
+        SELECT ifnull(max(SERIAL_ID), 0)
+        FROM ds_lot_serial
+        <include refid="whereCondition" />
+    </select>
+    <insert id ="batchSave" parameterType="List">
+        insert into ds_lot_serial(
+        LOT_ID,
+        SERIAL_ID,
+        LOT_CODE,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER)
+        values
+        <foreach collection ="list" item ="item" index ="index" separator =",">
+            (#{item.lotId},
+             #{item.serialId},
+             #{item.lotCode},
+             #{item.delFlg},
+             #{item.crtId},
+             #{item.crtTime},
+             #{item.updId},
+             #{item.updTime},
+             #{item.actId},
+             #{item.actTime},
+             #{item.ver}
+            )
+        </foreach>
+    </insert>
+</mapper>

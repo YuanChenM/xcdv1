@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL241111Logic">
+   <insert id="save" parameterType="com.msk.sl.bean.SL241109Bean">
+        INSERT INTO sl_dist_regu_chap (
+            CHAP_ID,
+            CHAP_NO,
+            CHAP_TITLE,
+            DEL_FLG,
+            CRT_ID,
+            CRT_TIME,
+            CHAP_CLASS
+        )
+        VALUES
+            (
+                #{chapId},
+                #{chapNo},
+                #{chapTitle},
+                #{delFlg},
+                #{crtId},
+                now(),
+                ${chapClass}
+            )
+   </insert>
+    <update id="modify" parameterType="com.msk.sl.bean.SL241109Bean">
+        UPDATE sl_dist_regu_chap
+        SET
+         CHAP_NO = #{chapNo},
+         CHAP_TITLE = #{chapTitle},
+         DEL_FLG =  #{crtId},
+         UPD_ID = #{updId},
+         UPD_TIME = now()
+        WHERE
+            CHAP_ID = #{chapId}
+    </update>
+</mapper>

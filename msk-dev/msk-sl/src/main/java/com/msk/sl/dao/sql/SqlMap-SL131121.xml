@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL131121Logic">
+    <sql id="whereCondition">
+        <where>
+            <if test="filterMap.sellerCode!=null and filterMap.sellerCode!=''">
+                AND sp.SL_CODE = #{filterMap.sellerCode}
+            </if>
+            <if test="filterMap.classesCode!=null and filterMap.classesCode!=''">
+                AND a.CLASSES_CODE like #{filterMap.classesCode}
+            </if>
+            <if test="filterMap.breedCode!=null and filterMap.breedCode!=''">
+                AND b.BREED_CODE like #{filterMap.breedCode}
+            </if>
+            <if test="filterMap.featureCode!=null and filterMap.featureCode!=''">
+                AND c.FEATURE_CODE like #{filterMap.featureCode}
+            </if>
+            <if test="filterMap.classesName!=null and filterMap.classesName!=''">
+                AND a.CLASSES_NAME like #{filterMap.classesName}
+            </if>
+            <if test="filterMap.breedName!=null and filterMap.breedName!=''">
+                AND b.BREED_NAME like #{filterMap.breedName}
+            </if>
+            <if test="filterMap.featureName!=null and filterMap.featureName!=''">
+                AND c.FEATURE_NAME like #{filterMap.featureName}
+            </if>
+        </where>
+    </sql>
+    <select id="getPageCount" parameterType="BaseParam" resultType="int">
+        SELECT count(1)
+          FROM sl_product sp
+         INNER JOIN pd_classes a
+            ON a.CLASSES_CODE = sp.PD_CLASSES_CODE
+         INNER JOIN pd_breed b
+            ON b.CLASSES_CODE = sp.PD_CLASSES_CODE
+           AND b.BREED_CODE = sp.PD_BREED_CODE
+         INNER JOIN pd_feature c
+            ON c.CLASSES_CODE = sp.PD_CLASSES_CODE
+           AND c.BREED_CODE = sp.PD_BREED_CODE
+           AND c.FEATURE_CODE = sp.PD_FEATURE_CODE
+        <include refid="whereCondition" />
+    </select>
+    <select id="findPageList" parameterType="BaseParam" resultType="com.msk.sl.bean.SL131121Bean">
+        SELECT sp.SL_CODE AS slCode
+             , se.EP_NAME AS slName
+             , a.CLASSES_CODE AS classesCode
+             , a.CLASSES_NAME AS classesName
+             , b.BREED_CODE AS breedCode
+             , b.BREED_NAME AS breedName
+             , c.FEATURE_CODE AS featureCode
+             , c.FEATURE_NAME AS featureName
+             , #{filterMap.lgcsCode} AS lgcsCode
+             , ifnull(e.LGCS_NAME, #{filterMap.lgcsCode}) AS lgcsName
+             , d.LGCS_ID AS lgcsId
+             , (CASE WHEN d.LGCS_ID IS NOT NULL THEN '1' ELSE '0' END) AS checkFlag
+          FROM sl_product sp
+         INNER JOIN pd_classes a
+            ON a.CLASSES_CODE = sp.PD_CLASSES_CODE
+         INNER JOIN pd_breed b
+            ON b.CLASSES_CODE = sp.PD_CLASSES_CODE
+           AND b.BREED_CODE = sp.PD_BREED_CODE
+         INNER JOIN pd_feature c
+            ON c.CLASSES_CODE = sp.PD_CLASSES_CODE
+           AND c.BREED_CODE = sp.PD_BREED_CODE
+           AND c.FEATURE_CODE = sp.PD_FEATURE_CODE
+          LEFT JOIN sl_pd_lgcs d
+            ON d.CLASSES_CODE = a.CLASSES_CODE
+           AND d.BREED_CODE = b.BREED_CODE
+           AND d.FEATURE_CODE = c.FEATURE_CODE
+           AND d.LGCS_CODE = #{filterMap.lgcsCode}
+          LEFT JOIN comm_logistics_area e
+            ON e.LGCS_CODE = #{filterMap.lgcsCode}
+          LEFT JOIN sl_seller s
+            ON s.SL_CODE = sp.SL_CODE
+          LEFT JOIN sl_enterprise se
+            ON se.EP_ID = s.EP_ID
+        <include refid="whereCondition" />
+         ORDER BY a.CLASSES_CODE, b.BREED_CODE, c.FEATURE_CODE
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize}
+        </if>
+    </select>
+    <insert id="save" parameterType="BaseEntity">
+        INSERT INTO sl_pd_lgcs(
+          LGCS_ID,
+          SL_CODE,
+          LGCS_CODE,
+          CLASSES_CODE,
+          BREED_CODE,
+          FEATURE_CODE,
+          DEL_FLG,
+          CRT_ID,
+          CRT_TIME,
+          UPD_ID,
+          UPD_TIME,
+          ACT_ID,
+          ACT_TIME,
+          VER
+        )
+        SELECT ifnull(max(LGCS_ID), 0) + 1
+             , #{slCode}
+             , #{lgcsCode}
+             , #{classesCode}
+             , #{breedCode}
+             , #{featureCode}
+             , #{delFlg}
+             , #{crtId}
+             , #{crtTime}
+             , #{updId}
+             , #{updTime}
+             , #{actId}
+             , #{actTime}
+             , #{ver}
+          FROM sl_pd_lgcs
+    </insert>
+    <delete id="remove" parameterType="BaseEntity" >
+        DELETE FROM sl_pd_lgcs
+        WHERE SL_CODE = #{slCode}
+          AND LGCS_ID = #{lgcsId}
+    </delete>
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.rs.ISO151414Logic">
+    <select id = "getBasicInfo" resultType = "com.msk.core.entity.ByBuyerBasicInfo" parameterType = "com.msk.so.bean.order.BaseOrderParam">
+        SELECT
+          a.BUYER_ID AS buyerId,
+          a.BUYER_CODE AS buyerCode,
+          a.BUYER_NAME AS buyerName,
+          a.SUPERIOR_TYPE AS superiorType
+        FROM
+          BY_BUYER_BASIC_INFO a
+          LEFT JOIN BY_BUYER_ACCOUNT bba
+            ON bba.BUYER_ID = a.BUYER_ID
+        WHERE bba.TEL_NO = #{receiverInfo.receiverTel}
+          AND bba.DEL_FLG = 0
+          AND a.del_flg = 0
+    </select>
+
+    <select id="getEmailAddress" parameterType="BaseParam" resultType="com.msk.so.bean.SoConstantBean">
+        SELECT
+        CONSTANT_VALUE AS emailAddress
+        FROM SO_CONSTANT
+        WHERE CONSTANT_TYPE = 'EmailAddress'
+        AND DEL_FLG =0
+    </select>
+
+    <select id="getBuyerInfo" parameterType="com.msk.so.bean.order.BaseOrderParam" resultType="com.msk.core.entity.SoOrder">
+        SELECT
+            sbbi.SL_CODE AS buyersId,
+            sbbi.SL_CODE_DIS  AS buyersCode
+        FROM
+            sl_bs_basic_info sbbi
+        INNER JOIN sl_bs_account sba ON sba.SL_ACCOUNT = sbbi.SL_ACCOUNT
+        WHERE
+            sba.SL_SHOW_NAME = #{buyersName}
+            AND sbbi.DEL_FLG = 0
+            AND sba.DEL_FLG = 0
+    </select>
+</mapper>

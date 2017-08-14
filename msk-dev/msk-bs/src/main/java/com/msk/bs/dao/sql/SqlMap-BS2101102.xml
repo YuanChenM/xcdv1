@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.bs.logic.BS2101102Logic">
+
+
+    <sql id="selectFiled">
+         A.SL_CODE AS slCode,
+        IFNULL(A.HOUSE_ACCOUNT,'') AS houseAccount,
+        A.HOUSE_CODE AS houseCode,
+        A.HOUSE_CODE_DIS AS houseCodeDis,
+        A.HOUSE_TEL AS houseTel,
+        IFNULL(A.HOUSE_SHOW_NAME,'') AS houseShowName,
+        A.HOUSE_CONTACT AS houseContact,
+        A.ACCOUNT_PSD AS accountPsd,
+        A.AUTH_STATUS AS authStatus,
+        A.SL_IDCARD AS slIdcard,
+        A.SL_CON_FLG AS slConFlg,
+        A.AREA_CODE AS areaCode,
+        A.LGCS_AREA_CODE AS lgcsAreaCode,
+        A.PROVINCE_CODE AS provinceCode,
+        A.CITY_CODE AS cityCode,
+        A.DISTRICT_CODE AS districtCode,
+        IFNULL(A.HOUSE_ADDRESS,'') AS houseAddress,
+        A.V_AREA_CODE AS vareaCode,
+        A.V_LGCS_AREA_CODE AS vlgcsAreaCode,
+        A.V_PROVINCE_CODE AS vprovinceCode,
+        A.V_CITY_CODE AS vcityCode,
+        A.V_DISTRICT_CODE AS vdistrictCode,
+        IFNULL(A.V_HOUSE_ADDRESS,'') AS vhouseAddress,
+        A.LAT AS lat,
+        A.LON AS lon,
+        A.V_LAT AS vlat,
+        A.V_LON AS vlon,
+        A.LICENSES AS licenses,
+        A.BUYER_ASIGN AS buyerAsign,
+        A.WECHAT AS wechat,
+        A.QQ AS qq,
+        A.EMAIL AS email,
+        A.FIXED_TEL AS fixedTel,
+        A.FAX AS fax,
+        A.FLAG20 AS flag20,
+        A.FLAG19 AS flag19,
+        A.FLAG18 AS flag18,
+        A.FLAG17 AS flag17,
+        A.FLAG16 AS flag16,
+        A.FLAG15 AS flag15,
+        A.FLAG14 AS flag14,
+        A.FLAG13 AS flag13,
+        A.FLAG12 AS flag12,
+        A.FLAG11 AS flag11,
+        A.FLAG10 AS flag10,
+        A.FLAG9 AS flag9,
+        A.FLAG8 AS flag8,
+        A.FLAG7 AS flag7,
+        A.FLAG6 AS flag6,
+        A.FLAG5 AS flag5,
+        A.FLAG4 AS flag4,
+        A.FLAG3 AS flag3,
+        A.FLAG2 AS flag2,
+        A.FLAG1 AS flag1,
+        A.HOUSE_INTRODUCE AS houseIntroduce,
+        A.HOUSE_CLASS AS houseClass,
+        A.HOUSE_CATEGORY AS houseCategory,
+        A.HOUSE_CATEGORY0 AS houseCategory0,
+        A.HOUSE_CATEGORY1 AS houseCategory1,
+        A.HOUSE_CATEGORY2 AS houseCategory2,
+        A.HOUSE_CATEGORY3 AS houseCategory3,
+        A.HOUSE_CATEGORY4 AS houseCategory4,
+        A.HOUSE_CATEGORY5 AS houseCategory5,
+        A.HOUSE_CATEGORY6 AS houseCategory6,
+        A.HOUSE_CATEGORY7 AS houseCategory7,
+        A.HOUSE_CATEGORY8 AS houseCategory8,
+        A.VER AS ver,
+        IFNULL(CONCAT(B.AREANAME,' ',B.PRLGCSNAME,' ',B.CITYNAME,' ',B.DISTRICTNAME),'') AS cityName,
+        IFNULL(C.LGCS_AREA_NAME,'') AS lgcsAreaName,
+        IFNULL(D.GREADE,'') AS greade,
+        IFNULL(E.SL_CONTACT,0) AS slContact,
+        IFNULL(TEMP1.stewardNum,0) AS buyerNum
+    </sql>
+    <sql id="selectFrom">
+        FROM sl_house_account AS A
+          LEFT JOIN v_md_dist_area AS B ON  B.PRLGCSCODE=A.V_PROVINCE_CODE
+		  AND B.CITYCODE=A.V_CITY_CODE AND B.DISTRICTCODE = A.V_DISTRICT_CODE
+		  LEFT JOIN MD_LOGISTICS_AREA C ON C.LGCS_AREA_CODE = A.V_LGCS_AREA_CODE
+		  LEFT JOIN sl_bs_house_grade D ON D.SL_CODE = A.SL_CODE AND D.HOUSE_CODE = A.HOUSE_CODE
+		  LEFT JOIN SL_SELLER F ON F.SL_CODE=A.SL_CODE
+		  LEFT JOIN sl_account E ON E.SL_ACCOUNT = F.SL_ACCOUNT
+		  LEFT JOIN (
+            SELECT  COUNT(1) AS stewardNum,A.HOUSE_CODE,
+                A.SL_CODE FROM sl_bs_buyer A WHERE A.APPLY_STATUS = '2'
+                AND (A.DEL_FLG IS NULL OR A.DEL_FLG = 0)
+            GROUP BY
+                A.SL_CODE,A.HOUSE_CODE
+        ) AS TEMP1 ON TEMP1.SL_CODE = A.SL_CODE AND TEMP1.HOUSE_CODE=A.HOUSE_CODE
+    </sql>
+    <sql id="whereCondition">
+        <where>
+            (A.DEL_FLG IS NULL OR A.DEL_FLG = 0)
+            <if test="filterMap.houseAccount!=null and filterMap.houseAccount!=''">
+                AND A.HOUSE_ACCOUNT like #{filterMap.houseAccount}
+            </if>
+            <if test="filterMap.houseCodeDis!=null and filterMap.houseCodeDis!=''">
+                AND A.HOUSE_CODE_DIS like #{filterMap.houseCodeDis}
+            </if>
+            <if test="filterMap.houseContact!=null and filterMap.houseContact!=''">
+                AND A.HOUSE_CONTACT like #{filterMap.houseContact}
+            </if>
+            <if test="filterMap.slIdcard!=null and filterMap.slIdcard!=''">
+                AND A.SL_IDCARD like #{filterMap.slIdcard}
+            </if>
+            <if test="filterMap.houseTel!=null and filterMap.houseTel!=''">
+                AND A.HOUSE_TEL like #{filterMap.houseTel}
+            </if>
+            <if test="filterMap.houseAddress!=null and filterMap.houseAddress!=''">
+                AND A.HOUSE_ADDRESS like #{filterMap.houseAddress}
+            </if>
+            <if test="filterMap.fromFlg!=null and filterMap.fromFlg!=''">
+                AND E.FROM_FLG = #{filterMap.fromFlg}
+            </if>
+            <if test="filterMap.greade!=null and filterMap.greade!=''">
+                AND (D.GREADE = #{filterMap.greade}
+                  <if test="filterMap.greade==0">
+                    OR D.GREADE IS NULL
+                  </if>
+                )
+            </if>
+            <if test="filterMap.slCode!=null and filterMap.slCode!=''">
+                AND A.SL_CODE = #{filterMap.slCode}
+            </if>
+            <if test="filterMap.accountPsd!=null and filterMap.accountPsd!=''">
+                AND A.ACCOUNT_PSD = #{filterMap.accountPsd}
+            </if>
+
+            <if test="filterMap.vprovinceCode!=null and filterMap.vprovinceCode!=''">
+                AND A.V_PROVINCE_CODE = #{filterMap.vprovinceCode}
+            </if>
+            <if test="filterMap.vcityCode!=null and filterMap.vcityCode!=''">
+                AND A.V_CITY_CODE = #{filterMap.vcityCode}
+            </if>
+            <if test="filterMap.vdistrictCode!=null and filterMap.vdistrictCode!=''">
+                AND A.V_DISTRICT_CODE = #{filterMap.vdistrictCode}
+            </if>
+            <if test="filterMap.vhouseAddress!=null and filterMap.vhouseAddress!=''">
+                AND A.V_HOUSE_ADDRESS like #{filterMap.vhouseAddress}
+            </if>
+            <if test="filterMap.houseCategory!=null and filterMap.houseCategory!=''">
+                AND A.HOUSE_CATEGORY = #{filterMap.houseCategory}
+            </if>
+            <if test="filterMap.provinceCode1!=null and filterMap.provinceCode1!=''">
+                AND B.PRLGCSCODE = #{filterMap.provinceCode1}
+            </if>
+            <if test="filterMap.cityCode1!=null and filterMap.cityCode1!=''">
+                AND B.CITYCODE = #{filterMap.cityCode1}
+            </if>
+            <if test="filterMap.districtCode1!=null and filterMap.districtCode1!=''">
+                AND B.DISTRICTCODE = #{filterMap.districtCode1}
+            </if>
+            <if test="filterMap.houseCode!=null and filterMap.houseCode!=''">
+                AND A.HOUSE_CODE = #{filterMap.houseCode}
+            </if>
+        </where>
+    </sql>
+    <select id="getPageCount" resultType="int" parameterType="BasePageParam">
+        SELECT COUNT(1)
+        <include refid="selectFrom"/>
+        <include refid="whereCondition"/>
+    </select>
+    <select id="findPageList" resultType="com.msk.bs.bean.IBS2101105RsResult"
+            parameterType="BasePageParam">
+        SELECT
+        <include refid="selectFiled"/>
+        <include refid="selectFrom"/>
+        <include refid="whereCondition"/>
+        <!--order by suppDsId, planFlowId, distMonth-->
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+
+</mapper>

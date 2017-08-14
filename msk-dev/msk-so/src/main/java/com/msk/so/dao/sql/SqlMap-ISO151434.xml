@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151434Logic">
+    <!-- 条件语句 -->
+
+    <!-- 查询语句 -->
+    <select id="findHalfMonthCount" resultType="com.msk.so.bean.ISO151434RsResult"
+            parameterType="com.msk.so.bean.ISO151434RsParam">
+        SELECT
+        <!-- flag=1 表示查询某区域下卖家的销售量-->
+        <if test="flag != 1">
+            detail.PD_CODE AS pdCode,
+        </if>
+        <if test="flag ==1">
+            ord.SELLER_CODE AS sellerCode,
+        </if>
+        ord.DISTRICT_CODE AS districtCode,
+        SUM(detail.ORDER_QTY - IFNULL(detail.CANCEL_QTY,0) - IFNULL(detail.RETURN_QTY,0) - IFNULL(detail.REJECTION_QTY,0)) AS orderCount
+        FROM
+        so_order AS ord
+        INNER JOIN
+        so_order_detail AS detail
+        ON ord.ORDER_ID = detail.ORDER_ID
+        <where>
+            <!--1-15日 -->
+            ord.UPD_TIME BETWEEN #{thisMonth01} AND #{thisMonth15}
+            <if test="orderSource !=null and orderSource !=''">
+                AND ord.ORDER_SOURCE = #{orderSource}
+            </if>
+            <!--13全部收货 -->
+            AND ord.ORDER_STATUS = 13
+            <!--4买手囤货订单 -->
+            AND ord.ORDER_TYPE != 4
+            AND detail.DEL_FLG = '0'
+            AND ord.DEL_FLG = '0'
+            <if test="districtCode !=null and districtCode !=''">
+                AND  ord.DISTRICT_CODE = #{districtCode}
+            </if>
+            <if test="sellerCodeList !=null and sellerCodeList.size()>0">
+                AND ord.SELLER_CODE in
+                <foreach item="sellerCode" index="index" collection="sellerCodeList"
+                         open="(" separator="," close=")">
+                    #{sellerCode}
+                </foreach>
+            </if>
+        </where>
+        <if test="flag !=1">
+            GROUP BY pdCode,districtCode
+        </if>
+        <if test="flag ==1">
+            GROUP BY sellerCode,districtCode
+        </if>
+        ORDER BY orderCount DESC
+    </select>
+</mapper>

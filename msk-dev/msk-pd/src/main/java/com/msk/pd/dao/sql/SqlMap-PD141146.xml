@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pd.logic.PD141146Logic">
+
+
+    <select id="findList" parameterType="BaseParam" resultType="com.msk.pd.bean.PD141146Bean">
+       SELECT
+        A.ORG_STD_ITEM_ID AS orgStdItemId
+       ,B.ORG_STD_ITEM_NAME AS orgStdItemName
+       ,A.ORG_GOOD_VAL AS orgGoodVal
+       ,A.ORG_NORMAL_VAL AS orgNormalVal
+       ,A.ORG_BAD_VAL AS orgBadVal
+       FROM PD_ORG_STD AS A
+       LEFT JOIN PD_ORG_STD_ITEM AS B ON A.ORG_STD_ITEM_ID = B.ORG_STD_ITEM_ID
+       WHERE A.STANDARD_ID = #{filterMap.standardId}
+       ORDER BY A.ORG_STD_ITEM_ID
+    </select>
+    <select id="findOne" parameterType="com.msk.core.entity.PdQltStd" resultType="com.msk.core.entity.PdStandard">
+        SELECT
+        A.STANDARD_ID AS standardId
+        FROM PD_STANDARD AS A
+        WHERE A.CLASSESTREE_CODE = #{filterMap.classestreeCode}
+    </select>
+    <update id="modify" parameterType="com.msk.core.entity.PdOrgStd" >
+        UPDATE PD_ORG_STD SET
+     ORG_GOOD_VAL = #{orgGoodVal},
+     ORG_NORMAL_VAL = #{orgNormalVal},
+     ORG_BAD_VAL = #{orgBadVal},
+     UPD_ID = #{updId},
+     UPD_TIME = NOW()
+     WHERE STANDARD_ID = #{standardId}
+     AND  ORG_STD_ITEM_ID = #{orgStdItemId}
+    </update>
+
+    <select id="findOrgStdList" parameterType="BaseParam" resultType="com.msk.core.entity.PdOrgStdItem">
+        SELECT
+        A.ORG_STD_ITEM_ID AS orgStdItemId
+        ,A.ORG_STD_ITEM_NAME AS orgStdItemName
+        FROM PD_ORG_STD_ITEM AS A
+        ORDER BY A.ORG_STD_ITEM_ID
+    </select>
+
+    <!--数据插入操作-->
+    <insert id ="save" parameterType="com.msk.core.entity.PdOrgStd" >
+        INSERT INTO PD_ORG_STD (
+	STANDARD_ID,
+	ORG_STD_ITEM_ID,
+	ORG_GOOD_VAL,
+	ORG_NORMAL_VAL,
+	ORG_BAD_VAL,
+	REMARK,
+	DEL_FLG,
+	CRT_ID,
+	CRT_TIME,
+	UPD_ID,
+	UPD_TIME,
+	ACT_ID,
+	ACT_TIME,
+	VER
+)
+VALUES
+	(
+		#{standardId},
+		#{orgStdItemId},
+		#{orgGoodVal},
+		#{orgNormalVal},
+		#{orgBadVal},
+		null,
+		'0',
+		#{crtId},
+		NOW(),
+		#{updId},
+		NOW(),
+		NULL,
+		NOW(),
+		'1'
+	);
+    </insert>
+
+   <!-- 获取产品品种名称和品种下的特征名称-->
+    <select id="findName" parameterType="BaseParam" resultType="com.msk.pd.bean.PD141124showNameBean">
+       SELECT
+        LEVEL_NAME AS featureNames
+        FROM  PD_CLASSESTREE
+        WHERE PARENT_CODE = #{filterMap.classestreeCode}
+        ORDER BY LEVEL_CODE
+    </select>
+
+    <!-- 修改产品标准标准表中数据-->
+    <update id="modifyStdOrgFlg" parameterType="BaseParam" >
+        UPDATE PD_STANDARD SET
+        ORG_FLG = #{filterMap.orgFlg},
+        UPD_ID = #{filterMap.updId},
+        UPD_TIME = NOW()
+        WHERE STANDARD_ID = #{filterMap.standardId}
+    </update>
+
+</mapper>

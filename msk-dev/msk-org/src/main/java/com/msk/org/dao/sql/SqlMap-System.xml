@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.msk.org.logic.SystemLogic">
+    <!--<select id="countSystem" parameterType="BaseParam" resultType="java.lang.Integer">-->
+        <!--SELECT COUNT(1) AS counts-->
+        <!--FROM ORG_EMPL AS e-->
+        <!--INNER JOIN ORG_EMPL_ROLE AS er ON er.EMPL_ID = e.EMPL_ID AND er.DEL_FLG = '0'-->
+        <!--INNER JOIN ORG_ROLE AS r ON r.ROLE_ID = er.ROLE_ID AND r.DEL_FLG = '0'-->
+        <!--INNER JOIN ORG_ROLE_AUTH AS ra ON ra.ROLE_ID = er.ROLE_ID AND ra.DEL_FLG = '0' AND (ra.SYS_CODE = #{filterMap.sysCode} or ra.SYS_CODE='ALL')-->
+        <!--INNER JOIN ORG_SYS AS s ON s.SYS_CODE = ra.SYS_CODE AND s.DEL_FLG = '0' AND (ra.SYS_CODE = #{filterMap.sysCode} or ra.SYS_CODE='ALL')-->
+        <!--WHERE e.EMPL_CODE = #{filterMap.emplCode} AND e.DEL_FLG = '0'-->
+    <!--</select>-->
+    <select id="findSystemList" parameterType="BaseParam" resultType="com.msk.org.bean.SystemModel">
+        SELECT
+        SYS.SYS_NAME AS sysName
+        ,SYS.SYS_CODE AS sysCode
+        FROM ORG_SYS AS SYS
+        WHERE ('ALL'= #{filterMap.systemCode} OR SYS.SYS_CODE like #{filterMap.systemCode})
+        AND SYS.SYS_CODE!='ALL'
+        AND SYS.DEL_FLG = '0'
+    </select>
+    <select id="findSubPageList" parameterType="BaseParam" resultType="com.msk.core.entity.OrgPage">
+        SELECT
+        PAGE.PAGE_CODE AS pageCode
+        ,PAGE.PAGE_NAME AS pageName
+        ,IS_MENU AS isMenu
+        ,PAGE.PAGE_URL AS pageUrl
+        FROM ORG_PAGE AS PAGE
+        WHERE PAGE.SYS_CODE = #{filterMap.systemCode}
+        AND PAGE.DEL_FLG = '0'
+        ORDER BY SORT ASC
+    </select>
+</mapper>

@@ -1,0 +1,887 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.SO151401Logic">
+    <!--条件 -->
+    <sql id="whereCondition">
+        <where>
+            <if test="filterMap.orderTimeStart!=null and filterMap.orderTimeStart!=''">
+                <![CDATA[AND A.ORDER_TIME >= #{filterMap.orderTimeStart}]]>
+            </if>
+            <if test="filterMap.orderTimeEnd!=null and filterMap.orderTimeEnd!=''">
+                <!--<![CDATA[AND A.ORDER_Time <= '${filterMap.orderTimeEnd} 23:59:59' ]]>-->
+                <![CDATA[AND A.ORDER_Time<='${filterMap.orderTimeEnd} 23:59:59']]>
+            </if>
+            <if test="filterMap.orderId!=null and filterMap.orderId!=''">
+                AND A.ORDER_ID like #{filterMap.orderId}
+            </if>
+            <if test="filterMap.orderCode!=null and filterMap.orderCode!=''">
+                AND A.ORDER_CODE like #{filterMap.orderCode}
+            </if>
+            <if test="filterMap.requireOrderCode!=null and filterMap.requireOrderCode!=''">
+                AND A.REQUIRE_ORDER_CODE like #{filterMap.requireOrderCode}
+            </if>
+            <if test="filterMap.confirmOrderCode!=null and filterMap.confirmOrderCode!=''">
+                AND A.CONFIRM_ORDER_CODE like #{filterMap.confirmOrderCode}
+            </if>
+            <if test="filterMap.deliveryOrderCode!=null and filterMap.deliveryOrderCode!=''">
+                AND A.DELIVERY_ORDER_CODE like #{filterMap.deliveryOrderCode}
+            </if>
+            <if test="filterMap.buyersCode!=null and filterMap.buyersCode!=''">
+                AND A.BUYERS_CODE like #{filterMap.buyersCode}
+            </if>
+            <if test="filterMap.buyersName!=null and filterMap.buyersName!=''">
+                AND A.BUYERS_NAME like "%${filterMap.buyersName}%"
+            </if>
+            <if test="filterMap.returnFlg!=null and filterMap.returnFlg!=''">
+                <!-- Modify for bug##3769 at 2016/11/21 by zhang_qiang1   1:是  2：否   但数据库中returnFlg 0: 否，1：整单退货  2：部分退货.-->
+                <if test="filterMap.returnFlg == 1">
+                    AND A.RETURN_FLG IN (1,2)
+                </if>
+                <if test="filterMap.returnFlg == 2">
+                    AND A.RETURN_FLG = 0
+                </if>
+            </if>
+            <if test="filterMap.districtCode!=null and filterMap.districtCode!=''">
+                AND A.DISTRICT_CODE = #{filterMap.districtCode}
+            </if>
+            <if test="filterMap.splitDeliveryFlg!=null and filterMap.splitDeliveryFlg!=''">
+                <!-- Modify for bug##3769 at 2016/11/21 by zhang_qiang1   0:不分批,1:发生分批,2:买家同意分批,3:买家确认取消 -->
+                <if test="filterMap.splitDeliveryFlg == 1">
+                    AND A.SPLIT_DELIVERY_FLG = 1
+                </if>
+                <if test="filterMap.splitDeliveryFlg == 0">
+                    AND (A.SPLIT_DELIVERY_FLG is null OR A.SPLIT_DELIVERY_FLG=0)
+                </if>
+            </if>
+            <if test="filterMap.needInvoice!=null and filterMap.needInvoice!=''">
+                AND A.NEED_INVOICE = #{filterMap.needInvoice}
+            </if>
+            <if test="filterMap.orderSource!=null and filterMap.orderSource!=''">
+                AND A.ORDER_SOURCE = #{filterMap.orderSource}
+            </if>
+
+            <if test="filterMap.orderType!=null and filterMap.orderType!=''">
+                AND A.ORDER_TYPE = #{filterMap.orderType}
+            </if>
+            <if test="filterMap.orderStatus!=null and filterMap.orderStatus!=''">
+                <if test="filterMap.allReturn == 1">
+                    AND (A.ORDER_STATUS IN
+                    <foreach collection="filterMap.orderStatusArray" item="item" index="index" open="(" separator=","
+                             close=")">
+                        #{item}
+                    </foreach>
+                    OR (tt.leftQty = 0 AND A.ORDER_STATUS != 99))
+                </if>
+
+                <if test="filterMap.allReturn == 0">
+                    AND (A.ORDER_STATUS IN
+                    <foreach collection="filterMap.orderStatusArray" item="item" index="index" open="(" separator=","
+                             close=")">
+                        #{item}
+                    </foreach>
+                    AND (tt.leftQty != 0 OR A.ORDER_STATUS = 99))
+                </if>
+            </if>
+            <if test="filterMap.districtName!=null and filterMap.districtName!=''">
+                AND D.LGCS_AREA_NAME = #{filterMap.districtName}
+            </if>
+            <if test="filterMap.frozenGoodsHousekeep!=null and filterMap.frozenGoodsHousekeep!=''">
+                AND sha.HOUSE_SHOW_NAME LIKE "${filterMap.frozenGoodsHousekeep}"
+            </if>
+            <!--zhang_qiang  start:2017-2-17 update-->
+            <if test="filterMap.salesParty!=null and filterMap.salesParty!=''">
+                <![CDATA[AND A.order_type<> #{filterMap.salesParty}]]>
+            </if>
+            <!--zhang_qiang  end:2017-2-17 update-->
+        </where>
+    </sql>
+    <select id="findPageList" parameterType="com.msk.core.bean.BasePageParam" resultType="com.msk.so.bean.SO151401Bean">
+        SELECT DISTINCT
+        A.ORDER_ID AS orderId,
+        A.ORDER_CODE AS orderCode,
+        IFNULL(A.REQUIRE_ORDER_CODE, '') AS requireOrderCode,
+        A.CONFIRM_ORDER_CODE AS confirmOrderCode,
+        A.DELIVERY_ORDER_CODE AS deliveryOrderCode,
+        IFNULL(tt.order_qty, '') AS orderQty,
+        CASE
+        WHEN A.BUYERS_NAME IS NULL
+        THEN ''
+        ELSE A.BUYERS_NAME
+        END AS buyersName,
+        CASE
+        WHEN A.BUYERS_CODE IS NULL
+        THEN ''
+        ELSE A.BUYERS_CODE
+        END AS buyersCode,
+        CASE
+        WHEN A.ORDER_VICE_CODE IS NULL
+        THEN ''
+        ELSE A.ORDER_VICE_CODE
+        END AS auxiliaryCode,
+        A.ORDER_TIME AS orderTime,
+        '' AS sendWarehouseName,
+        IFNULL(A.ORDER_AMOUNT, '') AS orderAmount,
+        CASE
+        WHEN (
+        tt.leftQty = 0
+        AND A.ORDER_STATUS != 99
+        )
+        THEN '全部退货'
+        ELSE (
+        CASE
+        A.ORDER_STATUS
+        WHEN 1
+        THEN '新建'
+        WHEN 2
+        THEN '待付款'
+        WHEN 3
+        THEN '已付款'
+        WHEN 4
+        THEN '待审核'
+        WHEN 5
+        THEN '已审核'
+        WHEN 6
+        THEN '待分销'
+        WHEN 7
+        THEN '分销中'
+        WHEN 8
+        THEN '已确认'
+        WHEN 9
+        THEN '待发货'
+        WHEN 10
+        THEN '部分发货'
+        WHEN 11
+        THEN '部分收货'
+        WHEN 12
+        THEN '全部发货'
+        WHEN 13
+        THEN '已完成'
+        WHEN 14
+        THEN '分销失败'
+        WHEN 99
+        THEN '已取消'
+        ELSE ''
+        END
+        )
+        END AS orderStatus,
+        CASE
+        (A.ORDER_SOURCE)
+        WHEN 1
+        THEN '云冻品平台'
+        WHEN 2
+        THEN '云冻品B2B平台'
+        WHEN 3
+        THEN '微商城平台'
+        WHEN 4
+        THEN '买手APP'
+        WHEN 5
+        THEN '新微商城平台'
+        WHEN 6
+        THEN '买家APP'
+        WHEN 7
+        THEN '冻期所'
+        ELSE ''
+        END AS orderSource,
+        CASE
+        (A.BUYERS_TYPE)
+        WHEN 1
+        THEN '分销买家'
+        WHEN 2
+        THEN '菜场买家'
+        WHEN 3
+        THEN '团膳买家'
+        WHEN 4
+        THEN '火锅买家'
+        WHEN 5
+        THEN '加工厂买家'
+        WHEN 6
+        THEN '中餐买家'
+        WHEN 7
+        THEN '西餐买家'
+        WHEN 8
+        THEN '小吃烧烤买家'
+        WHEN 9
+        THEN '买手'
+        WHEN 10
+        THEN '第三方买手'
+        ELSE ''
+        END AS buyersTypeName,
+        CASE
+        A.order_type
+        WHEN 1
+        THEN '分销订单'
+        WHEN 2
+        THEN '第三方订单'
+        WHEN 3
+        THEN '大促会订单'
+        WHEN 4
+        THEN '买手囤货订单'
+        WHEN 5
+        THEN '买手销售订单'
+        WHEN 6
+        THEN '第三方买手销售订单'
+        WHEN 7
+        THEN '第三方买手囤货订单'
+        ELSE ''
+        END AS orderType,
+        IFNULL(D.LGCS_AREA_NAME, '') AS districtName,
+        IFNULL(sha.HOUSE_SHOW_NAME, '-') AS frozenGoodsHousekeep
+        FROM
+        SO_ORDER AS A
+        INNER JOIN SO_ORDER_RECEIVE_DEMAND AS B
+        ON A.ORDER_ID = B.ORDER_ID
+        LEFT JOIN MD_LOGISTICS_AREA D
+        ON (
+        D.LGCS_AREA_CODE = A.DISTRICT_CODE
+        OR D.LGCS_AREA_ID = A.DISTRICT_CODE
+        )
+        LEFT JOIN ORG_SYS F
+        ON F.SYS_CODE = LEFT(A.ORDER_SOURCE, 2)
+        LEFT JOIN sl_house_account SHA
+        ON A.SELLERS = sha.HOUSE_CODE
+        LEFT JOIN
+        (SELECT
+        order_id,
+        SUM(ORDER_QTY) AS ORDER_QTY,
+        SUM(leftQty) AS leftQty
+        FROM
+        (SELECT
+        so.order_id,
+        sod.ORDER_QTY,
+        sod.ORDER_QTY - IFNULL(sod.RETURN_QTY, 0) - IFNULL(sod.REJECTION_QTY, 0) AS leftQty
+        FROM
+        SO_ORDER so
+        INNER JOIN so_order_detail sod
+        ON so.ORDER_ID = sod.ORDER_ID
+        UNION
+        ALL
+        SELECT
+        so.order_id,
+        sod.ORDER_QTY,
+        sod.ORDER_QTY - IFNULL(sod.RETURN_QTY, 0) - IFNULL(sod.REJECTION_QTY, 0) AS leftQty
+        FROM
+        SO_ORDER so
+        INNER JOIN so_order_relation sor
+        ON so.ORDER_ID = sor.MAIN_ORDER_ID
+        INNER JOIN so_order_detail sod
+        ON sor.CHILD_ORDER_ID = sod.ORDER_ID) t
+        GROUP BY order_id) tt
+        ON tt.order_id = A.order_id
+        <!--Add by wang_jianzhou for Bug#3786 at 2016/11/21 Start.-->
+        <if test="null != filterMap.shipId and filterMap.shipId != ''">
+            INNER JOIN (
+            SELECT
+            SOS.ORDER_ID AS orderId
+            , sor.child_order_id as childOrderId
+            FROM
+            SO_ORDER_SHIP sos
+            LEFT JOIN SO_ORDER_RELATION SOR
+            ON SOR.MAIN_ORDER_ID = SOS.ORDER_ID
+            WHERE
+            SOS.SHIP_ID = #{filterMap.shipId}
+            ) ttt
+            ON (
+            ttt.orderId = a.order_id
+            OR ttt.childOrderId = a.ORDER_ID
+            )
+        </if>
+        <!--Add by wang_jianzhou for Bug#3786 at 2016/11/21 end.-->
+        <include refid="whereCondition"/>
+        ORDER BY A.ORDER_ID desc,A.UPD_TIME DESC
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+
+    <select id="getPageCount" resultType="Integer"
+            parameterType="com.msk.core.bean.BasePageParam">
+        SELECT
+        COUNT(DISTINCT A.ORDER_ID)
+        FROM SO_ORDER AS A
+        INNER JOIN so_order_receive_demand AS B
+        ON A.ORDER_ID = B.ORDER_ID
+        LEFT JOIN MD_LOGISTICS_AREA D
+        ON D.LGCS_AREA_CODE = A.DISTRICT_CODE
+        LEFT JOIN sl_house_account sha
+        on A.SELLERS = sha.HOUSE_CODE
+        left join (
+        select
+        order_id
+        , sum(ORDER_QTY) as ORDER_QTY
+        , sum(leftQty) as leftQty
+        from
+        (
+        SELECT
+        so.order_id
+        , sod.ORDER_QTY
+        , sod.ORDER_QTY - IFNULL(sod.RETURN_QTY,0) - IFNULL(sod.REJECTION_QTY,0) AS leftQty
+        FROM
+        SO_ORDER so
+        INNER JOIN so_order_detail sod
+        ON so.ORDER_ID = sod.ORDER_ID
+        UNION ALL
+        SELECT
+        so.order_id
+        , sod.ORDER_QTY
+        , sod.ORDER_QTY - IFNULL(sod.RETURN_QTY,0) - IFNULL(sod.REJECTION_QTY,0) AS leftQty
+        FROM
+        SO_ORDER so
+        INNER JOIN so_order_relation sor
+        ON so.ORDER_ID = sor.MAIN_ORDER_ID
+        INNER JOIN so_order_detail sod
+        ON sor.CHILD_ORDER_ID = sod.ORDER_ID
+        ) t
+        group by
+        order_id
+        ) tt
+        on tt.order_id = A.order_id
+        <!--Add by wang_jianzhou for Bug#3786 at 2016/11/21 Start.-->
+        <if test="null != filterMap.shipId and filterMap.shipId != ''">
+            INNER JOIN (
+            SELECT
+            SOS.ORDER_ID AS orderId
+            , sor.child_order_id as childOrderId
+            FROM
+            SO_ORDER_SHIP sos
+            LEFT JOIN SO_ORDER_RELATION SOR
+            ON SOR.MAIN_ORDER_ID = SOS.ORDER_ID
+            WHERE
+            SOS.SHIP_ID = #{filterMap.shipId}
+            ) ttt
+            on (
+            ttt.orderId = a.order_id
+            or ttt.childOrderId = a.ORDER_ID
+            )
+        </if>
+        <!--Add by wang_jianzhou for Bug#3786 at 2016/11/21 end.-->
+        <include refid="whereCondition"/>
+    </select>
+
+    <select id="findDistrictList" resultType="com.msk.so.bean.SO151401Bean">
+        SELECT
+        D.LGCS_AREA_NAME AS districtName
+        FROM
+        MD_LOGISTICS_AREA D
+    </select>
+
+
+    <select id="findOrderType" resultType="com.msk.so.bean.SO151401Bean">
+        SELECT
+        COMMORT.CONSTANT_NAME AS typeName,
+        COMMORT.CONSTANT_VALUE AS orderType
+        FROM
+        COMM_CONSTANT AS COMMORT
+        WHERE COMMORT.CONSTANT_TYPE='OrderType'
+    </select>
+    <!-- Modify for bug#1154 at 2016/07/13 by wang_jianzhou Start.-->
+    <select id="getTotalAmountAndQty" parameterType="com.msk.core.bean.BasePageParam"
+            resultType="com.msk.so.bean.SO151401Bean">
+        SELECT DISTINCT
+        SUM(a.ORDER_AMOUNT) AS totalAmount
+        ,SUM(tt.ORDER_QTY) AS totalQty
+        FROM
+        SO_ORDER AS A
+        INNER JOIN SO_ORDER_RECEIVE_DEMAND AS B
+        ON A.ORDER_ID = B.ORDER_ID
+        LEFT JOIN MD_LOGISTICS_AREA D
+        ON (
+        D.LGCS_AREA_CODE = A.DISTRICT_CODE
+        OR D.LGCS_AREA_ID = A.DISTRICT_CODE
+        )
+        LEFT JOIN sl_house_account SHA
+        ON A.SELLERS = sha.HOUSE_CODE
+        LEFT JOIN
+        (SELECT
+        order_id,
+        SUM(ORDER_QTY) AS ORDER_QTY,
+        SUM(leftQty) AS leftQty
+        FROM
+        (SELECT
+        so.order_id,
+        sod.ORDER_QTY,
+        sod.ORDER_QTY - IFNULL(sod.RETURN_QTY,0) - IFNULL(sod.REJECTION_QTY,0) AS leftQty
+        FROM
+        SO_ORDER so
+        INNER JOIN so_order_detail sod
+        ON so.ORDER_ID = sod.ORDER_ID
+        UNION
+        ALL
+        SELECT
+        so.order_id,
+        sod.ORDER_QTY,
+        sod.ORDER_QTY - IFNULL(sod.RETURN_QTY,0) - IFNULL(sod.REJECTION_QTY,0) AS leftQty
+        FROM
+        SO_ORDER so
+        INNER JOIN so_order_relation sor
+        ON so.ORDER_ID = sor.MAIN_ORDER_ID
+        INNER JOIN so_order_detail sod
+        ON sor.CHILD_ORDER_ID = sod.ORDER_ID) t
+        GROUP BY order_id) tt
+        ON tt.order_id = A.order_id
+        <!--Add by wang_jianzhou for Bug#3786 at 2016/11/21 Start.-->
+        <if test="null != filterMap.shipId and filterMap.shipId != ''">
+            INNER JOIN (
+            SELECT
+            SOS.ORDER_ID AS orderId
+            , sor.child_order_id as childOrderId
+            FROM
+            SO_ORDER_SHIP sos
+            LEFT JOIN SO_ORDER_RELATION SOR
+            ON SOR.MAIN_ORDER_ID = SOS.ORDER_ID
+            WHERE
+            SOS.SHIP_ID = #{filterMap.shipId}
+            ) ttt
+            ON (
+            ttt.orderId = a.order_id
+            or ttt.childOrderId = a.ORDER_ID
+            )
+        </if>
+        <!--Add by wang_jianzhou for Bug#3786 at 2016/11/21 end.-->
+        <include refid="whereCondition"/>
+        ORDER BY A.ORDER_ID DESC,
+        A.UPD_TIME DESC
+    </select>
+
+    <select id="getCurrentPageAmountAndQty" parameterType="com.msk.core.bean.BasePageParam"
+            resultType="com.msk.so.bean.SO151401Bean">
+        SELECT
+        IFNULL(SUM(t1.qty),'') AS currentPageQty
+        ,IFNULL(SUM(t1.amount),'') AS currentPageAmount
+        FROM
+        (
+        SELECT DISTINCT
+        a.ORDER_ID AS id
+        ,a.ORDER_AMOUNT AS amount
+        ,tt.ORDER_QTY AS qty
+        FROM
+        SO_ORDER AS A
+        INNER JOIN SO_ORDER_RECEIVE_DEMAND AS B
+        ON A.ORDER_ID = B.ORDER_ID
+        <!--Add by wang_jianzhou for Bug#3783 at 2016/11/21 Start.-->
+        LEFT JOIN MD_LOGISTICS_AREA D
+        ON (
+        D.LGCS_AREA_CODE = A.DISTRICT_CODE
+        OR D.LGCS_AREA_ID = A.DISTRICT_CODE
+        )
+        <!--Add by wang_jianzhou for Bug#3783 at 2016/11/21 end.-->
+        LEFT JOIN sl_house_account sha
+        ON A.SELLERS = sha.HOUSE_CODE
+        LEFT JOIN (
+        SELECT
+        ORDER_ID
+        ,SUM(ORDER_QTY) AS ORDER_QTY
+        ,SUM(leftQty) AS leftQty
+        FROM
+        (
+        SELECT
+        so.order_id
+        , sod.ORDER_QTY
+        , sod.ORDER_QTY - IFNULL(sod.RETURN_QTY,0) - IFNULL(sod.REJECTION_QTY,0) AS leftQty
+        FROM
+        SO_ORDER so
+        INNER JOIN so_order_detail sod
+        ON so.ORDER_ID = sod.ORDER_ID
+        UNION ALL
+        SELECT
+        so.order_id
+        , sod.ORDER_QTY
+        , sod.ORDER_QTY - IFNULL(sod.RETURN_QTY,0) - IFNULL(sod.REJECTION_QTY,0) AS leftQty
+        FROM
+        SO_ORDER so
+        INNER JOIN so_order_relation sor
+        ON so.ORDER_ID = sor.MAIN_ORDER_ID
+        INNER JOIN so_order_detail sod
+        ON sor.CHILD_ORDER_ID = sod.ORDER_ID
+        ) t
+        GROUP BY
+        ORDER_ID
+        ) tt
+        ON tt.order_id = A.order_id
+        <!--Add by wang_jianzhou for Bug#3786 at 2016/11/21 Start.-->
+        <if test="null != filterMap.shipId and filterMap.shipId != ''">
+            INNER JOIN (
+            SELECT
+            SOS.ORDER_ID AS orderId
+            , sor.child_order_id as childOrderId
+            FROM
+            SO_ORDER_SHIP sos
+            LEFT JOIN SO_ORDER_RELATION SOR
+            ON SOR.MAIN_ORDER_ID = SOS.ORDER_ID
+            WHERE
+            SOS.SHIP_ID = #{filterMap.shipId}
+            ) ttt
+            ON (
+            ttt.orderId = a.order_id
+            OR ttt.childOrderId = a.ORDER_ID
+            )
+        </if>
+        <!--Add by wang_jianzhou for Bug#3786 at 2016/11/21 end.-->
+        <include refid="whereCondition"/>
+        ORDER BY A.ORDER_ID desc,A.UPD_TIME DESC
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize}
+        </if>
+        ) as t1
+    </select>
+    <!-- Modify for bug#1154 at 2016/07/13 by wang_jianzhou Start.-->
+    <!-- -->
+
+    <!--<select id="findOrderSource" resultType="com.msk.so.bean.SO151401Bean">
+        SELECT
+        IFNULL(COMMORS.CONSTANT_NAME,'') AS sourceName,
+        IFNULL(COMMORS.CONSTANT_VALUE,'') AS orderSource
+        FROM
+        SO_ORDER AS A
+        LEFT JOIN COMM_CONSTANT AS COMMORS&lt;!&ndash;订单来源 &ndash;&gt;
+        ON A.ORDER_SOURCE = COMMORS.CONSTANT_VALUE AND COMMORS.CONSTANT_TYPE='OrderSource'
+        LEFT JOIN ORG_SYS F ON F.SYS_CODE = LEFT(A.ORDER_SOURCE,2)
+        GROUP  BY COMMORS.CONSTANT_NAME
+        order by A.ORDER_TIME desc
+    </select>-->
+
+    <!--导出execl -->
+    <select id="findOrderDetail" resultType="com.msk.so.bean.order.OrderAndDetail"
+            parameterType="com.msk.core.bean.BasePageParam">
+        SELECT
+        buyer.SUPERIOR_TYPE as buyerType,
+        A.BUYERS_ID as buyerId,
+        A.ORDER_ID as orderID,
+        A.ORDER_CODE as orderCode,
+        (
+        case A.ORDER_SOURCE
+        when 1 then '云冻品平台'
+        when 2 then '云冻品B2B平台'
+        when 3 then '微商城平台'
+        when 4 then '买手APP'
+        when 5 then '新微商城平台'
+        when 6 then '买家APP'
+        when 7 then '冻期所'
+        else ''
+        end
+        ) as orderSource,
+        (
+        case A.order_type
+        when 1 then '分销订单'
+        when 2 then '第三方订单'
+        when 3 then '大促会订单'
+        when 4 then '买手囤货订单'
+        when 5 then '买手销售订单'
+        when 6 then '第三方买手销售订单'
+        when 7 then '第三方买手囤货订单'
+        else ''
+        end
+        ) as orderType,
+        date_format(A.ORDER_TIME ,'%Y-%m-%d %H:%i:%s')as orderTime,
+        CASE WHEN (tt.leftQty = 0 AND A.ORDER_STATUS != 99) THEN '全部退货'
+        ELSE (
+        case a.ORDER_STATUS
+        when 1 then '新建'
+        when 2 then '待付款'
+        when 3 then '已付款'
+        when 4 then '待审核'
+        when 5 then '已审核'
+        when 6 then '待分销'
+        when 7 then '分销中'
+        when 8 then '已确认'
+        when 9 then '待发货'
+        when 10 then '部分发货'
+        when 11 then '部分收货'
+        when 12 then '全部发货'
+        when 13 then '已完成'
+        when 14 then '分销失败'
+        when 99 then '已取消'
+        else ''
+        end
+        ) END as orderStatus,
+        A.BUYERS_CODE as buyerCode,
+        A.BUYERS_NAME as buyersName,
+        IFNULL(COMMBY.CONSTANT_NAME,'') AS buyersTypeName,
+        CONCAT(B.RECEIVER_PROVINCE,B.RECEIVER_CITY ,B.RECEIVER_DISTRICT, B.RECEIVER_ADDR)as receiverAddr ,
+        B.RECEIVER_TEL as receiverTel ,
+        sha.HOUSE_SHOW_NAME as frozenGoodsHousekeep,
+        A.ORDER_AMOUNT as orderAmount,
+
+        <!--zhang_qiang  start:2017-2-17 update-->
+        deo.orderDetailId as orderDetailId,
+        <!--zhang_qiang  end:2017-2-17 update-->
+        IFNULL(ava.SHIP_ID,'') as shipId,
+        deo.classCode AS classCode,
+        deo.className AS className,
+        deo.breedCode AS breedCode,
+        deo.breedName AS breedName,
+        deo.featrueCode AS featrueCode,
+        deo.featrueName AS featrueName,
+        deo.normsName AS normsName,
+        deo.pdCode AS pdCode,
+        deo.pdGradeName AS pdGradeName,
+        deo.pdName AS pdName,
+        deo.featureCode AS featureCode,
+        deo.price AS price,
+        deo.orderQty AS orderQty,
+        deo.orderDetailAmount AS orderDetailAmount,
+        IFNULL(
+        (
+        SELECT DISTINCT
+        se.EP_NAME
+        FROM
+        sl_seller ss
+        LEFT JOIN sl_enterprise se
+        ON se.EP_ID = ss.EP_ID
+        WHERE
+        ss.SL_CODE =ava.SUPPLIER_CODE
+        )
+        , ''
+        ) as supplierName,
+        FORMAT(ava.SUPP_QTY,0) as suppQty,
+        FORMAT(ava.SEND_QTY,0) as sendQty,
+        FORMAT(ava.RECEIVE_QTY,0) as receiveQty,
+        FORMAT(ava.CANCEL_QTY,0) as cancelQty,
+        FORMAT(ava.RETURN_QTY,0) as returnQty,
+        FORMAT(ava.REJECTION_QTY,0)as rejectionQty,
+        date_format(ava.SEND_TIME ,'%Y-%c-%d %h:%i:%s')as sendTime,
+        date_format(ava.RECEIVED_TIME ,'%Y-%c-%d %h:%i:%s')as RecevicedTime,
+        (CASE a.BUYERS_TYPE
+        WHEN 1
+        THEN
+        terminal.MARKET_NAME
+        WHEN 2
+        THEN
+        food.MARKET_NAME
+        ELSE
+        ''
+        END
+        )AS markt
+        from so_order A
+        LEFT JOIN so_order_relation sor
+        ON A.order_id = sor.main_order_id
+        LEFT JOIN by_buyer_basic_info buyer
+        ON buyer.BUYER_ID=A.BUYERS_ID
+        INNER JOIN SO_ORDER_RECEIVE_DEMAND AS B
+        ON A.ORDER_ID = B.ORDER_ID
+        LEFT JOIN (SELECT
+        CASE
+        WHEN sor.main_order_id IS NULL
+        THEN detail.ORDER_ID
+        ELSE sor.main_order_id
+        END AS orderId,
+        detail.CLASSES_CODE AS classCode,
+        detail.CLASSES_NAME AS className,
+        detail.BREED_CODE AS breedCode,
+        detail.BREED_NAME AS breedName,
+        detail.FEATURE_CODE AS featrueCode,
+        detail.FEATURE_NAME AS featrueName,
+        detail.NORMS_NAME AS normsName,
+        detail.PD_CODE AS pdCode,
+        IF(
+        detail.PD_CODE IS NULL,
+        '',
+        CONCAT('A', RIGHT(detail.PD_CODE, 1))
+        ) AS pdGradeName,
+        detail.PD_NAME AS pdName,
+        detail.FEATURE_CODE AS featureCode,
+        IFNULL((detail.PD_PRICE), '') AS price,
+        FORMAT(detail.ORDER_QTY, 0) AS orderQty,
+        FORMAT(
+        (
+        detail.PD_PRICE * detail.ORDER_QTY
+        ),
+        2
+        ) AS orderDetailAmount,
+        detail.order_detail_id AS orderDetailId
+        FROM
+        so_order_detail detail
+        LEFT JOIN so_order_relation sor
+        ON detail.ORDER_ID = sor.child_order_id
+        UNION
+        ALL
+        SELECT
+        detail.ORDER_ID AS orderId,
+        detail.CLASSES_CODE AS classCode,
+        detail.CLASSES_NAME AS className,
+        detail.BREED_CODE AS breedCode,
+        detail.BREED_NAME AS breedName,
+        detail.FEATURE_CODE AS featrueCode,
+        detail.FEATURE_NAME AS featrueName,
+        detail.NORMS_NAME AS normsName,
+        detail.PD_CODE AS pdCode,
+        IF(
+        detail.PD_CODE IS NULL,
+        '',
+        CONCAT('A', RIGHT(detail.PD_CODE, 1))
+        ) AS pdGradeName,
+        detail.PD_NAME AS pdName,
+        detail.FEATURE_CODE AS featureCode,
+        IFNULL((detail.PD_PRICE), '') AS price,
+        FORMAT(detail.ORDER_QTY, 0) AS orderQty,
+        FORMAT(
+        (
+        detail.PD_PRICE * detail.ORDER_QTY
+        ),
+        2
+        ) AS orderDetailAmount,
+        detail.order_detail_id AS orderDetailId
+        FROM
+        so_order_detail detail
+        LEFT JOIN so_order_relation sor
+        ON detail.ORDER_ID = sor.child_order_id
+        WHERE sor.main_order_id IS NOT NULL) deo
+        ON (deo.orderId = a.order_Id)
+        LEFT JOIN so_order_detail_availability ava
+        on ava.ORDER_DETAIL_ID=deo.orderDetailId
+        LEFT JOIN sl_house_account sha
+        on A.SELLERS=sha.HOUSE_CODE
+        LEFT JOIN MD_LOGISTICS_AREA D
+        ON (D.LGCS_AREA_CODE = A.DISTRICT_CODE OR D.LGCS_AREA_ID = A.DISTRICT_CODE)
+        LEFT JOIN BY_MARKET_FOOD food
+        ON buyer.SUPERIOR_ID = food.FOD_MARKET_ID
+        AND buyer.BUYER_ID = A.BUYERS_ID
+        LEFT JOIN BY_MARKET_TERMINAL terminal
+        ON buyer.SUPERIOR_ID = terminal.TER_MARKET_ID
+        AND buyer.BUYER_ID = A.BUYERS_ID
+        LEFT JOIN COMM_CONSTANT AS COMMBY
+        ON A.BUYERS_TYPE = COMMBY.CONSTANT_VALUE AND COMMBY.CONSTANT_TYPE = 'OrderBuyerType'
+        left join (
+        select
+        order_id
+        , sum(leftQty) as leftQty
+        from
+        (
+        SELECT
+        so.order_id
+        , sod.ORDER_QTY - IFNULL(sod.RETURN_QTY,0) - IFNULL(sod.REJECTION_QTY,0) AS leftQty
+        FROM
+        SO_ORDER so
+        INNER JOIN so_order_detail sod
+        ON so.ORDER_ID = sod.ORDER_ID
+        UNION ALL
+        SELECT
+        so.order_id
+        , sod.ORDER_QTY - IFNULL(sod.RETURN_QTY,0) - IFNULL(sod.REJECTION_QTY,0) AS leftQty
+        FROM
+        SO_ORDER so
+        INNER JOIN so_order_relation sor
+        ON so.ORDER_ID = sor.MAIN_ORDER_ID
+        INNER JOIN so_order_detail sod
+        ON sor.CHILD_ORDER_ID = sod.ORDER_ID
+        ) t
+        group by
+        order_id
+        ) tt
+        on tt.order_id = A.order_id
+        <include refid="whereCondition"/>
+        ORDER BY A.ORDER_ID desc,A.UPD_TIME DESC
+    </select>
+
+
+    <select id="findFood" resultType="com.msk.so.bean.order.OrderAndDetail"
+            parameterType="com.msk.core.bean.BasePageParam">
+        select  food.MARKET_NAME  as markt
+        from    by_buyer_basic_info  buyer
+        LEFT JOIN  by_market_food   food
+        on buyer.SUPERIOR_ID =FOD_MARKET_ID
+        WHERE  buyer.BUYER_ID=#{filterMap.buyerId}
+    </select>
+
+    <select id="findTer" resultType="com.msk.so.bean.order.OrderAndDetail"
+            parameterType="com.msk.core.bean.BasePageParam">
+        select  terminal.MARKET_NAME as markt
+        from    by_buyer_basic_info  buyer
+        LEFT JOIN  by_market_terminal  terminal
+        ON buyer.SUPERIOR_ID=terminal.TER_MARKET_ID
+        WHERE  buyer.BUYER_ID=#{filterMap.buyerId}
+
+    </select>
+
+    <update id="modifyOrderStu" parameterType="com.msk.so.bean.SO151401Bean">
+        UPDATE so_order so
+          SET so.ORDER_STATUS = #{orderStu},
+              so.VER = so.VER + 1
+        WHERE
+            (
+                so.ORDER_ID = #{orderId}
+                OR EXISTS (
+                    SELECT
+                        1
+                    FROM
+                        so_order_relation sor
+                    WHERE
+                        sor.child_order_id = so.ORDER_ID
+                    AND sor.main_order_id = #{orderId}
+                    AND sor.DEL_FLG = 0
+                )
+            )
+        AND so.DEL_FLG = 0
+    </update>
+
+    <update id="modifyOrderDetailStu" parameterType="com.msk.so.bean.SO151401Bean">
+        UPDATE so_order_detail sod
+        SET sod.DETAIL_STATUS = #{orderDetailStu},
+         sod.VER = sod.VER + 1
+        WHERE
+            (
+                sod.ORDER_ID = #{orderId}
+                OR EXISTS (
+                    SELECT
+                        1
+                    FROM
+                        so_order_relation sor
+                    WHERE
+                        sor.child_order_id = sod.ORDER_ID
+                    AND sor.main_order_id = #{orderId}
+                    AND sor.DEL_FLG = 0
+                )
+            )
+        AND sod.DEL_FLG = 0
+    </update>
+
+    <update id="modifyOrderAvaStu" parameterType="com.msk.so.bean.SO151401Bean">
+        UPDATE so_order_detail_availability soda
+        SET soda. STATUS = #{orderAvaStu},
+         soda.VER = soda.VER + 1
+        WHERE
+            (
+                soda.ORDER_ID = #{orderId}
+                OR EXISTS (
+                    SELECT
+                        1
+                    FROM
+                        so_order_relation sor
+                    WHERE
+                        sor.child_order_id = soda.ORDER_ID
+                    AND sor.main_order_id = #{orderId}
+                    AND sor.DEL_FLG = 0
+                )
+            )
+        AND soda.DEL_FLG = 0
+    </update>
+
+
+
+    <!--zhang_qiang  end:2017-3-7 update-->
+    <select id="getDetailList" parameterType="com.msk.core.bean.BaseParam" resultType="com.msk.so.bean.order.OrderAndDetail">
+        SELECT
+        soDetail.ORDER_DETAIL_ID AS orderDetailId,
+        relation.CHILD_ORDER_ID AS orderID,
+        bs.slName  as salesParty
+        FROM
+        so_order_detail soDetail
+        LEFT JOIN so_order_relation relation ON soDetail.ORDER_ID = relation.CHILD_ORDER_ID
+        INNER JOIN so_order soOrder ON soDetail.order_id = soOrder.order_id
+        LEFT JOIN (
+        SELECT
+        account.SL_CONTACT slName,
+        infos.SL_CODE
+        FROM
+         sl_bs_basic_info infos
+        INNER JOIN sl_bs_account account ON infos.`SL_ACCOUNT` = account.SL_ACCOUNT
+        GROUP BY
+        infos.SL_CODE
+        ) bs ON bs.SL_CODE = soOrder.SELLER_CODE
+      WHERE  1=2
+        <foreach collection="filterMap.list" item="detail" index="index"
+                 open="" close="" separator=" ">
+           or   soDetail.ORDER_DETAIL_ID= #{detail.orderDetailId}
+        </foreach>
+    </select>
+    <!--zhang_qiang  end:2017-3-7 update-->
+</mapper>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.ISL231146RsLogic">
+    <insert id="save" parameterType="com.msk.core.entity.SlEpBrand">
+    INSERT INTO sl_ep_brand (
+			EP_ID,
+			BRAND_ID,
+			BRAND_NAME,
+			BRAND_NO,
+			BRAND_TERM_BEGIN,
+			BRAND_TERM_END,
+			BRAND_CLASS,
+			DEL_FLG,
+			CRT_ID,
+			CRT_TIME,
+			VER
+		)VALUES(
+				#{epId},
+				#{brandId},
+				#{brandName},
+				#{brandNo},
+				#{brandTermBegin},
+				#{brandTermEnd},
+				#{brandClass},
+				#{delFlg},
+				#{crtId},
+				SYSDATE(),
+				#{ver}
+				)
+    </insert>
+
+    <update id="modify" parameterType="com.msk.core.entity.SlEpBrand">
+		UPDATE sl_ep_brand
+		SET
+		BRAND_NAME = #{brandName},
+		BRAND_NO = #{brandNo},
+		BRAND_TERM_BEGIN = #{brandTermBegin},
+		BRAND_TERM_END = #{brandTermEnd},
+		VER = #{ver},
+        UPD_TIME = SYSDATE()
+		WHERE  EP_ID=#{epId} AND BRAND_ID=#{brandId}
+	</update>
+
+    <select id="findList" parameterType="BaseParam" resultType="com.msk.core.entity.SlEpBrand">
+		SELECT EP_ID AS epId from sl_ep_brand WHERE EP_ID=#{filterMap.epId}
+    </select>
+
+    <delete id="remove" parameterType="com.msk.core.entity.SlEpBrand">
+        DELETE FROM sl_ep_brand WHERE
+        EP_ID=#{epId}
+        <if test="brandId != null and brandId != ''">
+            AND BRAND_ID=#{brandId}
+        </if>
+    </delete>
+
+
+    <select id="findSLEpBrandcAll" parameterType="BaseParam" resultType="com.msk.core.entity.SlEpBrand">
+        SELECT
+        A.BRAND_ID AS brandId,
+        A.BRAND_NO AS brandNo,
+        A.BRAND_NAME AS brandName,
+		A.BRAND_CLASS AS brandClass,
+        A.BRAND_TERM_BEGIN AS brandTermBegin,
+        A.BRAND_TERM_END AS brandTermEnd,
+        A.VER AS ver
+        FROM
+        sl_ep_brand A
+		<where>
+			<if test="filterMap.epId!=null and filterMap.epId!=''">
+				AND A.EP_ID = #{filterMap.epId}
+			</if>
+			<if test="filterMap.brandId != null and filterMap.brandId != ''">
+				AND A.BRAND_ID = #{filterMap.brandId}
+			</if>
+		</where>
+    </select>
+
+
+    <select id="findSlEpBrand" parameterType="BaseParam" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM sl_ep_brand
+        WHERE
+		EP_ID = #{filterMap.epId}
+		AND BRAND_ID = #{filterMap.brandId}
+	</select>
+
+
+	<select id="findOne" parameterType="BaseParam" resultType="com.msk.core.entity.SlEnterprise">
+		SELECT EP_ID AS epId FROM sl_enterprise  WHERE EP_ID = #{filterMap.epId}
+	</select>
+</mapper>

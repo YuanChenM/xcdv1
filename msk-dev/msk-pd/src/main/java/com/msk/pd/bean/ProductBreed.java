@@ -1,0 +1,52 @@
+package com.msk.pd.bean;
+
+import java.util.List;
+
+import org.springframework.util.CollectionUtils;
+
+import com.msk.core.entity.PdBreed;
+import com.msk.core.entity.PdFeature;
+
+/**
+ *
+ * @author gyh
+ *
+ */
+public class ProductBreed extends PdBreed {
+    /** serialVersionUID */
+    private static final long serialVersionUID = 1L;
+    private int size;
+    private List<PdFeature> pdFeatureList;
+
+    /**
+     * @return the size
+     */
+    public int getSize() {
+        if(!CollectionUtils.isEmpty(pdFeatureList)){
+            return pdFeatureList.size();
+        }
+        return size;
+    }
+
+    /**
+     * @param size the size to set
+     */
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    /**
+     * 特征信息
+     *
+     * @return
+     * @author silent
+     */
+    public List<PdFeature> getPdFeatureList() {
+        return this.pdFeatureList;
+    }
+
+    public void setPdFeatureList(List<PdFeature> pdFeatureList) {
+        this.pdFeatureList = pdFeatureList;
+    }
+
+}

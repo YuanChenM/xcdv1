@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL241110Logic">
+    <sql id="whereSql">
+        <where>
+            <if test="filterMap.chapId!=null and filterMap.chapId!=''">
+                AND A.CHAP_ID = #{filterMap.chapId}
+            </if>
+            <if test="filterMap.epName!=null and filterMap.epName!=''">
+                AND D.EP_NAME LIKE #{filterMap.epName}
+            </if>
+            <if test="filterMap.agreeFlgNames!=null">
+                AND A.AGREE_FLG in
+                <foreach collection="filterMap.agreeFlgNames" item="agreeFlgName" separator="," open="(" close=")">
+                    #{agreeFlgName}
+                </foreach>
+            </if>
+            <if test="filterMap.slCode!=null and filterMap.slCode!=''">
+                AND A.SL_CODE = #{filterMap.slCode}
+            </if>
+            <if test="filterMap.chapClass!=null and filterMap.chapClass!=''">
+                AND A.CHAP_CLASS = #{filterMap.chapClass}
+            </if>
+        </where>
+    </sql>
+    <select id="findPageList" parameterType="BasePageParam" resultType="com.msk.sl.bean.SL241110Bean">
+        SELECT
+        A.SL_CODE AS slCode,
+        A.CHAP_ID AS chapId,
+        A.AGREE_FLG AS agreeFlg,
+        (CASE A.AGREE_FLG
+          WHEN '0' THEN '不同意'
+          WHEN '1' THEN '同意' END) AS agreeFlgName,
+        A.SL_SUG AS slSug,
+        C.SL_CONTACT AS slContact,
+        C.SL_TEL AS slTel,
+        D.EP_NAME AS epName,
+        B.EP_ID AS epId,
+        E.CHAP_NO AS chapNo,
+        E.CHAP_TITLE AS chapTitle
+        FROM
+        sl_dist_regu_sug AS A
+        INNER JOIN sl_seller AS B ON A.SL_CODE = B.SL_CODE
+        INNER JOIN sl_account AS C ON B.SL_ACCOUNT = C.SL_ACCOUNT
+        INNER JOIN sl_enterprise AS D ON B.EP_ID = D.EP_ID
+        INNER JOIN sl_dist_regu_chap E ON E.CHAP_ID=A.CHAP_ID
+        <include refid="whereSql"/>
+        ORDER BY A.CHAP_ID ASC
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+    <select id="getPageCount" resultType="Integer" parameterType="BasePageParam">
+        SELECT COUNT(1)
+        FROM
+        sl_dist_regu_sug AS A
+        INNER JOIN sl_seller AS B ON A.SL_CODE = B.SL_CODE
+        INNER JOIN sl_account AS C ON B.SL_ACCOUNT = C.SL_ACCOUNT
+        INNER JOIN sl_enterprise AS D ON B.EP_ID = D.EP_ID
+        INNER JOIN sl_dist_regu_chap E ON E.CHAP_ID=A.CHAP_ID
+        <include refid="whereSql"/>
+    </select>
+</mapper>

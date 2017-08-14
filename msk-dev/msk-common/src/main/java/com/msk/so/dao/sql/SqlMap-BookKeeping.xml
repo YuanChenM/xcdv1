@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.BookKeepingLogic">
+
+    <select id="findOne" resultType="com.msk.core.entity.SoCpAccountBook" parameterType="BaseParam">
+        SELECT
+        <include refid="selectSql"/>
+        FROM so_cp_account_book
+        WHERE USER_NO = #{filterMap.userId}
+        AND USER_ROLE = #{filterMap.userRole}
+    </select>
+
+    <!-- 表字段 -->
+    <sql id="selectSql">
+        ACCOUNT_BOOK_ID AS accountBookId,
+        ACCOUNT_BOOK_NAME AS accountBookName,
+        COMM_DATE AS commDate,
+        PERIOD_BEGIN AS periodBegin,
+        PERIOD_END AS periodEnd,
+        USER_NO AS userNo,
+        USER_ROLE AS userRole,
+        balance_Direction AS balanceDirection,
+        CRT_ID AS creId,
+        CRT_TIME AS creTime,
+        BALANCE AS balance
+    </sql>
+    <!--条件 -->
+    <sql id="whereCondition">
+        <where>
+            <if test="accountBookId!=null">
+                AND ACCOUNT_BOOK_ID=#{accountBookId}
+            </if>
+            <if test="accountBookName!=null">
+                AND ACCOUNT_BOOK_NAME=#{accountBookName}
+            </if>
+            <if test="commDate!=null">
+                AND COMM_DATE=#{commDate}
+            </if>
+            <if test="periodBegin!=null">
+                AND PERIOD_BEGIN=#{periodBegin}
+            </if>
+            <if test="periodEnd!=null">
+                AND PERIOD_END=#{periodEnd}
+            </if>
+            <if test="userNo!=null">
+                AND USER_NO=#{userNo}
+            </if>
+            <if test="userRole!=null">
+                AND USER_ROLE=#{userRole}
+            </if>
+            <if test="balanceDirection!=null">
+                AND balance_Direction=#{balanceDirection}
+            </if>
+            <if test="creId!=null">
+                AND CRT_ID=#{creId}
+            </if>
+            <if test="creTime!=null">
+                AND CRT_TIME=#{creTime}
+            </if>
+            <if test="balance!=null">
+                AND BALANCE=#{balance}
+            </if>
+
+        </where>
+    </sql>
+    <!--数据插入 -->
+    <insert id="save" parameterType="com.msk.core.entity.SoCpAccountBook">
+        INSERT INTO so_cp_account_book
+        (
+        ACCOUNT_BOOK_ID,
+        <if test="accountBookName!=null">
+            ACCOUNT_BOOK_NAME,
+        </if>
+        <if test="periodBegin!=null">
+            PERIOD_BEGIN,
+        </if>
+        <if test="periodEnd!=null">
+            PERIOD_END,
+        </if>
+        <if test="userNo!=null">
+            USER_NO,
+        </if>
+        <if test="userRole!=null">
+            USER_ROLE,
+        </if>
+        <if test="balanceDirection!=null">
+            balance_Direction,
+        </if>
+        <if test="creId!=null">
+            CRT_ID,
+        </if>
+        <if test="balance!=null">
+            BALANCE,
+        </if>
+        COMM_DATE,
+        CRT_TIME
+        )
+        VALUES
+        (
+            #{accountBookId},
+        <if test="accountBookName!=null">
+            #{accountBookName},
+        </if>
+        <if test="periodBegin!=null">
+            #{periodBegin},
+        </if>
+        <if test="periodEnd!=null">
+            #{periodEnd},
+        </if>
+        <if test="userNo!=null">
+            #{userNo},
+        </if>
+        <if test="userRole!=null">
+            #{userRole},
+        </if>
+        <if test="balanceDirection!=null">
+            #{balanceDirection},
+        </if>
+        <if test="creId!=null">
+            #{creId},
+        </if>
+        <if test="balance!=null">
+            #{balance},
+        </if>
+        #{crtTime},
+        #{crtTime}
+        )
+    </insert>
+    <update id="modify" parameterType="com.msk.core.entity.SoCpAccountBook">
+        update so_cp_account_book
+        set
+        <if test="accountBookName!=null">
+        ACCOUNT_BOOK_NAME=#{accountBookName},
+        </if>
+        <if test="commDate!=null">
+        COMM_DATE=#{commDate},
+        </if>
+        <if test="periodBegin!=null">
+        PERIOD_BEGIN=#{periodBegin},
+        </if>
+        <if test="periodEnd!=null">
+        PERIOD_END=#{periodEnd},
+        </if>
+        <if test="balance!=null">
+            BALANCE = IFNULL(BALANCE, 0) + #{balance},
+        </if>
+        UPD_ID=#{updId},
+        UPD_TIME=#{updTime}
+        <where>
+        <if test="accountBookId!=null">
+            AND ACCOUNT_BOOK_ID=#{accountBookId}
+        </if>
+        <if test="userNo!=null">
+            AND USER_NO=#{userNo}
+        </if>
+        <if test="userRole!=null">
+            AND USER_ROLE=#{userRole}
+        </if>
+        </where>
+
+    </update>
+
+    <insert id="saveTransactionDetail" parameterType="com.msk.core.entity.SoCpTransactionDetail">
+        INSERT INTO so_cp_transaction_detail
+        (
+        TRANS_ID,
+        <if test="businessMain!=null">
+            BUSINESS_MAIN,
+        </if>
+        <if test="businessAssistant!=null">
+            BUSINESS_ASSISTANT,
+        </if>
+        <if test="businessManRole!=null">
+            BUSINESS_MAN_ROLE,
+        </if>
+        <if test="businessAssistantRole!=null">
+            BUSINESS_ASSISTANT_ROLE,
+        </if>
+        <if test="selectCode!=null">
+            SELECT_CODE,
+        </if>
+        <if test="selectType!=null">
+            SELECT_TYPE,
+        </if>
+        <if test="settlement!=null">
+            SETTLEMENT,
+        </if>
+        <if test="paidSeq!=null">
+            PAID_SEQ,
+        </if>
+        <if test="orderAmount!=null">
+            ORDER_AMOUNT,
+        </if>
+        <if test="platformType!=null">
+            PLATFORM_TYPE,
+        </if>
+        <if test="amountType!=null">
+            AMOUNT_TYPE,
+        </if>
+        <if test="remark!=null">
+            REMARK,
+        </if>
+        <if test="crtId!=null">
+            CRT_ID,
+        </if>
+        <if test="ver!=null">
+            VER,
+        </if>
+        CRT_TIME,
+        UPD_TIME,
+        TRAN_TIME,
+        ACT_TIME
+        )
+        VALUES
+        (
+        #{transId},
+        <if test="businessMain!=null">
+            #{businessMain},
+        </if>
+        <if test="businessAssistant!=null">
+            #{businessAssistant},
+        </if>
+        <if test="businessManRole!=null">
+            #{businessManRole},
+        </if>
+        <if test="businessAssistantRole!=null">
+            #{businessAssistantRole},
+        </if>
+        <if test="selectCode!=null">
+            #{selectCode},
+        </if>
+        <if test="selectType!=null">
+            #{selectType},
+        </if>
+        <if test="settlement!=null">
+            #{settlement},
+        </if>
+        <if test="paidSeq!=null">
+            #{paidSeq},
+        </if>
+        <if test="orderAmount!=null">
+            #{orderAmount},
+        </if>
+        <if test="platformType!=null">
+            #{platformType},
+        </if>
+        <if test="amountType!=null">
+            #{amountType},
+        </if>
+        <if test="remark!=null">
+            #{remark},
+        </if>
+        <if test="crtId!=null">
+            #{crtId},
+        </if>
+        <if test="ver!=null">
+            #{ver},
+        </if>
+        #{crtTime},
+        #{crtTime},
+        #{crtTime},
+        #{crtTime}
+        )
+    </insert>
+</mapper>

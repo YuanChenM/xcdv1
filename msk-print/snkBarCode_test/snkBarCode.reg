@@ -1,0 +1,13 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\snkBarCode]
+@="snkBarCode Protocol"
+"URL Protocol"=""
+
+[HKEY_CLASSES_ROOT\snkBarCode\DefaultIcon]
+@="c:\\snk\\snkBarCode.exe,1"
+
+[HKEY_CLASSES_ROOT\snkBarCode\shell]
+[HKEY_CLASSES_ROOT\snkBarCode\shell\open]
+[HKEY_CLASSES_ROOT\snkBarCode\shell\open\command]
+@="\"c:\\snk\\snkBarCode.exe\" \"%1\""

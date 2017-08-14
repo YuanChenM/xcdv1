@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.batch.bp.logic.BBP112213Logic">
+
+    <update id="updateLogiarea" parameterType="com.msk.batch.bp.bean.BBP112213Param">
+        UPDATE BP_PRICEPRD_LOGIAREA
+        SET DEL_FLG = 1
+        WHERE DEL_FLG = 0
+        AND PRICECYCLE_PERIOD=#{priceCyclePeriod}
+    </update>
+
+    <insert id="insertLogiarea" parameterType="com.msk.batch.bp.bean.BBP112213Param">
+        INSERT INTO BP_PRICEPRD_LOGIAREA(
+        PRICECYCLE_ID,
+        PRICECYCLE_PERIOD,
+        PD_CODE,
+        LOGIAREA_CODE,
+        LOGIAREA_NAME,
+        SL_CODE,
+        SL_NAME,
+        ORDERLEVEL_CODE,
+        ORDERLEVEL_NAME,
+        PRICEOFKG,
+        PRICEOFBOX,
+        NETWEIGHT,
+        DISCOUNT,
+        BOX_NUMS,
+        DEL_FLG,
+        Crt_Id,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER
+        )VALUES (
+        #{priceCycleId},
+        #{priceCyclePeriod},
+        #{pdCode},
+        #{logiAreaCode},
+        #{logiAreaName},
+        #{slCode},
+        #{slName},
+        #{orderLevelCode},
+        #{orderLevelName},
+        #{priceOfKg},
+        #{priceOfBox},
+        #{netWeight},
+        #{disCount},
+        #{stockNum},
+        0,
+        #{crtId},
+        #{crtTime},
+        #{updId},
+        #{updTime},
+        #{actId},
+        #{actTime},
+        1
+        )
+    </insert>
+
+    <select id="selectSellerQuotation" parameterType="com.msk.batch.bp.bean.BBP112213Param"
+            resultType="com.msk.batch.bp.bean.BP112213Bean">
+        SELECT
+            bq.PRICECYCLE_ID as priceCycleId,
+            bq.PRICECYCLE_PERIOD as priceCyclePeriod,
+            bq.PD_CODE as pdCode,
+            bq.LOGIAREA_CODE as logiAreaCode,
+            bq.LOGIAREA_NAME as logiAreaName,
+            bq.SL_CODE as slCode,
+            bq.SL_NAME as slName,
+            bd.ORDERLEVEL_CODE as orderLevelCode,
+            bd.ORDERLEVEL_NAME as orderLevelName,
+            bd.PRICEOFKG as priceOfKg,
+            bd.PRICEOFBOX as priceOfBox,
+            bd.NETWEIGHT as netWeight,
+            bd.DISCOUNT as disCount,
+            bd.DEL_FLG as delFlg,
+            bd.Crt_Id as crtId,
+            bd.CRT_TIME as crtTime,
+            bd.UPD_ID as updId,
+            bd.UPD_TIME as updTime,
+            bd.ACT_ID as actId,
+            bd.ACT_TIME as actTime,
+            bd.VER as ver
+        FROM
+        BP_SELLER_QUOTATION bq
+        LEFT JOIN BP_SELLER_QUOTATION_DETAIL bd ON
+        bq.PRICECYCLE_ID= bd.PRICECYCLE_ID
+        WHERE bd.ISBIDDER_FLG=1
+        AND bq.PRICECYCLE_PERIOD=#{priceCyclePeriod}
+    </select>
+    <select id="getStockNum" parameterType="com.msk.batch.bp.bean.BBP112213Param"
+            resultType="com.msk.batch.bp.bean.BP112213Bean">
+        SELECT
+        SUM(sl.STOCK_QTY) AS stockNum
+        FROM so_stock_sl SL
+        WHERE sl.LGCS_CODE = #{logiAreaCode}
+        AND sl.PD_CODE = #{pdCode}
+        AND sl.SL_CODE = #{slCode}
+        AND sl.DEL_FLG = 0
+    </select>
+</mapper>

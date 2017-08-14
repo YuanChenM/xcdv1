@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pd.logic.PD144103Logic">
+    <select id="findLgcsInfo" parameterType="BaseParam" resultType="com.msk.core.entity.PdLogiarea">
+      select
+      LGCS_CODE as lgcsCode,
+      LGCS_NAME AS lgcsName
+      from pd_logiarea WHERE DEL_FLG='0'
+      GROUP BY lgcsCode
+    </select>
+
+    <select id="findPdNum" parameterType="BaseParam" resultType="int">
+        SELECT  count(1) AS pdNum  from pd_app_floor_detail WHERE  FLOOR_ID = #{id}
+    </select>
+
+    <select id="findPageList" parameterType="BaseParam" resultType="com.msk.pd.bean.PD144103Bean">
+        SELECT
+        floor.ID AS id,
+        IFNULL(floor.FLOOR_NAME,'') AS floorName,
+        IFNULL(floor.LGCS_CODE,'') AS lgcsCode,
+        IFNULL(floor.LGCS_NAME,'') AS lgcsName,
+        IFNULL(floor.COLOR,'') AS color,
+        IFNULL(floor.SORT,'') AS sort,
+        floor.CRT_TIME AS crtTime,
+        floor.VER AS ver,
+        a.con AS pdNum
+        FROM
+        pd_app_floor floor
+        LEFT JOIN
+        (select count(1) con,FLOOR_ID floorId from pd_app_floor_detail where DEL_FLG = 0 group by FLOOR_ID)a
+        on a.floorId = floor.id
+        <include refid="whereCondition"/>
+    </select>
+
+    <select id="getPageCount" resultType="int" parameterType="BaseParam">
+        select
+        count(1)
+        FROM
+        (
+        SELECT
+        ID AS id,
+        FLOOR_NAME AS floorName,
+        LGCS_CODE AS lgcsCode,
+        LGCS_NAME AS lgcsName,
+        COLOR AS color,
+        SORT AS sort,
+        CRT_TIME AS crtTime
+        FROM
+        pd_app_floor floor
+        LEFT JOIN
+        (select count(1) con,FLOOR_ID floorId from pd_app_floor_detail where DEL_FLG = 0 group by FLOOR_ID)a
+        on a.floorId = floor.id
+        <include refid="whereCondition"/>
+        )A
+    </select>
+
+    <sql id="whereCondition">
+        <where>
+                AND DEL_FLG='0'
+            <if test="lgcsCode!=null and lgcsCode!=''">
+                AND LGCS_CODE=#{lgcsCode}
+            </if>
+            <if test="filterMap.floorName!=null and filterMap.floorName!=''">
+                AND FLOOR_NAME like #{filterMap.floorName}
+            </if>
+            ORDER BY floor.sort+0
+        </where>
+    </sql>
+
+    <update id="updateSort" parameterType="com.msk.pd.bean.PD144103Bean">
+        UPDATE pd_app_floor
+        SET SORT=#{sort},
+        UPD_ID=#{updId},
+        UPD_TIME=#{updTime},
+        VER = VER+1
+        WHERE  DEL_FLG=0
+         AND ID = #{id}
+   </update>
+
+    <update id="deleteAppFloor" parameterType="com.msk.pd.bean.PD144103Bean">
+        UPDATE pd_app_floor
+        SET DEL_FLG='1',
+         UPD_ID=#{updId},
+        UPD_TIME=#{updTime},
+        VER = VER+1
+        WHERE  DEL_FLG=0
+         AND ID = #{id}
+    </update>
+
+</mapper>

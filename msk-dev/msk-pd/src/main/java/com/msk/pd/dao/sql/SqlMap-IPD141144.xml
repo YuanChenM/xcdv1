@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pd.logic.IPD141144Logic">
+
+    <!-- map返回 -->
+    <resultMap type="com.msk.pd.bean.IPD141144RsResult" id="qltMapSl">
+        <result property="sellerCode" column="SUPPLIER_CODE"/>
+        <result property="districtCode" column="LGCS_CODE"/>
+        <collection property="products" ofType="com.msk.pd.bean.IPD141144RsProductsResult">
+            <result property="pdCode" column="PD_CODE"/>
+            <result property="stockCnt" column="STOCK_QTY"/>
+        </collection>
+    </resultMap>
+
+    <select id="findList" parameterType="BaseParam" resultType="com.msk.pd.bean.IPD141144RsProductsResult">
+
+        SELECT
+        A.SL_CODE AS slCode
+        ,A.LGCS_CODE AS districtCode
+        ,A.PD_CODE AS pdCode
+        ,A.STOCK_QTY - IFNULL(D.ORDER_QTY, '0') as stockCnt
+        FROM so_stock_sl AS A
+        LEFT OUTER JOIN (
+        SELECT
+        b.PD_CODE,SUM(b.ORDER_QTY) - SUM(IFNULL(b.cancel_qty, 0)) AS ORDER_QTY
+        FROM so_order_detail b
+        INNER JOIN so_order c ON b.ORDER_ID = c.ORDER_ID
+        WHERE (c.SELLER_CODE =  #{sellerCode}
+        OR (c.ORDER_TYPE IN (5,6) AND #{sellerCode} = '0000000'))
+        AND c.ORDER_STATUS != '99'
+        AND c.ORDER_TYPE NOT IN (4,7)
+        GROUP BY b.PD_CODE
+        ) AS D ON A.PD_CODE = D.PD_CODE
+        WHERE
+        A.SL_CODE =  #{sellerCode}
+        AND A.LGCS_CODE = #{districtCode}
+        AND A.SALE_PLATFORM = #{platformType}
+        <if test="pdCode!=null and pdCode!= ''">
+            AND A.PD_CODE = #{pdCode}
+        </if>
+        AND A.DEL_FLG='0'
+        ORDER BY A.SL_CODE
+    </select>
+
+    <select id="findOneSp" parameterType="BaseParam" resultMap="qltMapSl">
+        SELECT
+        A.SUPPLIER_CODE
+        ,A.LGCS_CODE
+        ,A.PD_CODE
+        ,A.STOCK_QTY
+        FROM
+        so_stock_sp AS A
+        WHERE
+        A.SUPPLIER_CODE = #{sellerCode}
+        AND A.LGCS_CODE = #{districtCode}
+        AND A.SUPPLY_PLATFORM = #{platformType}
+        AND A.DEL_FLG='0'
+        <if test="pdCode!=null and pdCode!= ''">
+            AND A.PD_CODE = #{pdCode}
+        </if>
+        ORDER BY A.SUPPLIER_CODE
+    </select>
+    <!--查询传递的号码是否是已激活,或者稳定的卖家-->
+    <select id="findOnePhoneNumber" parameterType="BaseParam" resultType="com.msk.core.entity.ByBuyerBasicInfo">
+           SELECT
+            B.SL_CODE AS buyerCode
+           FROM BY_BUYER_BASIC_INFO  A
+           LEFT JOIN sl_bs_buyer B	on  A.BUYER_ID = B.BUYER_ID AND B.APPLY_STATUS = '2' AND B.DEL_FLG='0'
+           WHERE   A.BUYER_ID = (SELECT B.BUYER_ID FROM BY_BUYER_ACCOUNT B WHERE B.TEL_NO = #{userMobile} AND B.DEL_FLG='0') AND A.DEL_FLG='0'/*AND (A.MARKETINGS_STATUS = '10' OR A.MARKETINGS_STATUS = '12')*/
+    </select>
+
+
+    <select id="findOneSlOne" parameterType="BaseParam" resultType="com.msk.core.entity.SoStockSl">
+       SELECT
+        A.STOCK_QTY - IFNULL(D.ORDER_QTY, '0') as stockQty
+        FROM so_stock_sl AS A
+        LEFT OUTER JOIN (
+          SELECT
+          b.PD_CODE,SUM(b.ORDER_QTY) - SUM(IFNULL(b.cancel_qty, 0)) AS ORDER_QTY
+          FROM so_order_detail b
+            INNER JOIN so_order c ON b.ORDER_ID = c.ORDER_ID
+            WHERE (c.SELLER_CODE = #{filterMap.slCodeBig}
+            OR (c.ORDER_TYPE IN (5,6) AND #{filterMap.slCodeBig} = '0000000'))
+                AND c.ORDER_STATUS != '99'
+                AND c.ORDER_TYPE NOT IN (4,7)
+            GROUP BY b.PD_CODE
+            ) AS D ON A.PD_CODE = D.PD_CODE
+            WHERE A.SL_CODE = #{filterMap.slCodeBig}
+                AND A.LGCS_CODE = #{districtCode}
+                AND A.SALE_PLATFORM = #{platformType}
+                AND A.PD_CODE = #{filterMap.pdCodeInfo}
+                AND A.DEL_FLG = '0'
+            order by A.SL_CODE
+    </select>
+
+
+</mapper>
+
+
+
+
+
+
+

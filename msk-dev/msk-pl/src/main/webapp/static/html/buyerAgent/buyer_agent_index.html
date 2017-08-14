@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>买手主页</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link rel="stylesheet" href="../css/sm.min.css">
+    <link rel="stylesheet" href="../css/sm-extend.min.css">
+    <style type="text/css">
+        .split_line{
+            height:2px;
+            width:100%;
+            background:#DEDEDE;
+            overflow:hidden;
+            margin-top: 2px;
+            margin-bottom: 2px;
+        }
+
+        .rj-table{
+            /*padding:8px;*/
+            margin-bottom:0!important;
+            border-bottom:1px solid #ddd;
+            border-collapse:collapse!important;
+            border-radius:1px;
+            width:100%;
+            font-size:12px;
+        }
+        .rj-table td{
+            margin-bottom:0!important;
+            border-bottom:1px solid #ddd;
+            border-collapse:collapse!important;
+            border-radius:1px;
+        }
+        .rj-table thead td{
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+
+    <script src="../js/common.js"></script>
+</head>
+<body>
+<div class="page-group">
+    <div class="page page-current" id="page1">
+
+        <!--标题栏-->
+        <!--<header class="bar bar-nav">-->
+            <!--&lt;!&ndash;<a class="icon icon-me pull-left open-panel"></a>&ndash;&gt;-->
+            <!--<h1 class="title">进货单管理系统</h1>-->
+        <!--</header>-->
+
+        <!--标题栏-->
+        <header class="bar bar-nav">
+            <a class="button button-link button-nav pull-left back" href="#" id="back">
+                <span class="icon icon-left"></span>
+                <!--返回-->
+            </a>
+            <a class="button button-link button-nav pull-right back" href="buyer_agent_operations.html" id="home">
+                <span class="icon icon-home"></span>
+            </a>
+            <h1 class="title">进货单任务列表</h1>
+        </header>
+
+        <!--&lt;!&ndash;工具栏&ndash;&gt;-->
+        <!--<nav class="bar bar-tab">-->
+            <!--<a class="tab-item external active" href="#">-->
+                <!--<span class="icon icon-home"></span>-->
+                <!--<span class="tab-label">首页</span>-->
+            <!--</a>-->
+            <!--<a class="tab-item external" href="#">-->
+                <!--<span class="icon icon-app"></span>-->
+                <!--<span class="tab-label">查看计费</span>-->
+                <!--&lt;!&ndash;<span class="badge">3</span>&ndash;&gt;-->
+            <!--</a>-->
+        <!--</nav>-->
+        <!--内容区-->
+        <div class="content">
+            <div class="page-index">
+                <div id="calendar"  />
+            </div>
+            <div>
+                <span style="background:#E3E3E3;color:#fff;border-radius: 100%;">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:12px;font-color:#bbb6b5">无需填报</span>
+                <span style="background:red;color:#fff;border-radius: 100%;">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:10px;font-color:#bbb6b5">未完成</span>
+                <span style="background:yellow;color:#fff;border-radius: 100%;">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:12px;font-color:#bbb6b5">待完成</span>
+                <span style="background:#0894ec;color:#fff;border-radius: 100%;">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="font-size:12px;font-color:#bbb6b5">完成</span>
+            </div>
+            <div class="split_line"></div>
+            <div class="row" >
+                <div class="col-60">
+                    <span id="selectDay" style="margin-left: 20px;"></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <span id="selectWeek"></span>
+                </div>
+                <a class="button button-primary col-40" id="add" href="#" style="display: none">新增进货单</a>
+            </div>
+            <div class="split_line"></div>
+            <div style="background-color: white;padding: 5px;">
+                <table class="rj-table">
+                    <thead>
+                        <tr>
+                            <td>序号</td>
+                            <td>填报时间</td>
+                            <td>操作</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!--<tr>-->
+                            <!--<td>第一个进货单</td>-->
+                            <!--<td>2017-02-03</td>-->
+                            <!--<td>-->
+                                <!--<a href="javascript:void(0);">编辑</a>-->
+                                <!--<a href="javascript:void(0);">删除</a>-->
+                            <!--</td>-->
+                        <!--</tr>-->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="reportDate"/>
+<script type='text/javascript' src='../js/zepto.min.js' charset='utf-8'></script>
+<script type="text/javascript">
+    $.config = {router: false}
+</script>
+<script type='text/javascript' src='../js/sm.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type="text/javascript" src="../js/common.js"></script>
+<script type="text/javascript" src="../js/zepto.cookie.min.js"></script>
+<script type="text/javascript">
+    var id=$.fn.cookie("id");
+    var name=$.fn.cookie("name");
+
+    var currentDate=new Date();
+    var selectDate=currentDate;
+    var _selectMonth=selectDate.getMonth();
+    var _selectYear=selectDate.getFullYear();
+
+    $(function(){
+        var calendar=$("#calendar").calendar({
+            "maxDate":currentDate.toLocaleDateString(),
+            "dateFormat":"yyyy-mm-dd",
+            onOpen:function(){
+                updateCalendarStyle();
+                setCurrentDateInfo();
+            },
+            onMonthYearChangeEnd:function(p,year,month){
+                _selectMonth=month;
+                _selectYear=year;
+                updateCalendarStyle();
+            },
+            onDayClick:function(p, dayContainer, year, month, day){
+                selectDate=new Date(year,month,day);
+                setCurrentDateInfo();
+                isShowAddButton(this);
+                showPurchaseListData();
+            }
+        });
+
+        $("#add").click(function(){
+            addEvent();
+        });
+
+        showPurchaseListData();
+
+        $("#back").attr("href","buyer_agent_operations.html");
+
+        isShowAddButton("");
+    });
+
+
+    function addEvent(){
+        $("#add").attr("href","purchaselist_save.html?taskTime="+Format(selectDate,"yyyy-MM-dd"));
+    }
+
+    /**
+     * 设置日历控件样式
+     */
+    function updateCalendarStyle(){
+        var days=$(".picker-calendar-month-current").find(".picker-calendar-day").not(".picker-calendar-day-prev").not(".picker-calendar-day-disabled").not(".picker-calendar-month-prev");
+        var  taskListData=loadTaskList();
+        days.each(function(index,element){
+            var dateStr=$(element).attr("data-date");
+            var sArr=dateStr.split("-");
+            var monthInt= parseInt(sArr[1])+1;
+            var dayInt=parseInt(sArr[2]);
+            if(monthInt>=10){
+                sArr[1]=parseInt(sArr[1])+1;
+            }else{
+                sArr[1]="0"+(parseInt(sArr[1])+1);
+            }
+
+            if(dayInt<10){
+                sArr[2]="0"+dayInt;
+            }else{
+                sArr[2]=dayInt;
+            }
+
+            dateStr=sArr.join("-");
+
+            var taskObject=checkDayTaskObjectExist(dateStr,taskListData);
+            if(!taskObject){
+                return true;
+            }
+            var state=taskObject["status"];
+//            var canModify=taskObject["canModify"];
+//            if(state=="false"&&canModify=="false"){
+//                $(element).find("span").css({
+//                    "background": "red",
+//                    "color": "#fff"
+//                });
+//            }else if(state=="false"&&canModify=="true"){
+//                $(element).find("span").css({
+//                    "background": "yellow",
+//                    "color": "#fff"
+//                });
+//            }else{
+//                $(element).find("span").css({
+//                    "background": "#0894ec",
+//                    "color": "#fff"
+//                });
+//            }
+
+            if(state=="0"){//未完成
+                $(element).find("span").css({
+                    "background": "red",
+                    "color": "#fff"
+                });
+            }else if(state=="1"){//完成
+                $(element).find("span").css({
+                    "background": "#0894ec",
+                    "color": "#fff"
+                });
+            }else if(state=="2"){//无需填报
+                $("#reportDate").val(dateStr)
+                $(element).find("span").css({
+                    "background": "#E3E3E3",
+                    "color": "#fff"
+                });
+            }else if(state=="3"){//待完成
+                $(element).find("span").css({
+                    "background": "yellow",
+                    "color": "#fff"
+                });
+            }
+
+        });
+    }
+
+    function checkDayTaskObjectExist(dateStr,taskListData){
+        var result;
+
+        $(taskListData).each(function(index,element){
+            if(element["reportDate"]==dateStr){
+                result= element;
+                return false;
+            }
+        });
+        return result;
+    }
+
+    function loadTaskList(){
+        var result;
+        $.ajax({
+            type:"post",
+            url:"/"+_webroot+"/api/v1/pl/bs_task_list",
+            data:JSON.stringify({
+                "siteCode":"318",
+                "auth":"pl",
+                "loginId":id,
+                "param":{
+                    "bsCode":id,
+                    "nowMonth":Format(new Date(_selectYear,_selectMonth,1),'yyyy-MM-dd')
+                }
+            }),
+            contentType:"application/json",
+            async:false,
+            success:function(data){
+                if(data.status=="S"){
+                    result=data.result;
+                }else{
+                    $.alert(data.message);
+                }
+            }
+        });
+        return result;
+    }
+
+    /**
+     * 设置选择日期栏信息
+     */
+    function setCurrentDateInfo(){
+        var month =cm_pad(selectDate.getMonth()+1);
+        var day=cm_pad(selectDate.getDate());
+        var week=cm_week(selectDate.getDay());
+        $("#selectDay").text(month+"月"+" "+day+"日");
+        $("#selectWeek").text(week);
+    }
+
+    /**
+     * 新增进货单按钮显示控制
+     */
+    function isShowAddButton(it){
+        var days=parseInt((currentDate-selectDate)/(1000*60*60*24));
+        var configDays=getConfigSubmitDays();
+        var reportDate=new Date($("#reportDate").val());
+        var days2=(selectDate-reportDate);
+        if(days>configDays||days2<=0){
+            $("#add").hide();
+        }else{
+            $("#add").show();
+        }
+    }
+
+    function getConfigSubmitDays(){
+        var result=-1;
+        $.ajax({
+            url:"/"+_webroot+"/api/v1/pl/bs_statement_number",
+            async:false,
+            data:JSON.stringify({
+                "siteCode":"318",
+                "auth":"pl",
+                "loginId":id,
+                "param":{
+                    "bsCode":id
+                }
+            }),
+            type:"post",
+            contentType:"application/json",
+            success:function(data){
+                if(data.status=="S"){
+                    result=data.result.repayDay;
+                }else{
+                    $.alert(data.message);
+                }
+            }
+        });
+
+        return result;
+    }
+
+
+    /**
+     * 加载进货单列表数据
+     */
+    function showPurchaseListData(){
+        var data=loadPurchaseListData();
+
+        var numbers=["一","二","三","四","五","六","七","八","九","十"];
+        $.each(data,function(index,element){
+            var tr="<tr><td><input type='hidden' name='plId' value='"+element.plId+"'/>第"+numbers[index]+"个进货单</td><td>"+element.reportDate+"</td><td><a href='javascript:void(0);' onclick='edit("+element.plId+")'>编辑</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='javascript:void(0);' onclick='deletePL(this,"+element.plId+")'>删除</a></td></tr>";
+            $(".rj-table").find("tbody").append(tr);
+        });
+
+    }
+
+    function loadPurchaseListData(){
+        $(".rj-table").find("tbody").find("tr").remove();
+        var result;
+        $.ajax({
+            url:"/"+_webroot+"/api/v1/pl/bs_pl_list",
+            type:"post",
+            async:false,
+            cache:false,
+            contentType:"application/json",
+            data:JSON.stringify({
+                "siteCode":"318",
+                "auth":"pl",
+                "loginId":id,
+                "param":{
+                    "bsCode":id,
+                    "reportDate":Format(selectDate,"yyyy-MM-dd")
+                }
+            }),
+            success:function(data){
+                if(data.status=="F"){
+                    $.alert(data.message);
+                    return;
+                }
+
+                result=data.result;
+                if(!result){
+                    result=[];
+                }
+            }
+        });
+        return result;
+    }
+
+    function edit(plId){
+        location.href="purchaselist_save.html?plId="+plId;
+    }
+
+    function deletePL(it,plId){
+        $.confirm("确定删除？",function(){
+            $.ajax({
+                url:"/"+_webroot+"/api/v1/pl/bs_task_delete",
+                data:JSON.stringify({
+                    "siteCode":"318",
+                    "auth":"pl",
+                    "loginId":id,
+                    "param":{
+                        "plId":plId
+                    },
+                }),
+                type:"post",
+                contentType:"application/json",
+                success:function(data){
+                    if(data.status=="F") {
+                        $.alert(data.message);
+                        return;
+                    }
+                    $(it).parents("tr").remove();
+                    $.alert("删除成功",function(){
+                        location.reload(true);
+                    });
+                }
+            });
+        },function(){
+
+        });
+
+    }
+</script>
+</body>
+</html>

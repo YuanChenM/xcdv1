@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.bs.logic.IBS2101107RsLogic">
+
+    <select id="findList" resultType="com.msk.bs.bean.IBS2101107Bean" parameterType="BaseParam">
+        SELECT
+        SL_CODE AS slCode,
+        HOUSE_CODE AS houseCode,
+        BUYER_ID AS buyerId,
+        START_TIME AS startTime,
+        END_TIME AS endTime,
+        APPLY_SIDE AS applySide,
+        APPLY_STATUS AS applyStatus,
+        APPLY_TIME AS applyTime,
+        VER AS ver
+        FROM
+        sl_bs_buyer
+        <where>
+            (DEL_FLG IS NULL OR DEL_FLG =0)
+            <if test="filterMap.slCode != null and filterMap.slCode != ''">
+                AND SL_CODE = #{filterMap.slCode}
+            </if>
+            <if test="filterMap.buyerId != null and filterMap.buyerId != ''">
+                AND BUYER_ID = #{filterMap.buyerId}
+            </if>
+        </where>
+    </select>
+
+</mapper>

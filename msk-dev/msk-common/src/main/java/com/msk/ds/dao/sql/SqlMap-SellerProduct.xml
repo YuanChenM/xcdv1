@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.msk.ds.logic.SellerProductLogic">
+    <sql id="condtion"></sql>
+    <select id="findPageList" parameterType="BasePageParam" resultType="com.msk.ds.bean.SellerProduct">
+        SELECT
+          CLASSES_CODE AS classesCode
+          ,CLASSES_NAME AS classesName
+          ,BREED_CODE AS breedCode
+          ,BREED_NAME AS breedName
+          ,FEATURE_CODE AS featureCode
+          ,FEATURE_NAME AS featureName
+          ,GRADE_CODE AS gradeCode
+          ,GRADE_NAME AS gradeName
+          ,PKG_CODE AS pkgCode
+          ,GRADE_CODE AS gradeCode
+          ,GRADE_NAME AS gradeName
+          ,PD_CODE AS pdCode
+          ,PD_NAME AS pdName
+          ,PRODCINGAREA AS prodcingarea
+          ,SL_CODE AS slCode
+          ,SL_NAME AS slName
+        FROM DS_SL_PD_LOT
+        <include refid="condtion"/>
+        ORDER BY LOT_ID
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize}
+        </if>
+    </select>
+    <select id="getPageCount" parameterType="BasePageParam" resultType="java.lang.Integer">
+        SELECT
+              COUNT(1)
+        FROM DS_SL_PD_LOT
+        <include refid="condtion"/>
+    </select>
+</mapper>

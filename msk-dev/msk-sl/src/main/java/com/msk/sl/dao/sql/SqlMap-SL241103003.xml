@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL241103003Logic">
+    <insert id="saveSlEpCert" parameterType="com.msk.core.entity.SlEpCert">
+        INSERT INTO SL_EP_CERT
+        (EP_ID,CERT_SEQ,CERT_ID,CERT_NAME,DEL_FLG)
+        VALUES (#{epId},#{certSeq},#{certId},#{certName},#{delFlg})
+    </insert>
+    <select id="findList" parameterType="BasePageParam" resultType="com.msk.core.entity.SlEpCert">
+        SELECT slEpCert.CERT_ID AS certId FROM SL_EP_CERT slEpCert WHERE slEpCert.EP_ID = #{filterMap.epId} ORDER BY slEpCert.CERT_SEQ ASC
+    </select>
+
+    <insert id="saveSlEpCertItem" parameterType="com.msk.core.entity.SlEpCertItem">
+        INSERT INTO SL_EP_CERT_ITEM
+        (EP_ID,CERT_ID,CERT_ITEM_ID,CERT_ITEM_NAME,CERT_ITEM_VALUE,DEL_FLG)
+        VALUES (#{epId},#{certId},#{certItemId},#{certItemName},#{certItemValue},#{delFlg})
+    </insert>
+</mapper>

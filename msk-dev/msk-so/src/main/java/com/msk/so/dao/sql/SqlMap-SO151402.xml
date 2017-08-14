@@ -1,0 +1,776 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.SO151402Logic">
+    <!-- 查询订单明细 -->
+    <select id="findOrderDetailInfo" parameterType="BaseParam"
+            resultType="com.msk.so.bean.SO151402Bean">
+		select
+		D.*
+		from(
+		SELECT
+		A.ORDER_ID AS orderId
+		,A.ORDER_CODE AS orderCode
+		,A.ORDER_DETAIL_ID AS orderDetailId
+		,A.ORDER_DETAIL_TYPE AS orderDetailType
+		,A.ORDER_DETAIL_LEVEL AS orderDetailLevel
+		,A.CLASSES_CODE AS classesCode
+		,A.CLASSES_NAME AS classesName
+		,A.BREED_CODE AS breedCode
+		,A.BREED_NAME AS breedName
+		,A.FEATURE_CODE AS featureCode
+		,A.FEATURE_NAME AS featureName
+		,A.NORMS_CODE AS normsCode
+		,A.NORMS_NAME AS normsName
+		,A.PD_CODE AS pdCode
+		,A.PD_NAME AS pdName
+		,A.UNIT AS unit
+		,A.PACKING_VOLUME AS packingVolume
+		,(cast(round(A.WEIGHT,2) as decimal(18,2))) AS weight
+		,A.VOLUME AS volume
+		,A.AGREE_JOINT AS agreeJoint
+		,A.IS_JOINT AS isJoint
+		,A.BUYERS_CONFIRM_SHIPMENTS AS buyersConfirmShipments
+		,A.PD_PRICE AS pdPrice
+		,A.PRICE_CYCLE AS priceCycleName,
+		date_format(A.PRO_DATE,'%Y-%c-%d') as expectedDate,
+		CASE
+		WHEN (cast(round(A.ORDER_QTY,2) as decimal(18,0))) IS NULL THEN
+		''
+		ELSE
+		(cast(round(A.ORDER_QTY,2) as decimal(18,0)))
+		END AS orderQty
+		,CASE
+		WHEN (cast(round(A.SEND_QTY,2) as decimal(18,0))) IS NULL THEN
+		''
+		ELSE
+		(cast(round(A.SEND_QTY,2) as decimal(18,0)))
+		END AS sendQty
+		,CASE
+		WHEN (cast(round(A.RECEIVE_QTY,2) as decimal(18,0))) IS NULL THEN
+		''
+		ELSE
+		(cast(round(A.RECEIVE_QTY,2) as decimal(18,0)))
+		END AS receiveQty
+		,CASE
+		WHEN (cast(round(A.CANCEL_QTY,2) as decimal(18,0)))IS NULL THEN
+		''
+		ELSE
+		(cast(round(A.CANCEL_QTY,2) as decimal(18,0)))
+		END AS cancelQty
+		,CASE
+		WHEN (cast(round(A.RETURN_QTY,2) as decimal(18,0))) IS NULL THEN
+		''
+		ELSE
+		(cast(round(A.RETURN_QTY,2) as decimal(18,0)))
+		END AS returnQty
+		,CASE
+		WHEN (cast(round(A.REJECTION_QTY,2) as decimal(18,0))) IS NULL THEN
+		''
+		ELSE
+		(cast(round(A.REJECTION_QTY,2) as decimal(18,0)))
+		END AS rejectionQty
+		,A.SEND_TIME AS sendTime
+		,A.RECEIVED_TIME AS receivedTime
+		,CASE WHEN (A.ORDER_QTY - IFNULL(A.RETURN_QTY,0) - IFNULL(A.REJECTION_QTY,0) = 0 AND A.DETAIL_STATUS != 99) THEN '全部退货'
+		ELSE IFNULL(COMMORST.CONSTANT_NAME,'') END AS detailStatusName
+		,A.CANCEL_REASON AS cancelReason
+		,B.RETURN_FLG AS returnFlg
+		,A.DETAIL_STATUS AS detailStatus
+		FROM
+		SO_ORDER_DETAIL AS A
+		<!--,SO_ORDER AS B -->
+		INNER JOIN SO_ORDER AS B ON A.order_id = B.order_id
+		LEFT JOIN COMM_CONSTANT AS COMMORST <!--订单详细状态 -->
+		ON A.DETAIL_STATUS = COMMORST.CONSTANT_VALUE AND COMMORST.CONSTANT_TYPE='OrderDetailStatus'
+		WHERE
+		<!--A.ORDER_ID = B.ORDER_ID AND  -->
+		B.ORDER_ID = #{filterMap.orderId}
+
+		UNION ALL
+		SELECT
+		A.ORDER_ID AS orderId
+		,A.ORDER_CODE AS orderCode
+		,A.ORDER_DETAIL_ID AS orderDetailId
+		,A.ORDER_DETAIL_TYPE AS orderDetailType
+		,A.ORDER_DETAIL_LEVEL AS orderDetailLevel
+		,A.CLASSES_CODE AS classesCode
+		,A.CLASSES_NAME AS classesName
+		,A.BREED_CODE AS breedCode
+		,A.BREED_NAME AS breedName
+		,A.FEATURE_CODE AS featureCode
+		,A.FEATURE_NAME AS featureName
+		,A.NORMS_CODE AS normsCode
+		,A.NORMS_NAME AS normsName
+		,A.PD_CODE AS pdCode
+		,A.PD_NAME AS pdName
+		,A.UNIT AS unit
+		,A.PACKING_VOLUME AS packingVolume
+		,(cast(round(A.WEIGHT,2) as decimal(18,2))) AS weight
+		,A.VOLUME AS volume
+		,A.AGREE_JOINT AS agreeJoint
+		,A.IS_JOINT AS isJoint
+		,A.BUYERS_CONFIRM_SHIPMENTS AS buyersConfirmShipments
+		,A.PD_PRICE AS pdPrice
+		<!-- ,A.PRICE_CYCLE AS priceCycle-->
+		,A.PRICE_CYCLE AS priceCycleName
+		,date_format(A.PRO_DATE,'%Y-%c-%d') as expectedDate
+		,CASE
+		WHEN (cast(round(A.ORDER_QTY,2) as decimal(18,0))) IS NULL THEN
+		''
+		ELSE
+		(cast(round(A.ORDER_QTY,2) as decimal(18,0)))
+		END AS orderQty
+		,CASE
+		WHEN (cast(round(A.SEND_QTY,2) as decimal(18,0))) IS NULL THEN
+		''
+		ELSE
+		(cast(round(A.SEND_QTY,2) as decimal(18,0)))
+		END AS sendQty
+		,CASE
+		WHEN (cast(round(A.RECEIVE_QTY,2) as decimal(18,0))) IS NULL THEN
+		''
+		ELSE
+		(cast(round(A.RECEIVE_QTY,2) as decimal(18,0)))
+		END AS receiveQty
+		,CASE
+		WHEN (cast(round(A.CANCEL_QTY,2) as decimal(18,0)))IS NULL THEN
+		''
+		ELSE
+		(cast(round(A.CANCEL_QTY,2) as decimal(18,0)))
+		END AS cancelQty
+		,CASE
+		WHEN (cast(round(A.RETURN_QTY,2) as decimal(18,0))) IS NULL THEN
+		''
+		ELSE
+		(cast(round(A.RETURN_QTY,2) as decimal(18,0)))
+		END AS returnQty
+		,CASE
+		WHEN (cast(round(A.REJECTION_QTY,2) as decimal(18,0))) IS NULL THEN
+		''
+		ELSE
+		(cast(round(A.REJECTION_QTY,2) as decimal(18,0)))
+		END AS rejectionQty
+		,A.SEND_TIME AS sendTime
+		,A.RECEIVED_TIME AS receivedTime
+		,CASE WHEN (A.ORDER_QTY - IFNULL(A.RETURN_QTY,0) - IFNULL(A.REJECTION_QTY,0) = 0 AND A.DETAIL_STATUS != 99) THEN '全部退货'
+		ELSE IFNULL(COMMORST.CONSTANT_NAME,'') END AS detailStatusName
+		,A.CANCEL_REASON AS cancelReason
+		,B.RETURN_FLG AS returnFlg
+		,A.DETAIL_STATUS AS detailStatus
+		FROM
+		SO_ORDER_DETAIL AS A
+		INNER JOIN SO_ORDER AS B ON A.order_id = B.order_id
+
+		LEFT JOIN COMM_CONSTANT AS COMMORST <!--订单详细状态 -->
+		ON A.DETAIL_STATUS = COMMORST.CONSTANT_VALUE AND COMMORST.CONSTANT_TYPE='OrderDetailStatus'
+		where
+		 A.order_id in
+		(select CHILD_ORDER_ID from so_order_relation as C where C.MAIN_ORDER_ID =#{filterMap.orderId}))AS D
+	</select>
+
+      <select id="findSoOrderDetailAvailability" parameterType="BaseParam"
+            resultType="com.msk.core.entity.SoOrderDetailAvailability">
+        SELECT
+        A.ORDER_ID AS orderId
+        ,A.ORDER_CODE AS orderCode
+        ,A.ORDER_DETAIL_ID AS orderDetailId
+        ,A.ORDER_DETAIL_AVAILABILITY_ID AS orderDetailAvailabilityId
+		,IFNULL(
+		  (
+		  SELECT DISTINCT
+		  ss.SL_CODE_DIS
+		  FROM
+		  sl_seller ss
+		  WHERE
+		  ss.SL_CODE = A.SUPPLIER_CODE
+		  )
+		  , ''
+		  ) AS supplierCode
+		,IFNULL(
+		  (
+		  SELECT DISTINCT
+		  se.EP_NAME
+		  FROM
+		  sl_seller ss
+		  LEFT JOIN sl_enterprise se
+		  ON se.EP_ID = ss.EP_ID
+		  WHERE
+		  ss.SL_CODE = A.SUPPLIER_CODE
+		  )
+		  , ''
+		  ) AS supplierName
+        ,A.CLASSES_CODE AS classesCode
+        ,A.CLASSES_CODE AS classesName
+        ,A.BREED_CODE AS breedCode
+        ,A.BREED_NAME AS breedName
+        ,A.FEATURE_CODE AS featureCode
+        ,A.FEATURE_NAME AS featureName
+        ,A.NORMS_CODE AS normsCode
+        ,A.NORMS_NAME AS normsName
+        ,A.PD_CODE AS pdCode
+        ,A.PD_NAME AS pdName
+        ,A.PD_GRADE_CODE AS pdGradeCode
+        ,A.PD_GRADE_NAME AS pdGradeName
+        ,A.UNIT AS unit
+        ,A.PACKING_VOLUME AS packingVolume
+        ,A.WEIGHT AS weight
+        ,A.VOLUME AS volume
+        ,A.SUPP_QTY AS suppQty
+        ,A.SEND_QTY AS sendQty
+        ,A.RECEIVE_QTY AS receiveQty
+        ,A.CANCEL_QTY AS cancelQty
+        ,A.RETURN_QTY AS returnQty
+        ,A.REJECTION_QTY AS rejectionQty
+		,A.STATUS AS status
+        FROM SO_ORDER_DETAIL_AVAILABILITY A
+		  <where>
+            <if test="filterMap.orderId!=null and filterMap.orderId!=''">
+                AND ORDER_ID=#{filterMap.orderId}
+            </if>
+            <if test="filterMap.orderDetailId!=null and filterMap.orderDetailId!=''">
+                AND A.ORDER_DETAIL_ID=#{filterMap.orderDetailId}
+            </if>
+           <if test="filterMap.orderDetailAvailabilityId!=null and filterMap.orderDetailAvailabilityId!=''">
+                AND
+                A.ORDER_DETAIL_AVAILABILITY_ID=#{filterMap.orderDetailAvailabilityId}
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询订单基本信息 -->
+    <select id="queryBaseOrder" parameterType="BaseParam"
+            resultType="com.msk.so.bean.BaseOrder">
+		SELECT
+		A.ORDER_ID AS orderId,
+		A.ORDER_CODE AS orderCode,
+		A.PRO_CODE AS proCode,
+		A.REQUIRE_ORDER_CODE AS requireOrderCode,
+		A.CONFIRM_ORDER_CODE AS confirmOrderCode,
+		A.DELIVERY_ORDER_CODE AS deliveryOrderCode,
+		A.SELLER_CODE AS sellerCode,
+		A.SELLER_NAME AS sellerName,
+		A.ORDER_VICE_CODE AS orderViceCode,
+		B.LGCS_AREA_NAME AS districtName,
+		com.CONSTANT_NAME AS orderSourceName,
+		CASE
+		WHEN (
+		SELECT
+		CONSTANT_NAME
+		FROM
+		comm_constant AS O
+		WHERE
+		A.ORDER_TYPE = O.CONSTANT_VALUE
+		AND O.CONSTANT_TYPE = 'OrderType'
+		) IS NULL THEN
+		''
+		ELSE
+		(
+		SELECT
+		CONSTANT_NAME
+		FROM
+		comm_constant AS O
+		WHERE
+		A.ORDER_TYPE = O.CONSTANT_VALUE
+		AND O.CONSTANT_TYPE = 'OrderType'
+		)
+		END AS orderTypeName,
+		<!-- 订单状态-->
+		CASE WHEN (tt.leftQty = 0 AND A.ORDER_STATUS != 99) THEN '全部退货'
+		ELSE IFNULL(COMMORST.CONSTANT_NAME,'') END AS orderStatusName,
+		(CASE
+		(A.NEED_INVOICE)
+		WHEN 1 THEN '是'
+		WHEN 0 THEN
+		'否' END) AS
+		needInvoiceName,
+		date_format(A.ORDER_TIME,'%Y-%c-%d %H:%i:%s') AS
+		orderDate,
+		A.ORDER_AMOUNT AS orderAmount,
+		(CASE
+		(A.PAYMENT_TYPE)
+		WHEN 1
+		THEN
+		'在线支付'
+		WHEN
+		2 THEN
+		'线下支付'
+		END) AS paymentName,
+		A.ORDER_AMOUNT AS orderAmount
+		,A.ORDER_TAKER AS orderTaker
+		,A.SELF_DELIVERY_FLG AS selfDeliveryFlg
+		,COMMDEVFLG.CONSTANT_NAME AS splitDeliveryFlg
+		,A.CANCEL_REASON AS cancelReason,
+		(CASE
+		(A.RETURN_FLG)
+		WHEN 1 THEN '整单退货'
+		WHEN 2 THEN
+		'部分退货'
+		WHEN 0 THEN '否'
+		END)
+		AS
+		returnFlgName
+		,(SELECT
+			DISTINCT
+			sha.HOUSE_SHOW_NAME
+		  FROM
+		   sl_house_account SHA
+		WHERE a.SELLERS = sha.HOUSE_CODE) AS sellers
+		FROM
+		SO_ORDER A
+		LEFT JOIN MD_LOGISTICS_AREA B ON (B.LGCS_AREA_CODE = A.DISTRICT_CODE OR B.LGCS_AREA_ID = A.DISTRICT_CODE)
+		LEFT JOIN COMM_CONSTANT AS COMMORST<!--订单状态 -->
+		ON A.ORDER_STATUS = COMMORST.CONSTANT_VALUE AND COMMORST.CONSTANT_TYPE='OrderStatus'
+		LEFT JOIN COMM_CONSTANT AS  COMMDEVFLG  <!-- 分批发货-->
+		   ON COMMDEVFLG.CONSTANT_VALUE = A.SPLIT_DELIVERY_FLG AND  COMMDEVFLG.CONSTANT_TYPE_NAME='SplitDeliveryFlg'
+		LEFT JOIN COMM_CONSTANT AS com
+		ON A.ORDER_SOURCE = com.CONSTANT_VALUE AND com.CONSTANT_TYPE = 'OrderSource'
+		left join (
+		select
+		order_id
+		, sum(leftQty) as leftQty
+		from
+		(
+		SELECT
+		so.order_id
+		, sod.ORDER_QTY - IFNULL(sod.RETURN_QTY,0) - IFNULL(sod.REJECTION_QTY,0) AS leftQty
+		FROM
+		SO_ORDER so
+		INNER JOIN so_order_detail sod
+		ON so.ORDER_ID = sod.ORDER_ID
+		where so.ORDER_ID=#{filterMap.orderId}
+		UNION ALL
+		SELECT
+		so.order_id
+		, sod.ORDER_QTY - IFNULL(sod.RETURN_QTY,0) - IFNULL(sod.REJECTION_QTY,0) AS leftQty
+		FROM
+		SO_ORDER so
+		INNER JOIN so_order_relation sor
+		ON so.ORDER_ID = sor.MAIN_ORDER_ID
+		INNER JOIN so_order_detail sod
+		ON sor.CHILD_ORDER_ID = sod.ORDER_ID
+		where so.ORDER_ID=#{filterMap.orderId}
+		) t
+		group by
+		order_id
+		) tt
+		on tt.order_id = A.order_id
+		WHERE
+		A.ORDER_ID=#{filterMap.orderId}
+	</select>
+
+    <!-- 查询配送基本信息 -->
+    <select id="queryOrderDelivery" parameterType="BaseParam"
+            resultType="com.msk.so.bean.OrderDeliveryBean">
+		SELECT
+		A.ORDER_ID AS orderId,
+		A.ORDER_CODE AS orderCode,
+		A.ID AS id,
+		'' AS sendWarehouseCode,
+		'' AS sendWarehouseName,
+        <!-- (CASE(A.DELIVERY_TYPE)WHEN 1 THEN '汽车配送' WHEN 2 THEN '空运' END) AS deliveryTypeName,-->
+		IFNULL(COMMDELIVERY.CONSTANT_NAME,'') AS deliveryTypeName,
+		date_format(A.FORECAST_SEND_TIME,'%Y-%m-%d %H:%i:%s')AS forecastSendDateTime,
+		date_format(A.FORECAST_RECEIVE_TIME,'%Y-%m-%d %H:%i:%s')AS forecastReceiveDateTime,
+		A.RECEIVE_WAIT_TIME AS receiveWaitTime,
+		date_format(D.ORDER_SEND_TIME,'%Y-%m-%d %H:%i:%s') AS sendDateTime,
+		date_format(D.ORDER_RECEIVE_TIME,'%Y-%m-%d %H:%i:%s') AS receiveDateTime,
+		A.Advance_Notice_Time AS advanceNoticeTime,
+		(CASE(A.VIC_FLG)WHEN 0 THEN '不需要' WHEN 1 THEN '需要' END) AS vicFlg,
+		A.UNLOAD_REQ AS unloadReq,
+		A.PACKING_REQ AS packingReq,
+		A.PARKING_DISTANCE AS parkingDistance,
+		A.OTHER_DELIVERY_REQ AS otherDeliveryReq,
+		A.THIS_DELIVERY_REQ AS thisDeliveryReq
+        <!-- ,CASE(A.RECEIVE_TIME)
+		WHEN 1 THEN '00:00~03:00'
+		WHEN 2 THEN '03:00~06:00'
+		WHEN 3 THEN '06:00~09:00'
+		WHEN 4 THEN '09:00~12:00'
+		WHEN 5 THEN '12:00~15:00'
+		WHEN 6 THEN '15:00~18:00'
+		WHEN 7 THEN '18:00~21:00'
+		WHEN 8 THEN '21:00~24:00'
+		WHEN A.RECEIVE_TIME IS NULL THEN ''
+		END AS receiveTime,-->
+		,IFNULL(A.RECEIVE_TIME,'') AS receiveTime,
+		IFNULL(COMMORSTEarliest.CONSTANT_NAME,'') AS receiveEarliest,
+		IFNULL(COMMORSTLast.CONSTANT_NAME,'') AS receiveLast
+		FROM
+		  so_order_receive_demand AS A
+		  LEFT JOIN so_order AS D
+		     ON A.ORDER_ID=D.ORDER_ID
+		 LEFT JOIN COMM_CONSTANT AS  COMMORSTEarliest  <!--习惯收货最早时间要求 -->
+		<!-- Modify for bug#549 by wang_jianzhou at 2016/12/27 Start.-->
+			 ON COMMORSTEarliest.CONSTANT_VALUE= A.RECEIVE_EARLIEST AND COMMORSTEarliest.CONSTANT_TYPE = 'HabitReceivePeriodType'
+		 LEFT JOIN COMM_CONSTANT AS  COMMORSTLast  <!--习惯收货最晚时间要求 -->
+			 ON COMMORSTLast.CONSTANT_VALUE= A.RECEIVE_LAST AND COMMORSTLast.CONSTANT_TYPE = 'HabitReceivePeriodType'
+		<!-- Modify for bug#549 by wang_jianzhou at 2016/12/27 end.-->
+	 	  LEFT  JOIN  COMM_CONSTANT AS COMMDELIVERY   <!-- 配送方式-->
+		     ON COMMDELIVERY.CONSTANT_VALUE= A.DELIVERY_TYPE AND COMMDELIVERY.CONSTANT_TYPE = 'DeliveryType'
+		WHERE A.ORDER_ID=#{filterMap.orderId}
+	</select>
+
+
+
+
+
+
+
+    <select id="queryOrderBuyers" parameterType="BaseParam"
+            resultType="com.msk.so.bean.OrderReceiveDemandBean">
+        SELECT
+        <include refid="queryOrderBuyersSql"/>
+        FROM
+		SO_ORDER_RECEIVE_DEMAND  AS A
+		LEFT JOIN SO_ORDER AS D ON A.ORDER_ID = D.ORDER_ID
+        <!--LEFT JOIN BYR_BUYER_RECEIVING_PERIOD_TYPES AS B ON B.id = LEFT (A.RECEIVE_TIME, 2) -->
+        <!--条件需要在处理-->
+		LEFT JOIN COMM_CONSTANT AS  COMMORST  ON  COMMORST.CONSTANT_VALUE= LEFT (A.RECEIVE_TIME, 1)
+		AND COMMORST.CONSTANT_TYPE = 'HabitReceivePeriodType'
+		LEFT JOIN COMM_CONSTANT AS COMMBY<!--卖家类型Code Master -->
+		ON D.BUYERS_TYPE = COMMBY.CONSTANT_VALUE  AND COMMBY.CONSTANT_TYPE = 'OrderBuyerType'
+	    <!--LEFT JOIN BYR_BUYER_CHARACTER_TYPES C ON C.CODE = LEFT(D.BUYERS_TYPE, 2) -->
+
+    WHERE
+    A.ORDER_ID=#{filterMap.orderId}
+</select>
+
+
+	<select id="findChildOrder" parameterType="BaseParam"
+			resultType="com.msk.so.bean.SO151402Bean">
+		SELECT
+		A.ORDER_ID AS orderId
+		,B.CHILD_ORDER_CODE AS childOrderCode
+		,B.CHILD_ORDER_ID AS childOrderId
+		FROM
+		SO_ORDER AS A ,
+		SO_ORDER_RELATION AS B
+
+		WHERE A.ORDER_ID =#{filterMap.orderId} and A.ORDER_CODE=B.MAIN_ORDER_CODE
+	</select>
+
+
+<!-- 查询订单买家基本信息 -->
+    <sql id="queryOrderBuyersSql">
+         A.ORDER_ID AS orderId
+        ,A.ORDER_CODE AS orderCode
+        ,D.BUYERS_ID AS orderBuyersId
+        ,D.BUYERS_NAME AS buyersName
+        ,D.BUYERS_CODE AS buyersCode
+		,IFNULL(COMMBY.CONSTANT_NAME,'') AS buyersTypeName
+		<!-- ,IFNULL(C.NAME,'') AS buyersTypeName-->
+		<!--  ,CASE (D.BUYERS_TYPE)
+        WHEN 1 THEN
+        '分销买家'
+        WHEN 2 THEN
+        '菜场买家'
+        WHEN 3 THEN
+        '团膳买家'
+        WHEN 4 THEN
+        '火锅买家'
+        WHEN 5 THEN
+        '中餐买家'
+        WHEN 6 THEN
+        '西餐买家'
+        WHEN 7 THEN
+        '小吃烧烤买家'
+        WHEN 8 THEN
+        '加工厂买家'
+        ELSE
+        ''
+        END AS buyersType-->
+		<!--买家类型  ,IFNULL(,'') AS -->
+		,IFNULL(COMMBY.CONSTANT_NAME,'') AS buyersType
+        ,A.RECEIVER_NAME AS receiverName
+        ,A.RECEIVER_QQ AS receiverQq
+        ,A.RECEIVER_WEIXIN AS receiverWeixin
+        ,A.RECEIVER_TEL AS receiverTel
+        ,A.RECEIVER_PROVINCE AS receiverProvince
+        ,A.RECEIVER_CITY AS receiverCity
+        ,A.RECEIVER_DISTRICT AS receiverDistrict
+        ,A.RECEIVER_ADDR AS receiverAddr
+<!--        &lt;!&ndash; 正常收货时间段 &ndash;&gt;
+      ,CASE (A.RECEIVE_TIME)
+        WHEN 1 THEN
+        '00:00~03:00'
+        WHEN 2 THEN
+        '03:00~06:00'
+        WHEN 3 THEN
+        '06:00~09:00'
+        WHEN 4 THEN
+        '09:00~12:00'
+        WHEN 5 THEN
+        '12:00~15:00'
+        WHEN 6 THEN
+        '15:00~18:00'
+        WHEN 7 THEN
+        '18:00~21:00'
+        WHEN 8 THEN
+        '21:00~24:00'
+        WHEN
+        A.RECEIVE_TIME IS NULL THEN
+        ''
+        END AS receiveTime,-->
+		<!---->
+		,IFNULL(A.RECEIVE_TIME,'')AS receiveTime,
+        CASE WHEN A.RECEIVE_EARLIEST IS
+        NULL THEN
+        ''
+        ELSE
+        A.RECEIVE_EARLIEST
+        END AS receiveEarliest,
+        CASE
+        WHEN
+        A.RECEIVE_LAST IS NULL THEN
+        ''
+        ELSE A.RECEIVE_LAST
+        END AS receiveLast
+        ,A.REMARK AS remark
+        ,A.REMARK2 AS remark2
+        ,A.REMARK3 AS remark3
+        ,A.REMARK4 AS remark4
+		,A.RECEIVER_ADDR2 AS receiverAddr2
+		,A.RECEIVER_ADDR_KEY AS receiverAddrKey
+    </sql>
+
+	<select id="findNetWeightOut" parameterType="BaseParam" resultType="com.msk.core.entity.PdNormsStd">
+		select
+		a.NORMS_OUT AS normsOut
+		, a.NORMS_VOLUME AS normsVolume
+		, a.NETWEIGHT_OUT AS netWeightOut
+		from
+		pd_norms_std a
+		left join pd_standard b
+		on a.STANDARD_ID = b.STANDARD_ID
+		where
+		b.CLASSESTREE_CODE = SUBSTRING(#{filterMap.pdCode},1,9)
+	</select>
+
+	<select id="findPdGrade" parameterType="BaseParam" resultType="com.msk.core.entity.PdGrade">
+		SELECT GRADE_NAME AS gradeName
+		FROM PD_GRADE
+		WHERE
+		GRADE_CODE = SUBSTRING(#{filterMap.pdCode},10)
+	</select>
+
+
+	<select id="findOne" parameterType="BaseParam" resultType="com.msk.so.bean.SO151402Bean">
+		SELECT
+		  so.ORDER_TYPE AS orderType,
+		  so.ORDER_STATUS AS orderStatus,
+		  so.VER AS ver,
+		  SUM(IFNULL(sod.RECEIVE_QTY, 0)) AS receiveQty,
+ 		  SUM(IFNULL(sod.REJECTION_QTY, 0)) AS rejectionQty,
+ 		  SUM(IFNULL(sod.CANCEL_QTY, 0)) AS cancelQTy
+		FROM
+		  SO_ORDER so
+		  LEFT JOIN SO_ORDER_RELATION SOR
+		  ON so.ORDER_ID = sor.MAIN_ORDER_ID
+		  LEFT JOIN SO_ORDER_DETAIL sod
+		  ON ((so.ORDER_ID = sod.ORDER_ID or sod.ORDER_ID = sor.CHILD_ORDER_ID))
+		 AND sod.DEL_FLG = 0
+		 WHERE so.ORDER_ID = #{filterMap.orderId}
+		  GROUP BY so.ORDER_ID
+	</select>
+
+	<!--根据订单id更改订单表的状态-->
+	<update id="modifyOrderInfo" parameterType="BaseParam">
+		UPDATE
+		  so_order
+		SET
+		  ORDER_STATUS = #{filterMap.orderStatus},
+		  UPD_TIME = #{updTime},
+		  UPD_ID = #{updId},
+		  VER = VER + 1
+		WHERE order_id = #{filterMap.orderId}
+		  AND DEL_FLG = 0
+	</update>
+
+	<!--根据订单id更改订单明细表的状态-->
+	<update id="modifyOrderDetailInfo" parameterType="BaseParam">
+		UPDATE
+		  so_order_detail
+		SET
+		  DETAIL_STATUS = #{filterMap.orderDetailStatus},
+		  UPD_TIME = #{updTime},
+		  UPD_ID = #{updId},
+		  VER = VER + 1
+		WHERE order_id = #{filterMap.orderId}
+		  AND DEL_FLG = 0
+	</update>
+
+	<!--根据订单id更改订单履历表的状态-->
+	<update id="modifyOrderStatus" parameterType="BaseParam">
+		UPDATE
+		  so_order_status
+		SET
+		  ORDER_STATUS = #{filterMap.orderStatus},
+		  UPD_TIME = #{updTime},
+		  UPD_ID = #{updId},
+		  VER = VER + 1
+		WHERE order_id = #{filterMap.orderId}
+		  AND DEL_FLG = 0
+	</update>
+
+	<!--根据订单id更改订单明细履历表的状态-->
+	<update id="modifyOrderDetailStatus" parameterType="BaseParam">
+		UPDATE
+		  so_order_detail_status
+		SET
+		  STATUS = #{filterMap.orderDetailStatus},
+		  UPD_TIME = #{updTime},
+		  UPD_ID = #{updId},
+		  VER = VER + 1
+		WHERE order_id = #{filterMap.orderId}
+		  AND DEL_FLG = 0
+	</update>
+
+	<select id="queryOrderRelation" parameterType="BaseParam"
+			resultType="com.msk.core.entity.SoOrderRelation">
+		SELECT
+		MAIN_ORDER_ID AS mainOrderId
+		,CHILD_ORDER_ID AS childOrderId
+		FROM SO_ORDER_RELATION
+		WHERE (MAIN_ORDER_ID = #{filterMap.orderId}
+		OR CHILD_ORDER_ID = #{filterMap.orderId})
+	</select>
+
+	<delete id="removeAvailabilityStatus" parameterType="BaseParam">
+		DELETE FROM SO_ORDER_DETAIL_AVAILABILITY_STATUS
+		WHERE
+		(ORDER_ID = #{filterMap.orderId1}
+		<if test="filterMap.orderId2!=null and filterMap.orderId2!=''">
+			OR ORDER_ID = #{filterMap.orderId2}
+		</if>
+		)
+	</delete>
+
+	<delete id="removeAvailability" parameterType="BaseParam">
+		DELETE FROM SO_ORDER_DETAIL_AVAILABILITY
+		WHERE
+		(ORDER_ID = #{filterMap.orderId1}
+		<if test="filterMap.orderId2!=null and filterMap.orderId2!=''">
+			OR ORDER_ID = #{filterMap.orderId2}
+		</if>
+		)
+	</delete>
+
+	<delete id="removeDetailStatus" parameterType="BaseParam">
+		DELETE FROM SO_ORDER_DETAIL_STATUS
+		WHERE
+		(ORDER_ID = #{filterMap.orderId1}
+		<if test="filterMap.orderId2!=null and filterMap.orderId2!=''">
+			OR ORDER_ID = #{filterMap.orderId2}
+		</if>
+		)
+	</delete>
+
+	<delete id="removeDetail" parameterType="BaseParam">
+		DELETE FROM SO_ORDER_DETAIL
+		WHERE
+		(ORDER_ID = #{filterMap.orderId1}
+		<if test="filterMap.orderId2!=null and filterMap.orderId2!=''">
+			OR ORDER_ID = #{filterMap.orderId2}
+		</if>
+		)
+	</delete>
+
+	<delete id="removeDeliverDetail" parameterType="BaseParam">
+		DELETE FROM SO_DELIVER_DETAIL
+		WHERE
+		(ORDER_ID = #{filterMap.orderId1}
+		<if test="filterMap.orderId2!=null and filterMap.orderId2!=''">
+			OR ORDER_ID = #{filterMap.orderId2}
+		</if>
+		)
+	</delete>
+
+	<delete id="removeDeliver" parameterType="BaseParam">
+		DELETE FROM SO_DELIVER
+		WHERE
+		(ORDER_ID = #{filterMap.orderId1}
+		<if test="filterMap.orderId2!=null and filterMap.orderId2!=''">
+			OR ORDER_ID = #{filterMap.orderId2}
+		</if>
+		)
+	</delete>
+
+	<delete id="removeReceiveDemand" parameterType="BaseParam">
+		DELETE FROM SO_ORDER_RECEIVE_DEMAND
+		WHERE
+		(ORDER_ID = #{filterMap.orderId1}
+		<if test="filterMap.orderId2!=null and filterMap.orderId2!=''">
+			OR ORDER_ID = #{filterMap.orderId2}
+		</if>
+		)
+	</delete>
+
+	<delete id="removeOrderRelation" parameterType="BaseParam">
+		DELETE FROM SO_ORDER_RELATION
+		WHERE
+		MAIN_ORDER_ID = #{filterMap.orderId1}
+	</delete>
+
+	<delete id="removeOrderStatus" parameterType="BaseParam">
+		DELETE FROM SO_ORDER_STATUS
+		WHERE
+		(ORDER_ID = #{filterMap.orderId1}
+		<if test="filterMap.orderId2!=null and filterMap.orderId2!=''">
+			OR ORDER_ID = #{filterMap.orderId2}
+		</if>
+		)
+	</delete>
+
+	<delete id="removeOrder" parameterType="BaseParam">
+		DELETE FROM SO_ORDER
+		WHERE
+		(ORDER_ID = #{filterMap.orderId1}
+		<if test="filterMap.orderId2!=null and filterMap.orderId2!=''">
+		OR ORDER_ID = #{filterMap.orderId2}
+		</if>
+		)
+	</delete>
+
+	<select id="queryReceiveTime" parameterType="BaseParam"
+			resultType="com.msk.so.bean.OrderDeliveryBean">
+		SELECT IFNULL(CONSTANT_NAME,'') AS receiveTime
+		FROM COMM_CONSTANT
+		WHERE CONSTANT_VALUE IN
+		<foreach collection ="filterMap.receiveTime" item ="item" index ="index" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+		AND CONSTANT_TYPE = 'HabitReceivePeriodType'
+	</select>
+
+
+	<select id="findOrderDeliver" parameterType="BaseParam" resultType="com.msk.so.bean.ISO151402SoDeliver">
+SELECT
+deliver.DELIVER_ID as deliverId,
+deliver.DELIVER_CODE as deliverCode,
+deliver.SHIP_ID as shipId,
+deliver.SHIP_CODE as shipCode,
+deliver.DELIVER_PERSON as deliverPerson,
+deliver.PERSON_MOBILE as personMobile,
+deliver.DELIVER_DATE as deliverDate,
+IFNULL(COMMDELIVERY.CONSTANT_NAME,'')as  deliverModeStr,
+deliver.EXPECT_RECEIVE_DATE as expectReceiveDate,
+deliver.ACTUAL_RECEIVE_DATE as actualReceiveDate
+from   so_deliver  deliver
+  LEFT  JOIN  COMM_CONSTANT AS COMMDELIVERY
+ON COMMDELIVERY.CONSTANT_VALUE= LEFT(deliver.DELIVER_MODE,1) AND COMMDELIVERY.CONSTANT_TYPE = 'DeliveryType'
+WHERE deliver.DEL_FLG=0
+and (deliver.ORDER_ID=#{filterMap.orderId}
+or deliver.ORDER_ID = (select MAIN_ORDER_ID FROM SO_ORDER_RELATION WHERE CHILD_ORDER_ID = #{filterMap.orderId}))
+	</select>
+
+
+
+	<select id="getChildCount" parameterType="BaseParam" resultType="int">
+		SELECT
+		  COUNT(1)
+		FROM
+		  SO_ORDER_RELATION
+		WHERE
+		  CHILD_ORDER_ID = #{filterMap.orderId}
+	</select>
+</mapper>

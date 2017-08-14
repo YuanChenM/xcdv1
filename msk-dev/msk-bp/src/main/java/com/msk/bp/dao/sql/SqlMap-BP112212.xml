@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.bp.logic.BP112212Logic">
+    <select id="getSellerQuotationDetailList" parameterType="BaseParam" resultType="com.msk.bp.bean.BP112212Bean">
+        SELECT
+          bsqd.PRICECYCLE_ID AS pricecycleId,
+          bsqd.PRICECYCLE_DETAIL_ID AS pricecycleDetailId,
+          bsqd.ORDERLEVEL_CODE AS orderLevelCode,
+          bsqd.ORDERLEVEL_NAME AS orderLevelName,
+          bsqd.LEVELSTAND_MIN AS levelStandMin,
+          bsqd.LEVELSTAND_MAX AS levelStandMax,
+          bsqd.GUIDEPRICES_MIN AS guidePricesMin,
+          bsqd.GUIDEPRICES_MAX AS guidePricesMax,
+          bsqd.STANDARD_COEFFICIENT AS standardCoefficient,
+          bsqd.CURRENT_COCEFFICIENT AS currentCoefficient,
+          bsqd.PRICEOFKG AS priceOfKg,
+          bsqd.DISCOUNT AS disCount,
+          bsqd.PRICEOFBOX AS priceOfBox,
+          bsqd.NETWEIGHT AS netWeight,
+          bsqd.ISBIDDER_FLG AS isBidderFlg,
+          bsqd.remark AS remark
+        FROM
+          bp_seller_quotation_detail bsqd
+        WHERE bsqd.PRICECYCLE_ID = #{pricecycleId}
+          AND bsqd.DEL_FLG = '0'
+        ORDER by bsqd.ORDERLEVEL_CODE ASC
+    </select>
+
+    <update id="modifySellerQuotationInfo" parameterType="BaseEntity">
+        UPDATE
+          bp_seller_quotation_detail
+        SET
+          LEVELSTAND_MIN = #{ levelStandMin },
+          LEVELSTAND_MAX = #{ levelStandMax },
+          CURRENT_COCEFFICIENT = #{currentCoefficient},
+          PRICEOFKG = #{priceOfKg},
+          PRICEOFBOX = NETWEIGHT * #{priceOfKg},
+          ISBIDDER_FLG = #{isBidderFlg},
+          UPD_ID = #{updId},
+          UPD_TIME = DATE_FORMAT(NOW(), '%Y-%m-%d %T'),
+          DISCOUNT = #{disCount},
+          remark = #{remark},
+          VER = VER + 1
+        WHERE PRICECYCLE_DETAIL_ID = #{pricecycleDetailId}
+    </update>
+
+    <insert id="saveSellerQuotationInfo" parameterType="BaseParam">
+        INSERT INTO bp_seller_quotation (
+          PRICECYCLE_ID,
+          PRICECYCLE_PERIOD,
+          PD_CODE,
+          LOGIAREA_CODE,
+          LOGIAREA_NAME,
+          SL_CODE,
+          SL_NAME,
+          DEL_FLG,
+          CRT_ID,
+          CRT_TIME,
+          VER
+        )
+        VALUES(
+          #{pricecycleId},
+          #{pricecyclePeriod},
+          #{pdCode},
+          #{logiAreaCode},
+          #{logiAreaName},
+          #{slCode},
+          #{slName},
+          '0',
+          #{crtId},
+          DATE_FORMAT(SYSDATE(), '%Y-%m-%d %T'),
+          1
+        )
+    </insert>
+
+    <insert id="saveSellerQuotationDetailInfo" parameterType="BaseEntity">
+        INSERT INTO bp_seller_quotation_detail (
+          PRICECYCLE_ID,
+          PRICECYCLE_DETAIL_ID,
+          ORDERLEVEL_CODE,
+          ORDERLEVEL_NAME,
+          LEVELSTAND_MIN,
+          LEVELSTAND_MAX,
+          GUIDEPRICES_MIN,
+          GUIDEPRICES_MAX,
+          STANDARD_COEFFICIENT,
+          CURRENT_COCEFFICIENT,
+          PRICEOFKG,
+          DISCOUNT,
+          PRICEOFBOX,
+          NETWEIGHT,
+          ISBIDDER_FLG,
+          DEL_FLG,
+          CRT_ID,
+          CRT_TIME,
+          remark,
+          VER
+        )
+        VALUES(
+          #{pricecycleId},
+          #{pricecycleDetailId},
+          #{orderLevelCode},
+          #{orderLevelName},
+          #{levelStandMin},
+          #{levelStandMax},
+          #{guidePricesMin},
+          #{guidePricesMax},
+          #{standardCoefficient},
+          #{currentCoefficient},
+          #{priceOfKg},
+          #{disCount},
+          #{netWeight}*#{priceOfKg},
+          #{netWeight},
+          #{isBidderFlg},
+          '0',
+          #{crtId},
+          DATE_FORMAT(SYSDATE(), '%Y-%m-%d %T'),
+          #{remark},
+          1
+          )
+    </insert>
+
+    <select id="getLastSellerQuotationDetailInfo" resultType="com.msk.bp.bean.BP112212Bean" parameterType="BaseParam">
+      SELECT
+        IFNULL(bsqd.GUIDEPRICES_MIN,"0.00") AS guidePricesMin,
+        IFNULL(bsqd.GUIDEPRICES_MAX,"0.00") AS guidePricesMax,
+        IFNULL(bsqd.PRICEOFKG,"0.00") AS priceOfKg,
+        IFNULL(bsqd.CURRENT_COCEFFICIENT,"0") AS currentCoefficient
+      FROM
+        bp_seller_quotation bsq
+        LEFT JOIN bp_seller_quotation_detail bsqd
+          ON bsq.PRICECYCLE_ID = bsqd.PRICECYCLE_ID
+      WHERE bsq.PD_CODE = #{pdCode}
+        AND bsq.SL_CODE = #{slCode}
+        AND bsq.LOGIAREA_CODE = #{lgcsCode}
+        AND bsq.PRICECYCLE_PERIOD = #{lastPricecyclePeriod}
+        AND bsq.DEL_FLG = '0'
+        AND bsqd.DEL_FLG = '0'
+        AND bsqd.ORDERLEVEL_CODE = #{orderLevelCode}
+    </select>
+
+    <select id="getLastPriceOfKg" parameterType="BaseParam" resultType="BigDecimal">
+      SELECT
+        bsqd.PRICEOFKG
+      FROM
+        bp_seller_quotation bsq
+        LEFT JOIN bp_seller_quotation_detail bsqd
+          ON bsqd.PRICECYCLE_ID = bsq.PRICECYCLE_ID
+      WHERE bsq.PRICECYCLE_PERIOD = #{lastPricecyclePeriod}
+        AND bsq.PD_CODE = #{pdCode}
+        AND bsq.LOGIAREA_CODE = #{lgcsCode}
+        AND bsq.SL_CODE = #{slCode}
+        AND bsq.DEL_FLG = '0'
+        AND bsqd.DEL_FLG = '0'
+        AND bsqd.ORDERLEVEL_CODE = #{orderLevelCode}
+    </select>
+
+    <select id="getSellerQuotationCount" resultType="int" parameterType="BaseParam">
+      SELECT
+        COUNT(*)
+      FROM
+        bp_seller_quotation
+      WHERE PRICECYCLE_PERIOD = #{pricecyclePeriod}
+        AND PD_CODE = #{pdCode}
+        AND LOGIAREA_CODE = #{logiAreaCode}
+        AND SL_CODE = #{slCode}
+        AND DEL_FLG = '0'
+    </select>
+</mapper>

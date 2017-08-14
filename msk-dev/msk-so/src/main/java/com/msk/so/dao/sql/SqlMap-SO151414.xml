@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.SO151414Logic">
+    <select id="findList" parameterType="com.msk.core.bean.BasePageParam" resultType="com.msk.so.bean.SO151414Bean">
+        SELECT
+        WAREHOUSE_CODE AS whCode,
+        WAREHOUSE_NAME AS whName
+       FROM SO_WAREHOUSE
+       WHERE DEL_FLG = 0
+    </select>
+
+    <select id="findPageList" parameterType="com.msk.core.bean.BasePageParam" resultType="com.msk.so.bean.SO151414Bean">
+        SELECT
+        sos.SHIP_ID as shipId,
+        so.ORDER_CODE as orderCode,
+        IFNULL(D.LGCS_AREA_NAME, '') as districtName,
+        IFNULL(so.BUYERS_CODE, '') as buyersCode,
+        IFNULL(so.BUYERS_NAME, '') as buyersName,
+        IFNULL(sha.HOUSE_SHOW_NAME, '-') AS frozenGoodsHousekeep,
+        CONCAT(sos.RECEIVER_PROVINCE,sos.RECEIVER_CITY ,sos.RECEIVER_DISTRICT, sos.RECEIVER_ADDR)as receiverAddr,
+        date_format(sos.CRT_TIME,'%Y-%m-%d %H:%i:%s') as shipTime,
+        IFNULL(COMMSHIP.CONSTANT_NAME,'') as shipStatusName,
+        IFNULL(sos.WH_NAME,'') as whName
+        FROM
+        SO_ORDER_SHIP sos
+        INNER JOIN SO_ORDER so
+        ON sos.ORDER_ID = so.ORDER_ID
+        LEFT JOIN sl_house_account SHA
+        ON so.SELLERS = sha.HOUSE_CODE
+        LEFT JOIN MD_LOGISTICS_AREA D
+        ON (
+        D.LGCS_AREA_CODE = so.DISTRICT_CODE
+        OR D.LGCS_AREA_ID = so.DISTRICT_CODE
+        )
+        LEFT JOIN COMM_CONSTANT AS COMMSHIP
+        ON COMMSHIP.CONSTANT_VALUE= sos.SHIP_STATUS
+        AND COMMSHIP.CONSTANT_TYPE = 'ShipStatus'
+        <include refid="whereCondition"/>
+        ORDER BY sos.SHIP_ID DESC
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+
+    <sql id="whereCondition">
+        <where>
+            <if test="filterMap.districtCode!=null and filterMap.districtCode!=''">
+                AND so.DISTRICT_CODE = #{filterMap.districtCode}
+            </if>
+            <if test="filterMap.districtName!=null and filterMap.districtName!=''">
+                AND D.LGCS_AREA_NAME = #{filterMap.districtName}
+            </if>
+            <if test="filterMap.orderCode!=null and filterMap.orderCode!=''">
+                AND so.ORDER_CODE like #{filterMap.orderCode}
+            </if>
+            <if test="filterMap.shipId!=null and filterMap.shipId!=''">
+                AND sos.SHIP_ID = #{filterMap.shipId}
+            </if>
+            <if test="filterMap.shipTimeStart!=null and filterMap.shipTimeStart!=''">
+                <![CDATA[AND sos.CRT_TIME >= #{filterMap.shipTimeStart}]]>
+            </if>
+            <if test="filterMap.shipTimeEnd!=null and filterMap.shipTimeEnd!=''">
+                <![CDATA[AND sos.CRT_TIME<='${filterMap.shipTimeEnd} 23:59:59']]>
+            </if>
+            <if test="filterMap.buyersCode!=null and filterMap.buyersCode!=''">
+                AND so.BUYERS_CODE like #{filterMap.buyersCode}
+            </if>
+            <if test="filterMap.buyersName!=null and filterMap.buyersName!=''">
+                AND so.BUYERS_NAME like "%${filterMap.buyersName}%"
+            </if>
+            <if test="filterMap.frozenGoodsHousekeep!=null and filterMap.frozenGoodsHousekeep!=''">
+                AND sha.HOUSE_SHOW_NAME like "${filterMap.frozenGoodsHousekeep}"
+            </if>
+            <if test="filterMap.receiverAddr!=null and filterMap.receiverAddr!=''">
+                AND CONCAT(sos.RECEIVER_PROVINCE,sos.RECEIVER_CITY ,sos.RECEIVER_DISTRICT, sos.RECEIVER_ADDR) like "${filterMap.receiverAddr}"
+            </if>
+            <if test="filterMap.whFlg!=null and filterMap.whFlg!=''">
+                <if test="filterMap.whFlg == 1">
+                    AND sos.WH_CODE is null
+                </if>
+                <if test="filterMap.whFlg == 0">
+                    AND sos.WH_CODE is not null
+                </if>
+            </if>
+        </where>
+    </sql>
+
+    <select id="getPageCount" resultType="Integer"
+            parameterType="com.msk.core.bean.BasePageParam">
+        SELECT COUNT(1)
+        FROM
+        SO_ORDER_SHIP sos
+        INNER JOIN SO_ORDER so
+        ON sos.ORDER_ID = so.ORDER_ID
+        LEFT JOIN sl_house_account SHA
+        ON so.SELLERS = sha.HOUSE_CODE
+        LEFT JOIN MD_LOGISTICS_AREA D
+        ON (
+        D.LGCS_AREA_CODE = so.DISTRICT_CODE
+        OR D.LGCS_AREA_ID = so.DISTRICT_CODE
+        )
+        LEFT JOIN COMM_CONSTANT AS COMMSHIP
+        ON COMMSHIP.CONSTANT_VALUE= sos.SHIP_STATUS
+        AND COMMSHIP.CONSTANT_TYPE = 'ShipStatus'
+        <include refid="whereCondition"/>
+    </select>
+
+    <update id="modifyWhCode" parameterType="com.msk.so.bean.SO151414Bean">
+        UPDATE
+        so_order_ship sos
+        LEFT JOIN so_warehouse sw
+        ON sw.WAREHOUSE_CODE = #{whCode}
+        AND sw.DEL_FLG = 0
+        SET
+        sos.WH_CODE = #{whCode},
+        sos.WH_NAME = sw.WAREHOUSE_NAME,
+        sos.SHIP_STATUS = 9,
+        sos.UPD_ID = #{updId},
+        sos.UPD_TIME = #{updTime},
+        sos.VER = sos.VER + 1
+        WHERE sos.SHIP_ID  in
+        <foreach item="item" index="index" collection="shipIdList"  open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+</mapper>

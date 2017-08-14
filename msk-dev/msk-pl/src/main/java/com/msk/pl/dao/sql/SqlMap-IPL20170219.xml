@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170219Logic">
+    <select id="findTerminalList" parameterType="com.msk.pl.bean.IPL20170214RsParam"
+            resultType="com.msk.pl.bean.PlTerminalPartner">
+        select
+        A.TERMINAL_ID as terminalId,
+        A.TERMINAL_NAME as terminalName
+        from PL_TERMINAL_PARTNER AS A
+        WHERE A.PARTNER_ID=#{partnerId} AND (A.DEL_FLG=0 or A.DEL_FLG is NULL)
+        GROUP BY A.TERMINAL_ID
+    </select>
+    <select id="findDomainBsList" parameterType="com.msk.pl.bean.IPL20170214RsParam"
+            resultType="com.msk.pl.bean.PlDomainBs">
+        select
+        A.BS_CODE as bsCode,
+        A.BS_NAME as bsName
+        from PL_DOMAIN_BS AS A
+        LEFT JOIN PL_TERMINAL_PARTNER B ON A.TERMINAL_ID=B.TERMINAL_ID
+        WHERE B.PARTNER_ID=#{partnerId} AND (A.DEL_FLG=0 or A.DEL_FLG is NULL)
+        AND (B.DEL_FLG=0 or B.DEL_FLG is NULL)
+        GROUP BY A.BS_CODE
+    </select>
+</mapper>

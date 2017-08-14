@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.batch.wq.logic.BWQ201704Logic">
+
+
+    <!--查询所需数据-->
+    <select id="queryTwoTableData" resultType="com.msk.batch.wq.bean.BWQ201704Bean">
+        SELECT
+            a.SL_SHOW_NAME AS slShowName,
+            b.SL_CODE AS slCode,
+            b.SL_CODE_DIS AS slCodeDis
+        FROM
+            sl_bs_account a,sl_bs_basic_info b
+        WHERE
+            a.SL_ACCOUNT=b.SL_ACCOUNT
+        AND
+            a.DEL_FLG='0'
+    </select>
+
+    <!--查看wq_employee表-->
+    <select id="checkNameExist" resultType="com.msk.batch.wq.bean.BWQ201704Bean">
+        SELECT
+            a.EMP_ID AS empId,
+            a.ID AS id
+        FROM
+            wq_employee a
+        WHERE
+            a.EMP_NAME = #{filterMap.empName}
+    </select>
+</mapper>

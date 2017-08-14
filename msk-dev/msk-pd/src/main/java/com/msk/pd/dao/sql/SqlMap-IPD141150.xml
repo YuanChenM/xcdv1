@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pd.logic.IPD141150Logic">
+    <select id="queryScrollImgByPdCode" parameterType="com.msk.pd.bean.IPD141150Param" resultType="com.msk.pd.bean.IPD141150Bean">
+      select
+        APP_IMG as pdScrollImg,
+        TYPE as type,
+        ORIGINAL_IMG_NAME AS originalImgName
+      from pd_app_img
+      WHERE
+        DEL_FLG='0'
+        AND IMG_FUNCTION = '1'
+        AND PD_CODE=#{pdCode}
+        ORDER BY SORT+0;
+    </select>
+
+
+</mapper>

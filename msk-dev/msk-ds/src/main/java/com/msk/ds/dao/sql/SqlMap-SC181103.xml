@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.ds.logic.SC181103Logic">
+    <!--数据插入——供应商分销数量表-->
+    <insert id="saveDistNum" parameterType="com.msk.ds.bean.SC181103Param">
+        INSERT INTO DS_SUPP_DIST_NUM(
+        SUPP_DS_ID,
+        DIST_MONTH,
+        LGCS_CODE,
+        SUPP_CODE,
+        PD_CODE,
+        BRAND_TYPE,
+        DIST_TYPE,
+        DIST_NUM,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER
+        )
+        VALUES(
+        #{suppDsId},
+        #{distMonth},
+        #{lgcsCode},
+        #{suppCode},
+        #{pdCode},
+        #{brandType},
+        #{distType},
+        #{distNum},
+        0,
+        #{crtId},
+        #{crtTime},
+        null,
+        null,
+        #{actId},
+        #{actTime},
+        1
+        )
+    </insert>
+    <!--数据插入——产品虚拟库存实际表-->
+    <insert id="saveStockActual" parameterType="com.msk.ds.bean.SC181103Param">
+        INSERT INTO ds_pd_virtual_stock_actual (
+        SUPP_DS_ID,
+        VIRTUAL_STOCK_ACTUAL_ID,
+        DIST_MONTH,
+        LGCS_CODE,
+        SUPP_CODE,
+        PD_STOCK_TYPE,
+        HALF_CODE,
+        CLASSES_CODE,
+        BREED_CODE,
+        FEATURE_CODE,
+        GRADE_CODE,
+        OUT_SPEC,
+        OUT_NW,
+        MACHINING_CODE,
+        PD_CODE,
+        NORMS_CODE,
+        INPUT_DATE,
+        OLD_ACTUAL_NUM,
+        NEW_ACTUAL_NUM,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER)
+        VALUES
+        (
+        #{suppDsId},
+        #{stockActualId},
+        #{distMonth},
+        #{lgcsCode},
+        #{suppCode},
+        #{pdStockType},
+        #{halfCode},
+        #{classesCode},
+        #{breedCode},
+        #{featureCode},
+        #{gradeCode},
+        #{productSpecifical},
+        #{netWeight},
+        <![CDATA[substring(#{pdCode},3,1)]]>,
+        #{pdCode},
+        #{normsCode},
+        #{inputDate},
+        #{oldActualNum},
+        #{newActualNum},
+        0,
+        #{crtId},
+        #{crtTime},
+        NULL ,
+        NULL ,
+        #{actId},
+        #{actTime},
+        1
+        )
+    </insert>
+    <!--数据插入——产品虚拟库存计划表-->
+    <insert id="saveStockPlan" parameterType="com.msk.ds.bean.SC181103Param">
+        INSERT INTO ds_pd_virtual_stock_plan (
+        SUPP_DS_ID,
+        VIRTUAL_STOCK_PLAN_ID,
+        DIST_MONTH,
+        LGCS_CODE,
+        LGCS_NAME,
+        SUPP_CODE,
+        PD_STOCK_TYPE,
+        HALF_CODE,
+        CLASSES_CODE,
+        BREED_CODE,
+        FEATURE_CODE,
+        GRADE_CODE,
+        OUT_SPEC,
+        OUT_NW,
+        PD_CODE,
+        MACHINING_CODE,
+        NORMS_CODE,
+        ADJUST_DATE,
+        ORIG_PLAN_NUM,
+        OLD_PLAN_NUM,
+        NEW_PLAN_NUM,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER)
+        VALUES
+        (
+        #{suppDsId},
+        #{stockPlanId},
+        #{distMonth},
+        #{lgcsCode},
+        #{lgcsName},
+        #{suppCode},
+        #{pdStockType},
+        #{halfCode},
+        #{classesCode},
+        #{breedCode},
+        #{featureCode},
+        #{gradeCode},
+        #{productSpecifical},
+        #{netWeight},
+        #{pdCode},
+        <![CDATA[substring(#{pdCode},3,1)]]>,
+        #{normsCode},
+        #{adJustDate},
+        #{origPlanNum},
+        #{oldPlanNum},
+        #{newPlanNum},
+        0,
+        #{crtId},
+        #{crtTime},
+        NULL ,
+        NULL ,
+        #{actId},
+        #{actTime},
+        1
+        )
+    </insert>
+    <select id="findPageList" parameterType="BaseParam" resultType="com.msk.ds.bean.SC181103Bean">
+        SELECT
+        DISTINCT
+        B.LGCS_AREA_CODE AS lgcsCode,
+        A.SL_CODE AS suppCode,
+        IFNULL(A.SL_QLT_GRADE_CODE,'') AS slQltGradeCode,
+        B.SL_MAIN_CLASS AS slmainClass,
+        CONCAT(IFNULL(A.PD_CLASSES_CODE,''),IFNULL(A.MACHINING_CODE,''),IFNULL(A.PD_BREED_CODE,''),IFNULL(A.PD_FEATURE_CODE,''),IFNULL(A.WEIGHT_CODE,'')) AS pdCode,
+        PDB.BREED_NAME breedName,
+        PDF.FEATURE_NAME featureName,
+        IFNULL(AGENT.AUTH_EP_NAME,'') AS manuName
+        FROM
+        sl_product AS A
+        INNER JOIN  sl_seller  B ON  A.SL_CODE =  B.SL_CODE
+        <include refid="whereConditionSearch"/>
+        WHERE
+        A.STATUS in  (4,5)
+        AND A.DEL_FLG = 0
+        AND B.DEL_FLG = 0
+        <include refid="whereCondition"/>
+        ORDER BY
+        B.LGCS_AREA_CODE,
+        A.SL_CODE
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize}
+        </if>
+    </select>
+    <select id="getPageCount" resultType="int" parameterType="BaseParam">
+        select count(1)
+        FROM
+        (
+        SELECT
+            DISTINCT
+            B.LGCS_AREA_CODE AS lgcsCode,
+            A.SL_CODE AS suppCode,
+            IFNULL(A.SL_QLT_GRADE_CODE,'') AS slQltGradeCode,
+            B.SL_MAIN_CLASS AS slmainClass,
+            CONCAT(IFNULL(A.PD_CLASSES_CODE,''),IFNULL(A.MACHINING_CODE,''),IFNULL(A.PD_BREED_CODE,''),IFNULL(A.PD_FEATURE_CODE,''),IFNULL(A.WEIGHT_CODE,'')) AS pdCode,
+            PDB.BREED_NAME breedName,
+            PDF.FEATURE_NAME featureName
+            FROM
+            sl_product AS A
+            INNER JOIN  sl_seller  B ON  A.SL_CODE =  B.SL_CODE
+            <include refid="whereConditionSearch"/>
+            WHERE
+            A.STATUS in  (4,5)
+            AND A.DEL_FLG = 0
+            AND B.DEL_FLG = 0
+            <include refid="whereCondition"/>
+            ORDER BY
+            B.LGCS_AREA_CODE,
+            A.SL_CODE
+        ) A
+    </select>
+    <sql id="whereCondition">
+        <if test="filterMap.suppCode!=null and filterMap.suppCode!=''">
+            AND	 A.SL_CODE=#{filterMap.suppCode}
+        </if>
+        <if test="filterMap.lgcsCode!=null and filterMap.lgcsCode!=''">
+            AND  B.LGCS_AREA_CODE=#{filterMap.lgcsCode}
+        </if>
+        <if test="filterMap.brandTypeName!=null and filterMap.brandTypeName!=''">
+            AND  A.SL_QLT_GRADE_CODE=#{filterMap.brandTypeName}
+        </if>
+        <if test="filterMap.breedName!=null and filterMap.breedName!=''">
+            AND  PDB.BREED_NAME LIKE #{filterMap.breedName}
+        </if>
+        <if test="filterMap.featureName!=null and filterMap.featureName!=''">
+            AND  PDF.FEATURE_NAME LIKE #{filterMap.featureName}
+        </if>
+        <if test="filterMap.manuName!=null and filterMap.manuName!=''">
+            AND  AGENT.AUTH_EP_NAME LIKE #{filterMap.manuName}
+        </if>
+    </sql>
+    <sql id="whereConditionSearch">
+        INNER JOIN PD_BREED PDB
+        ON PDB.CLASSES_CODE = A.PD_CLASSES_CODE
+        AND PDB.MACHINING_CODE = A.MACHINING_CODE
+        AND PDB.BREED_CODE = A.PD_BREED_CODE
+        INNER JOIN PD_FEATURE PDF
+        ON PDF.CLASSES_CODE = A.PD_CLASSES_CODE
+        AND PDF.MACHINING_CODE = A.MACHINING_CODE
+        AND PDF.BREED_CODE = A.PD_BREED_CODE
+        AND PDF.FEATURE_CODE = A.PD_FEATURE_CODE
+        LEFT JOIN sl_ep_agent_auth AS AGENT ON A.SL_CODE = AGENT.SL_CODE AND A.PROD_EP_ID = AGENT.PRODUCER_EP_ID
+    </sql>
+
+    <select id="findAreaList" parameterType="BaseParam" resultType="com.msk.ds.bean.SC181103Bean">
+        SELECT
+        DISTINCT
+        A.LGCS_AREA_CODE AS lgcsCode,
+        A.LGCS_AREA_NAME AS lgcsName
+        FROM
+        md_logistics_area AS A
+        ORDER BY A.LGCS_AREA_CODE
+    </select>
+
+    <select id="findSuppList" parameterType="com.msk.ds.bean.SC181103Param" resultType="com.msk.ds.bean.SC181103Bean">
+        SELECT
+        DISTINCT
+        A.SL_CODE AS suppCode,
+        C.SL_SHOW_NAME AS suppName
+        FROM
+        sl_product AS A
+        INNER JOIN  sl_seller  B ON  A.SL_CODE =  B.SL_CODE
+        LEFT JOIN sl_account C ON C.SL_ACCOUNT = B.SL_ACCOUNT
+        WHERE
+        A.STATUS in  (4,5)
+        AND A.DEL_FLG = 0
+        AND B.DEL_FLG = 0
+        ORDER BY A.SL_CODE
+    </select>
+
+    <select id="findPdGradeList" parameterType="BaseParam" resultType="com.msk.core.entity.PdGrade">
+        SELECT
+	    GRADE_CODE AS gradeCode,
+	    GRADE_NAME AS gradeName
+        FROM
+	    pd_grade
+    </select>
+
+    <select id="checkPlanNum" parameterType="BaseParam" resultType="int">
+        SELECT count(*) FROM ds_pd_virtual_stock_plan plan
+        WHERE
+        plan.DIST_MONTH=#{distMonth}
+        AND plan.LGCS_CODE = #{lgcsCode}
+        AND plan.SUPP_CODE = #{suppCode}
+        AND plan.DEL_FLG = 0
+        AND plan.CLASSES_CODE = #{classesCode}
+        AND plan.PD_STOCK_TYPE = #{pdStockType}
+        AND plan.HALF_CODE = #{halfCode}
+    </select>
+
+    <select id="checkActualNum" parameterType="BaseParam" resultType="int">
+        SELECT count(*) FROM ds_pd_virtual_stock_actual actual
+        WHERE
+        actual.DIST_MONTH=#{distMonth}
+        AND actual.LGCS_CODE = #{lgcsCode}
+        AND actual.SUPP_CODE = #{suppCode}
+        AND actual.DEL_FLG = 0
+        AND actual.CLASSES_CODE = #{classesCode}
+        AND actual.PD_STOCK_TYPE = #{pdStockType}
+        AND actual.HALF_CODE = #{halfCode}
+    </select>
+
+    <insert id="batchSaveActual" parameterType="List">
+        INSERT INTO ds_pd_virtual_stock_actual (
+        SUPP_DS_ID,
+        VIRTUAL_STOCK_ACTUAL_ID,
+        DIST_MONTH,
+        LGCS_CODE,
+        SUPP_CODE,
+        PD_STOCK_TYPE,
+        HALF_CODE,
+        CLASSES_CODE,
+        BREED_CODE,
+        FEATURE_CODE,
+        GRADE_CODE,
+        OUT_SPEC,
+        OUT_NW,
+        MACHINING_CODE,
+        PD_CODE,
+        NORMS_CODE,
+        INPUT_DATE,
+        OLD_ACTUAL_NUM,
+        NEW_ACTUAL_NUM,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER)
+        VALUES
+        <foreach collection="list" item="actual" index="index" separator=",">
+            (
+            #{actual.suppDsId},
+            #{actual.stockActualId},
+            #{actual.distMonth},
+            #{actual.lgcsCode},
+            #{actual.suppCode},
+            #{actual.pdStockType},
+            #{actual.halfCode},
+            #{actual.classesCode},
+            #{actual.breedCode},
+            #{actual.featureCode},
+            #{actual.gradeCode},
+            #{actual.outSpec},
+            #{actual.outNetWeight},
+            <![CDATA[substring(#{pdCode},3,1)]]>,
+            #{actual.pdCode},
+            #{actual.normsCode},
+            #{actual.inputDate},
+            #{actual.oldActualNum},
+            #{actual.newActualNum},
+            0,
+            #{actual.crtId},
+            #{actual.crtTime},
+            NULL ,
+            NULL ,
+            #{actual.actId},
+            #{actual.actTime},
+            1
+            )
+        </foreach>
+    </insert>
+</mapper>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.ms.logic.MS112102Logic">
+   <!--  会员卡台账上传 -->
+        <insert id="saveUploadFileToMsCardManager" parameterType="com.msk.ms.bean.MS112102Bean">
+        INSERT INTO MS_CARDMANAGER(
+        MS_ID
+        ,MS_CARDNO
+        ,MS_INITPW
+        ,EXPIRE_DATE
+        ,PURCHASE_LOT
+        ,IS_ACTIVATE
+        ,MS_PREVPW
+        ,MS_NOWPW
+        ,BUYER_CODE
+        ,BUYER_NAME
+        ,IS_PROVIDE
+        ,PROVIDE_DATE
+        ,DEL_FLG
+        ,CRT_ID
+        ,CRT_TIME
+        ,UPD_ID
+        ,UPD_TIME
+        ,ACT_ID
+        ,ACT_TIME
+        ,VER
+        )
+        VALUES(
+        #{msId}
+        ,#{msCardno}
+        ,#{msInitpw}
+        ,#{expireDate}
+        ,#{purchaseLot}
+        ,#{isActivate}
+        ,#{msPrevpw}
+        ,#{msNowpw}
+        ,#{buyerCode}
+        ,#{buyerName}
+        ,#{isProvide}
+        ,#{provideDate}
+        ,#{delFlg}
+        ,#{crtId}
+        ,#{crtTime}
+        ,#{updId}
+        ,#{updTime}
+        ,#{actId}
+        ,#{actTime}
+        ,#{ver}
+        ) 
+    </insert>
+    <!-- 日志记录 -->
+     <insert id="saveUploadResultLog" parameterType="com.msk.ms.bean.MS112102MsCarduploadlog">
+        INSERT INTO MS_CARDUPLOADLOG(
+        LOG_ID
+        ,UPLOAD_RESULT
+        ,DEL_FLG
+        ,CRT_ID
+        ,CRT_TIME
+        ,UPD_ID
+        ,UPD_TIME
+        ,ACT_ID
+        ,ACT_TIME
+        ,VER
+        )
+        VALUES(
+        #{logId}
+        ,#{uploadResult}
+        ,#{delFlg}
+        ,#{crtId}
+        ,#{crtTime}
+        ,#{updId}
+        ,#{updTime}
+        ,#{actId}
+        ,#{actTime}
+        ,#{ver}
+        ) 
+    </insert>
+    <select id="maxId" resultType="com.msk.core.entity.MsCardmanager">
+         SELECT MAX(MS_ID+0) AS msId FROM MS_CARDMANAGER
+    </select>
+    <select id="selectMsCardNoIfExist" parameterType="BaseParam" resultType="com.msk.ms.bean.MS112102Bean">
+        SELECT MS_CARDNO AS msCardno FROM MS_CARDMANAGER WHERE MS_CARDNO=#{filterMap.cardNo}
+    </select>
+    <select id="maxLogId" resultType="com.msk.core.entity.MsCarduploadlog">
+         SELECT MAX(LOG_ID+0) AS logId FROM MS_CARDUPLOADLOG
+    </select>
+</mapper>

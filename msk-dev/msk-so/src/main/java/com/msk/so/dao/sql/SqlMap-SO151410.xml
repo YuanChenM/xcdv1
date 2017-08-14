@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.SO151410Logic">
+	<sql id="selectSql">
+		ORDER_ID as orderId,
+		A.SHIP_ID as shipId,
+		SHIP_CODE as shipCode,
+		ORDER_ID as orderId,
+		ORDER_CODE as orderCode,
+		date_format(A.FORECAST_SEND_TIME,'%Y-%c-%d') as forecastSendTimeStr,
+		date_format(A.FORECAST_RECEIVE_TIME,'%Y-%c-%d') as forecastReceiveTimeStr,
+		PAYMENT_TYPE as paymentType,
+		CASE PAYMENT_TYPE
+		WHEN 1 THEN '在线支付'
+		WHEN 2 THEN '线下支付'
+		END as paymentTypeName,
+		A.DELIVERY_TYPE as deliveryType,
+		IFNULL(COMMDELIVERY.CONSTANT_NAME,'') AS deliveryTypeName,
+		DELIVERY_TYPE as deliveryType,
+		RECEIVER_NAME as receiverName,
+		RECEIVER_TEL as receiverTel,
+		RECEIVER_PROVINCE as receiverProvince,
+		RECEIVER_CITY as receiverCity,
+		RECEIVER_DISTRICT as receiverDistrict,
+		RECEIVER_ADDR as receiverAddr,
+		RECEIVER_ADDR2 as receiverAddr2,
+		RECEIVER_ADDR_KEY as receiverAddrKey,
+		SHIP_STATUS as shipStatus,
+		CASE WHEN (tt.leftQty = 0 AND A.SHIP_STATUS != 99 AND A.SHIP_STATUS != 98 AND A.SHIP_STATUS != 97) THEN '全部退货'
+		ELSE IFNULL(COMMSHIP.CONSTANT_NAME,'') END as shipStatusName,
+		tt.canCancelQty as canCancelQty
+	</sql>
+    <!-- 查询订单发货主表 -->
+    <select id="findOrderShipInfo" parameterType="BaseParam" resultType="com.msk.so.bean.SO151410Bean">
+		SELECT
+		<include refid="selectSql"/>
+		FROM SO_ORDER_SHIP A
+		LEFT  JOIN  COMM_CONSTANT AS COMMDELIVERY
+		ON COMMDELIVERY.CONSTANT_VALUE= A.DELIVERY_TYPE AND COMMDELIVERY.CONSTANT_TYPE = 'DeliveryType'
+		LEFT  JOIN  COMM_CONSTANT AS COMMSHIP
+		ON COMMSHIP.CONSTANT_VALUE= A.SHIP_STATUS AND COMMSHIP.CONSTANT_TYPE = 'ShipStatus'
+		LEFT JOIN (
+		SELECT ship_id, sum(leftQty) as leftQty, sum(canCancelQty) as canCancelQty
+		FROM (
+		SELECT sos.ship_id,
+		soda.SUPP_QTY - IFNULL(soda.RETURN_QTY, 0) - IFNULL(soda.REJECTION_QTY, 0) AS leftQty,
+		IFNULL(soda.CANCEL_QTY, 0) + IFNULL(soda.REJECTION_QTY, 0) + IFNULL(soda.RECEIVE_QTY, 0) AS canCancelQty
+		FROM so_order_ship sos
+		LEFT JOIN so_order_detail_availability soda
+		ON sos.ship_id = soda.ship_id
+		) t
+		group by
+		ship_id
+		) tt
+		ON A.ship_id = tt.ship_id
+		WHERE A.ORDER_ID=#{filterMap.orderId}
+	</select>
+
+	<select id="findOrderShipInfoByChildId" parameterType="BaseParam" resultType="com.msk.so.bean.SO151410Bean">
+		SELECT
+		<include refid="selectSql"/>
+		FROM SO_ORDER_SHIP A
+		LEFT  JOIN  COMM_CONSTANT AS COMMDELIVERY
+		ON COMMDELIVERY.CONSTANT_VALUE= A.DELIVERY_TYPE AND COMMDELIVERY.CONSTANT_TYPE = 'DeliveryType'
+		LEFT  JOIN  COMM_CONSTANT AS COMMSHIP
+		ON COMMSHIP.CONSTANT_VALUE= A.SHIP_STATUS AND COMMSHIP.CONSTANT_TYPE = 'ShipStatus'
+		LEFT JOIN (
+		SELECT ship_id, sum(leftQty) as leftQty, sum(canCancelQty) as canCancelQty
+		FROM (
+		SELECT sos.ship_id,
+		soda.SUPP_QTY - IFNULL(soda.RETURN_QTY, 0) - IFNULL(soda.REJECTION_QTY, 0) AS leftQty,
+		IFNULL(soda.CANCEL_QTY, 0) + IFNULL(soda.REJECTION_QTY, 0) + IFNULL(soda.RECEIVE_QTY, 0) AS canCancelQty
+		FROM so_order_ship sos
+		LEFT JOIN so_order_detail_availability soda
+		ON sos.ship_id = soda.ship_id
+		) t
+		group by
+		ship_id
+		) tt
+		ON A.ship_id = tt.ship_id
+		WHERE A.CHILD_ORDER_ID = #{filterMap.orderId}
+	</select>
+
+	<select id="findRelation" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderRelation">
+		SELECT MAIN_ORDER_ID AS mainOrderId,
+		CHILD_ORDER_ID AS childOrderId
+		FROM SO_ORDER_RELATION
+		WHERE CHILD_ORDER_ID = #{filterMap.orderId}
+	</select>
+
+	<!-- 查询订单供货明细信息表 -->
+      <select id="findSoOrderDetailAvailability" parameterType="BaseParam"
+            resultType="com.msk.core.entity.SoOrderDetailAvailability">
+        SELECT
+        A.ORDER_ID AS orderId
+        ,A.ORDER_CODE AS orderCode
+        ,A.ORDER_DETAIL_ID AS orderDetailId
+        ,A.ORDER_DETAIL_AVAILABILITY_ID AS orderDetailAvailabilityId
+		,IFNULL(
+		  (
+		  SELECT DISTINCT
+		  ss.SL_CODE_DIS
+		  FROM
+		  sl_seller ss
+		  WHERE
+		  ss.SL_CODE = A.SUPPLIER_CODE
+		  )
+		  , ''
+		  ) AS supplierCode
+		,IFNULL(
+		  (
+		  SELECT DISTINCT
+		  se.EP_NAME
+		  FROM
+		  sl_seller ss
+		  LEFT JOIN sl_enterprise se
+		  ON se.EP_ID = ss.EP_ID
+		  WHERE
+		  ss.SL_CODE = A.SUPPLIER_CODE
+		  )
+		  , ''
+		  ) AS supplierName
+        ,A.CLASSES_CODE AS classesCode
+        ,A.CLASSES_CODE AS classesName
+        ,A.BREED_CODE AS breedCode
+        ,A.BREED_NAME AS breedName
+        ,A.FEATURE_CODE AS featureCode
+        ,A.FEATURE_NAME AS featureName
+        ,A.NORMS_CODE AS normsCode
+        ,A.NORMS_NAME AS normsName
+        ,A.PD_CODE AS pdCode
+        ,B.PD_NAME AS pdName
+        ,B.PD_GRADE_CODE AS pdGradeCode
+        ,B.PD_GRADE_NAME AS pdGradeName
+        ,A.UNIT AS unit
+        ,A.PACKING_VOLUME AS packingVolume
+        ,A.WEIGHT AS weight
+        ,A.VOLUME AS volume
+        ,A.SUPP_QTY AS suppqty
+        ,A.SEND_QTY AS sendQty
+        ,A.RECEIVE_QTY AS receiveQty
+        ,A.CANCEL_QTY AS cancelQty
+        ,A.RETURN_QTY AS returnQty
+        ,A.REJECTION_QTY AS rejectionQty
+	    ,A.STATUS AS status
+        FROM SO_ORDER_DETAIL_AVAILABILITY A
+		INNER JOIN SO_ORDER_DETAIL B
+		ON A.ORDER_DETAIL_ID = B.ORDER_DETAIL_ID
+		  <where>
+            <if test="filterMap.shipId!=null and filterMap.shipId!=''">
+                AND SHIP_ID = #{filterMap.shipId}
+			  </if>
+        </where>
+    </select>
+
+	<!-- 更新订单发货主表 -->
+	<update id="modify" parameterType="BaseParam">
+		UPDATE
+		  SO_ORDER_SHIP
+		SET
+		  SHIP_STATUS = 97,
+		  CANCEL_TIME = #{updTime},
+		  CANCEL_MAN_ID = #{crtId},
+		  CANCEL_MAN_NAME = #{filterMap.cancelManName},
+		  UPD_ID = #{crtId},
+		  UPD_TIME = #{updTime},
+		  VER = VER + 1
+		WHERE SHIP_ID = #{shipId}
+	</update>
+
+	<!-- 更新订单供货明细信息表 -->
+	<update id="modifyAvailability" parameterType="BaseParam">
+		UPDATE
+		SO_ORDER_DETAIL_AVAILABILITY
+		SET
+		CANCEL_QTY = SUPP_QTY,
+		SEND_QTY = 0,
+		UPD_ID = #{crtId},
+		UPD_TIME = #{updTime},
+		VER = VER + 1
+		WHERE SHIP_ID = #{shipId}
+	</update>
+
+	<!-- 更新订单明细表 -->
+	<update id="modifyDetail" parameterType="BaseParam">
+		UPDATE
+		SO_ORDER_DETAIL sod
+		INNER JOIN SO_ORDER_DETAIL_AVAILABILITY soda
+		ON soda.ORDER_DETAIL_ID = sod.ORDER_DETAIL_ID
+		SET
+		sod.CANCEL_QTY = sod.ORDER_QTY,
+		sod.SEND_QTY = 0,
+		sod.UPD_ID = #{crtId},
+		sod.UPD_TIME = #{updTime},
+		sod.VER = sod.VER + 1
+		WHERE soda.SHIP_ID = #{shipId}
+	</update>
+</mapper>

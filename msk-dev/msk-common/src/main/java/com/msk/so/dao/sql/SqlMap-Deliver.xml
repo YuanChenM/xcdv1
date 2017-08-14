@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.DeliverLogic">
+    <insert id="saveDeliver" parameterType="BaseEntity">
+        INSERT INTO  SO_DELIVER(
+        ORDER_ID,
+        ORDER_CODE,
+        DELIVER_ID,
+        DELIVER_CODE,
+        DELIVER_PERSON,
+        PERSON_MOBILE,
+        DELIVER_DATE,
+        DELIVER_MODE,
+        EXPECT_RECEIVE_DATE,
+        ACTUAL_RECEIVE_DATE,
+        REMARKS,
+        REMARKS2,
+        REMARKS3,
+        DELIVER_STATUS,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER,
+        SHIP_ID,
+        SHIP_CODE
+        )VALUES (
+        #{orderId},
+        #{orderCode},
+        #{deliverId},
+        #{deliverCode},
+        #{deliverPerson},
+        #{personMobile},
+        #{deliverDate},
+        #{deliverMode},
+        #{expectReceiveDate},
+        #{actualReceiveDate},
+        #{remarks},
+        #{remarks2},
+        #{remarks3},
+        0,
+        0,
+        #{crtId},
+        #{crtTime},
+        #{updId},
+        #{updTime},
+        #{actId},
+        #{actTime},
+        1,
+        #{shipId},
+        #{shipCode}
+        )
+
+    </insert>
+
+
+    <insert id="saveDeliverDetail" parameterType="BaseEntity">
+        INSERT INTO  SO_DELIVER_DETAIL(
+        DELIVER_ID,
+        DELIVER_CODE,
+        ORDER_ID,
+        ORDER_CODE,
+        ORDER_DETAIL_ID,
+        ORDER_DETAIL_AVAILABILITY_ID,
+        DELIVER_DETAIL_ID,
+        SUPPLIER_CODE,
+        PD_CODE,
+        PD_NAME,
+        DELIVER_QTY,
+        RECEIVE_QTY,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER
+        )VALUES (
+        #{deliverId},
+        #{deliverCode},
+        #{orderId},
+        #{orderCode},
+        #{orderDetailId},
+        #{orderDetailAvailabilityId},
+        #{deliverDetailId},
+        #{supplierCode},
+        #{pdCode},
+        #{pdName},
+        #{deliverQty},
+        #{receiveQty},
+        0,
+        #{crtId},
+        #{crtTime},
+        #{updId},
+        #{updTime},
+        #{actId},
+        #{actTime},
+        1
+        )
+    </insert>
+    <update id="updateDeliver" parameterType="BaseEntity">
+        UPDATE SO_DELIVER T SET  T.DELIVER_STATUS=1,T.UPD_TIME=#{updTime},T.VER=VER+1  WHERE T.DELIVER_CODE=#{deliverCode}
+    </update>
+    <update id="updateDeliverDetail" parameterType="BaseEntity">
+        UPDATE SO_DELIVER_DETAIL T SET T.UPD_TIME=#{updTime},T.RECEIVE_QTY=#{receiveQty},T.VER=VER+1 WHERE T.ORDER_ID=#{orderId}
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(pdCode)">
+            AND PD_CODE = #{pdCode}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(supplierCode)">
+            AND SUPPLIER_CODE = #{supplierCode}
+        </if>
+    </update>
+
+
+</mapper>

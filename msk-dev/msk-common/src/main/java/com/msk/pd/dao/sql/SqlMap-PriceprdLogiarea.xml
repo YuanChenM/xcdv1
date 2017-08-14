@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.msk.pd.logic.PriceprdLogiareaLogic">
+    <select id="findList" parameterType="BaseParam" resultType="com.msk.core.entity.PdPriceprdLogiarea">
+        SELECT
+            PRICEPRDLOGIAREA.PDT_MIXCODE AS  pdtMixcode
+            ,PRICEPRDLOGIAREA.PRICECYCLE_PERIOD AS pricecyclePeriod
+            ,PRICEPRDLOGIAREA.PRICEOFBOX AS priceofbox
+            ,PRICEPRDLOGIAREA.ORDERLEVEL_CODE AS orderlevelCode
+            ,PRICEPRDLOGIAREA.ORDERLEVEL_NAME AS orderlevelName
+            ,PRICEPRDLOGIAREA.NETWEIGHT AS netweight
+        FROM PD_PRICEPRD_LOGIAREA AS PRICEPRDLOGIAREA
+        WHERE PDT_MIXCODE = #{filterMap.pdCode} AND ORDERLEVEL_CODE=#{filterMap.orderlevelCode}
+    </select>
+    <select id="findOne" resultType="com.msk.core.entity.PdOrderlevel" parameterType="BaseParam">
+        SELECT
+        A.ORDERLEVEL_CODE AS orderlevelCode,
+        A.ORDERLEVEL_NAME AS orderlevelName,
+        A.PRICE_PERCENT AS pricePercent,
+        A.BOX_CNT AS boxCnt,
+        A.BOX_CNTMIN AS boxCntmin,
+        A.BOX_CNTMAX AS boxCntmax
+        FROM
+        pd_orderlevel AS A
+        WHERE
+        A.BOX_CNTMIN &lt;= #{filterMap.orderNum}
+        ORDER BY
+        A.BOX_CNTMIN DESC
+        LIMIT 0,1
+    </select>
+</mapper>

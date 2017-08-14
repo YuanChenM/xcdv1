@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.SO151409Logic">
+
+       <select id="findPageList" parameterType="com.msk.core.bean.BasePageParam"
+               resultType="com.msk.so.bean.SO151409Bean">
+              SELECT
+                      R.LGCS_CODE as lgcsCode,
+                      R.PD_CODE as pdCode,
+                      R.ORDER_LEVEL AS orderLevel,
+                      R.SUPP_CODE as suppCode,
+                      IFNULL(R.SUPP_NAME,'') as  suppName,
+                      IFNULL(R.PRICE_CYCLE,'') as priceCycle,
+                      IFNULL(R.SALES_AMOUNT,'') as salesAmount,
+                      IFNULL(R.SALES_RANKING,'') as salesRanking,
+                      IFNULL(R.DIST_QUA,'') as distQua,
+                      IFNULL(R.WHEEL_FREQUENCY,'') as wheelFrequency,
+                       IFNULL(CASE r.ORDER_LEVEL WHEN 0
+                       THEN ''
+                       ELSE (select c.CONSTANT_NAME from so_sales_ranking s LEFT JOIN comm_constant c ON c.constant_value = s.ORDER_LEVEL where c.constant_type='OrderLevel'  and c.constant_value = R.ORDER_LEVEL GROUP BY c.CONSTANT_NAME)
+                       END,'') as levelName
+                  FROM
+                      SO_SALES_RANKING R
+                  WHERE
+                   R.DEL_FLG = 0
+           <if test="filterMap.lgcsCode != null and filterMap.lgcsCode != ''">
+               AND R.LGCS_CODE like CONCAT('%',#{filterMap.lgcsCode})
+           </if>
+
+           <if test="filterMap.suppCode != null and filterMap.suppCode != ''">
+               AND R.SUPP_CODE like CONCAT('%',#{filterMap.suppCode})
+           </if>
+
+           <if test="filterMap.suppName != null and filterMap.suppName != ''">
+               AND R.SUPP_NAME like CONCAT('%',#{filterMap.suppName})
+           </if>
+
+           <if test="filterMap.pdCode != null and filterMap.pdCode != ''">
+               AND R.PD_CODE like  CONCAT('%',#{filterMap.pdCode})
+           </if>
+
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+
+ <select id="getPageCount" resultType="Integer"
+         parameterType="com.msk.core.bean.BasePageParam">
+     SELECT
+     COUNT(1)
+     FROM
+           SO_SALES_RANKING R
+     WHERE
+               R.DEL_FLG = 0
+     <if test="filterMap.lgcsCode != null and filterMap.lgcsCode != ''">
+         AND R.LGCS_CODE like CONCAT('%',#{filterMap.lgcsCode})
+     </if>
+
+     <if test="filterMap.suppCode != null and filterMap.suppCode != ''">
+         AND R.SUPP_CODE like CONCAT('%',#{filterMap.suppCode})
+     </if>
+
+     <if test="filterMap.suppName != null and filterMap.suppName != ''">
+         AND R.SUPP_NAME like CONCAT('%',#{filterMap.suppName})
+     </if>
+
+     <if test="filterMap.pdCode != null and filterMap.pdCode != ''">
+         AND R.PD_CODE like  CONCAT('%',#{filterMap.pdCode})
+     </if>
+
+ </select>
+
+
+    <update id="saveSalesRanking" parameterType="com.msk.core.bean.BasePageParam">
+           UPDATE
+                  SO_SALES_RANKING
+          SET
+                   SALES_RANKING = #{filterMap.salesRanking},
+                   WHEEL_FREQUENCY = #{filterMap.wheelFrequency}
+           WHERE
+                   LGCS_CODE  = #{filterMap.lgcsCode}
+           AND
+                   ORDER_LEVEL  = #{filterMap.orderLevel}
+           AND
+                   PD_CODE  = #{filterMap.pdCode}
+           AND
+                   SUPP_CODE  = #{filterMap.suppCode}
+    </update>
+
+</mapper>

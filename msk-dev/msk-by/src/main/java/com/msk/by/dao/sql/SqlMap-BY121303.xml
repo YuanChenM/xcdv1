@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.by.logic.BY121303Logic">
+    <sql id="selectSql">
+        a.BUYER_ID AS buyerId,
+        ifnull(a.BUYER_CODE, '') AS buyerCode,
+        ifnull(a.BUYER_NAME, '') AS buyerName,
+        ifnull(a.BUYER_ADDR, '') AS buyerAddr,
+        ifnull(a.SUPERIOR_ID, '') AS superiorId,
+        ifnull(a.SUPERIOR_TYPE, '') AS superiorType,
+        ifnull(a.SUPERIOR_NAME, '') AS superiorName,
+        ifnull(a.SUPERIOR_QUA, '') AS superiorQua,
+        ifnull(a.PROVINCE_CODE, '') AS provinceCode,
+        ifnull(a.LGCS_AREA_CODE, '') AS lgcsAreaCode,
+        ifnull(a.CITY_CODE, '') AS cityCode,
+        ifnull(a.DISTRICT_CODE, '') AS districtCode,
+        ifnull(a.BUYER_WEBSITE, '') AS buyerWebsite,
+        ifnull(a.BUYER_WECHAT, '') AS buyerWechat,
+        ifnull(a.STORE_NO, '') AS storeNo,
+        ifnull(a.STORE_AREA, '') AS storeArea,
+        ifnull(a.BUSI_TEL, '') AS busiTel,
+        ifnull(a.EMPLOYEES_NUM, 0) AS employeesNum,
+        ifnull(a.PAYMENT_TYPE, '') AS paymentType,
+        ifnull(a.PLAN_ORDER_GAP, '') AS planOrderGap,
+        ifnull(a.PLAN_ORDER_NUM, '') AS planOrderNum,
+        ifnull(a.ACTUAL_ORDER_GAP, '') AS actualOrderGap,
+        ifnull(a.ACTUAL_ORDER_NUM, '') AS actualOrderNum,
+        ifnull(a.MARKETINGS_STATUS, '') AS marketingsStatus,
+        ifnull(a.REGISTER_SOURCE, '') AS registerSource,
+        ifnull(b.CONSTANT_NAME, '') AS marketingsStatusName,
+        ifnull(c.ACCOUNT_NAME, '') AS accountName,
+        ifnull(c.TEL_NO, '') AS telNo,
+        ifnull(d.LGCS_AREA_NAME, '') AS lgcsAreaName,
+        ifnull(e.CITY_NAME, '') AS cityName,
+        ifnull(f.DISTRICT_NAME, '') AS districtName,
+        ifnull(emp.EMPLOYEE_NAME,'') AS bossName
+    </sql>
+    <sql id="whereCondition">
+        WHERE a.DEL_FLG = '0' AND c.DEL_FLG = '0'
+        <if test="filterMap.superiorId!=null and filterMap.superiorId!=''">
+            AND a.SUPERIOR_ID like #{filterMap.superiorId}
+        </if>
+        <if test="filterMap.buyerCode!=null and filterMap.buyerCode!=''">
+            AND a.BUYER_CODE like #{filterMap.buyerCode}
+        </if>
+        <if test="filterMap.buyerName!=null and filterMap.buyerName!=''">
+            AND a.BUYER_NAME like #{filterMap.buyerName}
+        </if>
+        <if test="filterMap.storeNo!=null and filterMap.storeNo!=''">
+            AND a.STORE_NO like #{filterMap.storeNo}
+        </if>
+        <if test="filterMap.bossName!=null and filterMap.bossName!=''">
+            AND emp.EMPLOYEE_NAME like #{filterMap.bossName}
+        </if>
+        <if test="filterMap.buyerAddr!=null and filterMap.buyerAddr!=''">
+            AND a.BUYER_ADDR like #{filterMap.buyerAddr}
+        </if>
+        <if test="filterMap.superiorName!=null and filterMap.superiorName!=''">
+            AND a.SUPERIOR_NAME like #{filterMap.superiorName}
+        </if>
+        <if test="filterMap.marketingsStatusName!=null and filterMap.marketingsStatusName!=''">
+            AND b.CONSTANT_NAME like #{filterMap.marketingsStatusName}
+        </if>
+        <if test="filterMap.accountName!=null and filterMap.accountName!=''">
+            AND c.ACCOUNT_NAME like #{filterMap.accountName}
+        </if>
+        <if test="filterMap.telNo!=null and filterMap.telNo!=''">
+            AND c.TEL_NO like #{filterMap.telNo}
+        </if>
+        <if test="filterMap.lgcsAreaName!=null and filterMap.lgcsAreaName!=''">
+            AND (d.LGCS_AREA_NAME like #{filterMap.lgcsAreaName}
+                 OR
+                 d.SHORT_SPELL like #{filterMap.lgcsAreaName})
+        </if>
+        <if test="filterMap.cityName!=null and filterMap.cityName!=''">
+            AND (e.CITY_NAME like #{filterMap.cityName}
+                 OR
+                 e.SHORT_SPELL like #{filterMap.cityName})
+        </if>
+        <if test="filterMap.districtName!=null and filterMap.districtName!=''">
+            AND (f.DISTRICT_NAME like #{filterMap.districtName}
+                 OR
+                 f.SHORT_SPELL like #{filterMap.districtName})
+        </if>
+    </sql>
+    <sql id="selectFrom">
+        FROM by_buyer_basic_info a
+        LEFT JOIN comm_constant b
+          ON b.CONSTANT_VALUE = a.MARKETINGS_STATUS
+         AND b.CONSTANT_TYPE = 'MarketingSatus'
+        LEFT JOIN by_buyer_account c
+          ON c.BUYER_ID = a.BUYER_ID
+        LEFT JOIN by_buyer_employee emp
+        ON emp.BUYER_ID = a.BUYER_ID  and emp.EMPLOYEE_TYPE ='1'
+        LEFT JOIN md_logistics_area d
+          ON d.LGCS_AREA_CODE = a.LGCS_AREA_CODE
+        LEFT JOIN md_city e
+          ON e.CITY_CODE = a.CITY_CODE
+        LEFT JOIN md_district f
+          ON f.CITY_ID = e.CITY_ID
+         AND f.DISTRICT_CODE = a.DISTRICT_CODE
+    </sql>
+    <select id="findPageList" resultType="com.msk.by.bean.BY121303Bean" parameterType="BaseParam">
+        select
+        <include refid="selectSql"/>
+        <include refid="selectFrom"/>
+        <include refid="whereCondition"/>
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize}
+        </if>
+    </select>
+
+    <select id="getPageCount" resultType="Integer" parameterType="BaseParam">
+        select count(1)
+        <include refid="selectFrom"/>
+        <include refid="whereCondition"/>
+    </select>
+
+    <update id="deleteBuyerInfo" parameterType="BaseParam">
+        UPDATE
+           ${filterMap.tableName}
+        SET
+           DEL_FLG = #{filterMap.delFlg}
+        WHERE
+           BUYER_ID = #{filterMap.buyerId}
+    </update>
+</mapper>

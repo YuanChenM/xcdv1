@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>申报单统计</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link rel="stylesheet" href="../css/sm.min.css">
+    <link rel="stylesheet" href="../css/sm-extend.min.css">
+    <style type="text/css">
+
+        .rj-table {
+            margin-bottom: 0 !important;
+            border: 1px solid #ddd;
+            border-collapse: collapse !important;
+            border-radius: 1px;
+            width: 100%;
+            font-size: 12px;
+            margin-left: 2px;
+            margin-right: 2px;
+        }
+
+        .rj-table td {
+            margin-bottom: 0 !important;
+            border: 1px solid #d2dcf8;
+            border-collapse: collapse !important;
+            border-radius: 1px;
+        }
+
+        .rj-table thead td {
+            /*font-weight: bold;*/
+            text-align: center;
+            background: #DCDCDC;
+        }
+
+        .rj-table tbody td {
+            text-align: center;
+        }
+    </style>
+
+    <script src="../js/common.js"></script>
+</head>
+<body>
+<div class="page-group">
+    <div class="page page-current" id="page1">
+        <header class="bar bar-nav">
+            <a class="button button-link button-nav pull-left back" href="dpartner_operations.html" id="back">
+                <span class="icon icon-left"></span>
+            </a>
+            <a class="button button-link button-nav pull-right back" href="dpartner_operations.html" id="home">
+                <span class="icon icon-home"></span>
+            </a>
+            <h1 class="title">申报单统计</h1>
+        </header>
+
+
+        <div class="content" style="background: white">
+            <div class="row" style="margin-top:10px; ">
+                <!--买手或者配送站-->
+                <div class="col-40">
+                    <select id="type">
+                        <option value="1">按配送站</option>
+                        <option value="2">按买手</option>
+                        <!-- <option value="0">全部</option>-->
+                    </select>
+                </div>
+                <!---年月-->
+                <div class="col-40">
+                    <select id="date">
+                    </select>
+                </div>
+                <!--搜索按钮-->
+                <div class="col-20">
+                    <div style="font-size: 14px;">
+                        <a href="#" id="search" class="button button-light">搜索</a>
+                    </div>
+                </div>
+
+            </div>
+            <table class="rj-table" style="margin-top:10px;">
+                <thead>
+                <tr>
+                    <td id="viewType">配送站</td>
+                    <td>任务</td>
+                    <td>实际</td>
+                    <td>完成百分比</td>
+                </tr>
+                </thead>
+                <tbody id="periods_tbody">
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
+</div>
+<script type='text/javascript' src='../js/zepto.min.js' charset='utf-8'></script>
+<script type="text/javascript">
+    $.config = {router: false}
+</script>
+<script type='text/javascript' src='../js/touch.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type="text/javascript" src="../js/common.js"></script>
+<script type="text/javascript" src="../js/zepto.cookie.min.js"></script>
+
+<script type="text/javascript">
+
+    var id = $.fn.cookie("id");
+    var name = $.fn.cookie("name");
+
+    $(document).ready(function () {
+        initDate();
+        search();
+        $("#search").click(function () {
+            search();
+        });
+    });
+    function initDate() {
+        $.ajax({
+            type: "post",
+            url: "/" + _webroot + "/api/v1/pl/bs_declaration_datelist",
+            data: JSON.stringify({
+                "siteCode": "318",
+                "auth": "pl",
+                "loginId": id,
+                "param": {}
+            }),
+            contentType: "application/json",
+            async: false,
+            success: function (data) {
+                if (data.status == "S") {
+                    var declareYMList = data.result;
+                    $.each(declareYMList, function (i, value) {
+                        $("#date").append("<option value='" + value.declareYM + "'>" + value.declareYM + "</option>");
+                    });
+                } else {
+                    $.alert(data.message);
+                }
+            }
+        });
+    }
+    function search() {
+        var mySelect = document.getElementById("date");
+        var crtDate = mySelect.options[mySelect.selectedIndex].value;
+
+        var typeSelect = document.getElementById("type")
+        var selectRule = typeSelect.options[typeSelect.selectedIndex].value;
+
+        if (selectRule == "1") {
+            $("#viewType").html("配送站");
+        } else if (selectRule == "2") {
+            $("#viewType").html("买手");
+        }
+        /* else if (selectRule == "0") {
+         $("#viewType").html("价盘年月");
+         }*/
+
+        $.ajax({
+            type: "post",
+            url: "/" + _webroot + "/api/v1/pl/partner_declaration_sum",
+            data: JSON.stringify({
+                "siteCode": "318",
+                "auth": "pl",
+                "loginId": "aaa",
+                "param": {
+                    "paging": false,
+//                    "pageCount": "10",
+//                    "pageNo": "1",
+                    "partnerId": id,
+                    "selectRule": selectRule,
+                    "crtDate": crtDate
+                }
+            }),
+            contentType: "application/json",
+            async: false,
+            success: function (data) {
+                if (data.status == "S" && data.result) {
+                    var dataList = data.result.bsTaskList;
+                    $("tbody").find("tr").remove();
+                    $.each(dataList, function (index, element) {
+                        if (selectRule == "1") {
+                            $("tbody").append("<tr style='height:40px;'><td>" + element.terminalName + "</td><td>" + element.needRecordNumber + "</td><td>" + element.alreadyRecordNumber + "</td><td>" + element.percent + "%" + "</td></tr>");
+                        }
+                        if (selectRule == "2") {
+                            $("tbody").append("<tr style='height:40px;'><td>" + element.bsName + "</td><td>" + element.needRecordNumber + "</td><td>" + element.alreadyRecordNumber + "</td><td>" + element.percent + "%" + "</td></tr>");
+                        }
+                        if (selectRule == "0") {
+                            $("tbody").append("<tr style='height:40px;'><td>" + element.crtDate + "</td><td>" + element.needRecordNumber + "</td><td>" + element.alreadyRecordNumber + "</td><td>" + element.percent + "%" + "</td></tr>");
+                        }
+                    });
+
+                    dataExist = "1";
+                } else {
+                    $("tbody").find("tr").remove();
+                    $("tbody").append("<tr ><td colspan='4'>未查询到数据 !</td></tr>");
+                    $.alert(data.message);
+                }
+            }
+        });
+    }
+
+</script>
+</body>
+</html>

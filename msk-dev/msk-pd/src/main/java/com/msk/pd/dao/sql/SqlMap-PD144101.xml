@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pd.logic.PD144101Logic">
+    <!--  查询轮播图设置表中数据    -->
+    <select id="findImgHeight" parameterType="BaseParam"
+            resultType="com.msk.core.entity.PdAppScrollImgSetting">
+        SELECT
+        ID AS id,
+        MODEL_HEIGHT AS modelHeight
+        FROM
+        pd_app_scroll_img_setting
+        WHERE
+        DEL_FLG =0
+    </select>
+    <!--  新增轮播图片的高度    -->
+    <insert id="save" parameterType="com.msk.core.entity.PdAppScrollImgSetting">
+        INSERT INTO pd_app_scroll_img_setting
+        (
+        ID,
+        MODEL_HEIGHT,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER
+        )
+        VALUES
+        (
+        #{id},
+        #{modelHeight},
+        #{delFlg},
+        #{crtId},
+        #{crtTime},
+        #{updId},
+        #{updTime},
+        #{actId},
+        #{actTime},
+        #{ver}
+        )
+    </insert>
+    <!--  修改轮播图片的高度    -->
+    <update id="modify" parameterType="com.msk.core.entity.PdAppScrollImgSetting">
+        UPDATE
+        pd_app_scroll_img_setting
+        SET
+        MODEL_HEIGHT=#{modelHeight},
+        UPD_ID = #{updId},
+        UPD_TIME = #{updTime},
+        VER = VER+1
+        WHERE
+        DEL_FLG =0
+        AND ID = #{id}
+    </update>
+
+    <!--   查询新增轮播图片序号 -->
+    <select id="findMaxSort" parameterType="com.msk.pd.bean.PD144101Param"
+            resultType="com.msk.core.entity.PdAppScrollImg">
+        SELECT
+        ID AS id,
+        SORT+1 AS sort
+        FROM
+        PD_APP_SCROLL_IMG
+        WHERE
+        DEL_FLG =0
+        order by SORT desc LIMIT 1
+    </select>
+
+    <!--  查询轮播图片列表    -->
+    <select id="findPageList" parameterType="BaseParam" resultType="com.msk.core.entity.PdAppScrollImg">
+        SELECT
+        ID AS id,
+        SORT AS sort,
+        SCROLL_IMG AS scrollImg,
+        ORIGINAL_IMG_NAME AS originalImgName,
+        TYPE AS type,
+        VER AS ver
+        FROM
+        PD_APP_SCROLL_IMG
+        WHERE
+        DEL_FLG = 0
+        ORDER BY
+        sort+0
+    </select>
+
+    <select id="getPageCount" resultType="int">
+        SELECT
+        count(1)
+        FROM PD_APP_SCROLL_IMG
+        WHERE
+        DEL_FLG = 0
+    </select>
+
+    <!-- 新增首页轮播图片     -->
+    <insert id="insertScrollImg" parameterType="com.msk.core.entity.PdAppScrollImg">
+        INSERT INTO PD_APP_SCROLL_IMG
+        (
+        ID,
+        SORT,
+        SCROLL_IMG,
+        TYPE,
+        ORIGINAL_IMG_NAME,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER
+        )
+        VALUES
+        (
+        #{id},
+        #{sort},
+        #{scrollImg},
+        #{type},
+        #{originalImgName},
+        #{delFlg},
+        #{crtId},
+        #{crtTime},
+        #{updId},
+        #{updTime},
+        #{actId},
+        #{actTime},
+        #{ver}
+        )
+    </insert>
+
+    <!--  删除轮播图片，将delFlag置为1 -->
+    <select id="deleteScrollImg" parameterType="com.msk.core.entity.PdAppScrollImg">
+        DELETE
+        from
+        PD_APP_SCROLL_IMG
+        WHERE
+        DEL_FLG =0
+        AND ID = #{id}
+    </select>
+
+    <!--  修改轮播图片的顺序 -->
+    <update id="modifyScrollImgSort" parameterType="com.msk.pd.bean.PD144101Param">
+            UPDATE
+            PD_APP_SCROLL_IMG
+            SET
+            SORT=#{sort},
+            UPD_ID = #{updId},
+            UPD_TIME = #{updTime},
+            VER = VER+1
+            WHERE
+            DEL_FLG =0
+            AND ID = #{id}
+        </update>
+
+    <select id="findImg" parameterType="BaseParam" resultType="com.msk.core.entity.PdAppScrollImg">
+        select
+        ID AS id,
+        SCROLL_IMG as scrollImg
+        from PD_APP_SCROLL_IMG
+        where ID = #{id} and DEL_FLG =0
+    </select>
+
+</mapper>

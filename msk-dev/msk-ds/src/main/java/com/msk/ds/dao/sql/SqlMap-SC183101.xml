@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.ds.logic.SC183101Logic">
+    <select id="findPlanChangeProductList" parameterType="BaseParam" resultType="com.msk.ds.bean.PlanAdjust">
+        SELECT
+            stockPlan.PD_CODE as productCode,
+            stockPlan.CLASSES_CODE as classCode,
+            pdClass.CLASSES_NAME as className,
+            stockPlan.BREED_CODE as breedCode,
+            stockPlan.FEATURE_CODE as featureCode,
+            stockPlan.GRADE_CODE as gradeCode,
+            stockPlan.NEW_PLAN_NUM as changeBeforeNum,
+            stockPlan.NORMS_CODE as normsCode,
+            stockPlan.ADJUST_DATE as adjustDateOld
+        FROM
+            ds_pd_virtual_stock_plan stockPlan left join
+            pd_classes pdClass on stockPlan.CLASSES_CODE = pdClass.CLASSES_CODE
+        WHERE
+            stockPlan.DIST_MONTH = #{distMonth}
+            AND stockPlan.LGCS_CODE = #{areaCode}
+            AND stockPlan.SUPP_CODE = #{supplierCode}
+            AND stockPlan.HALF_CODE = #{currentHalfCode}
+            AND stockPlan.PD_STOCK_TYPE = #{planType}
+            AND pdClass.CLASSES_NAME LIKE #{productName}
+            AND stockPlan.DEL_FLG = 0
+    </select>
+
+    <select id="findPlanChangeProductListById" parameterType="BaseParam" resultType="com.msk.ds.bean.PlanAdjust">
+        SELECT
+        stockPlan.PD_CODE as productCode,
+        stockPlan.CLASSES_CODE as classCode,
+        pdClass.CLASSES_NAME as className,
+        stockPlan.BREED_CODE as breedCode,
+        stockPlan.FEATURE_CODE as featureCode,
+        stockPlan.GRADE_CODE as gradeCode,
+        stockPlan.NEW_PLAN_NUM as changeBeforeNum,
+        stockPlan.NORMS_CODE as normsCode,
+        stockPlan.ADJUST_DATE as adjustDateOld
+        FROM
+        ds_pd_virtual_stock_plan stockPlan left join
+            pd_classes pdClass on stockPlan.CLASSES_CODE = pdClass.CLASSES_CODE
+        WHERE
+        stockPlan.SUPP_DS_ID = #{suppDsId}
+        AND stockPlan.VIRTUAL_STOCK_PLAN_ID = #{virtualStockPlanId}
+        AND stockPlan.DEL_FLG = 0
+    </select>
+
+    <insert id="save" parameterType="BaseParam">
+        INSERT INTO ds_pd_virtual_stock_plan(ds_pd_virtual_stock_plan.SUPP_DS_ID,
+                    ds_pd_virtual_stock_plan.VIRTUAL_STOCK_PLAN_ID,
+                    ds_pd_virtual_stock_plan.DIST_MONTH,
+                    ds_pd_virtual_stock_plan.LGCS_CODE,
+                    ds_pd_virtual_stock_plan.SUPP_CODE,
+                    ds_pd_virtual_stock_plan.PD_STOCK_TYPE,
+                    ds_pd_virtual_stock_plan.HALF_CODE,
+                    ds_pd_virtual_stock_plan.CLASSES_CODE,
+                    ds_pd_virtual_stock_plan.BREED_CODE,
+                    ds_pd_virtual_stock_plan.FEATURE_CODE,
+                    ds_pd_virtual_stock_plan.GRADE_CODE,
+                    ds_pd_virtual_stock_plan.OUT_SPEC,
+                    ds_pd_virtual_stock_plan.OUT_NW,
+                    ds_pd_virtual_stock_plan.MACHINING_CODE,
+                    ds_pd_virtual_stock_plan.PD_CODE,
+                    ds_pd_virtual_stock_plan.NORMS_CODE,
+                    ds_pd_virtual_stock_plan.ADJUST_DATE,
+                    ds_pd_virtual_stock_plan.ORIG_PLAN_NUM,
+                    ds_pd_virtual_stock_plan.OLD_PLAN_NUM,
+                    ds_pd_virtual_stock_plan.NEW_PLAN_NUM,
+                    ds_pd_virtual_stock_plan.DEL_FLG,
+                    ds_pd_virtual_stock_plan.CRT_ID,
+                    ds_pd_virtual_stock_plan.CRT_TIME,
+                    ds_pd_virtual_stock_plan.UPD_ID,
+                    ds_pd_virtual_stock_plan.UPD_TIME,
+                    ds_pd_virtual_stock_plan.ACT_ID,
+                    ds_pd_virtual_stock_plan.ACT_TIME,
+                    ds_pd_virtual_stock_plan.VER)
+           SELECT   ds_pd_virtual_stock_plan.SUPP_DS_ID,
+                    #{virtualStockPlanId},
+                    ds_pd_virtual_stock_plan.DIST_MONTH,
+                    ds_pd_virtual_stock_plan.LGCS_CODE,
+                    ds_pd_virtual_stock_plan.SUPP_CODE,
+                    ds_pd_virtual_stock_plan.PD_STOCK_TYPE,
+                    ds_pd_virtual_stock_plan.HALF_CODE,
+                    ds_pd_virtual_stock_plan.CLASSES_CODE,
+                    ds_pd_virtual_stock_plan.BREED_CODE,
+                    ds_pd_virtual_stock_plan.FEATURE_CODE,
+                    ds_pd_virtual_stock_plan.GRADE_CODE,
+                    ds_pd_virtual_stock_plan.OUT_SPEC,
+                    ds_pd_virtual_stock_plan.OUT_NW,
+                    <![CDATA[substring(ds_pd_virtual_stock_plan.PD_CODE,3,1)]]>,
+                    ds_pd_virtual_stock_plan.PD_CODE,
+                    ds_pd_virtual_stock_plan.NORMS_CODE,
+                    #{crtTime},
+                    ds_pd_virtual_stock_plan.ORIG_PLAN_NUM,
+                    #{changeBeforeNum},
+                    #{changeOverNum},
+                    ds_pd_virtual_stock_plan.DEL_FLG,
+                    #{crtId},
+                    #{crtTime},
+                    #{updId},
+                    #{updTime},
+                    ds_pd_virtual_stock_plan.ACT_ID,
+                    ds_pd_virtual_stock_plan.ACT_TIME,
+                    ds_pd_virtual_stock_plan.VER
+            FROM    ds_pd_virtual_stock_plan
+           WHERE    ds_pd_virtual_stock_plan.DIST_MONTH = #{distMonth}
+             AND    ds_pd_virtual_stock_plan.LGCS_CODE = #{areaCode}
+             AND    ds_pd_virtual_stock_plan.SUPP_CODE = #{supplierCode}
+             AND    ds_pd_virtual_stock_plan.PD_STOCK_TYPE = #{planType}
+             AND    ds_pd_virtual_stock_plan.HALF_CODE =  #{currentHalfCode}
+             AND    ds_pd_virtual_stock_plan.PD_CODE =  #{productCode}
+             AND    ds_pd_virtual_stock_plan.NORMS_CODE = #{normsCode}
+             AND    ds_pd_virtual_stock_plan.ADJUST_DATE = #{adjustDate}
+    </insert>
+    <update id="modifyData" parameterType="BaseParam">
+        UPDATE  ds_pd_virtual_stock_plan
+        SET  ds_pd_virtual_stock_plan.OLD_PLAN_NUM = #{changeBeforeNum},
+             ds_pd_virtual_stock_plan.NEW_PLAN_NUM = #{changeOverNum}
+        WHERE  ds_pd_virtual_stock_plan.SUPP_DS_ID = #{suppDsId}
+        AND ds_pd_virtual_stock_plan.VIRTUAL_STOCK_PLAN_ID = #{virtualStockPlanId}
+    </update>
+    <update id="modifyDeleteFlag" parameterType="BaseParam">
+        UPDATE  ds_pd_virtual_stock_plan
+        SET  ds_pd_virtual_stock_plan.DEL_FLG = 1
+        WHERE  ds_pd_virtual_stock_plan.DIST_MONTH = #{distMonth}
+        AND  ds_pd_virtual_stock_plan.LGCS_CODE = #{areaCode}
+        AND  ds_pd_virtual_stock_plan.SUPP_CODE = #{supplierCode}
+        AND  ds_pd_virtual_stock_plan.PD_STOCK_TYPE = #{planType}
+        AND  ds_pd_virtual_stock_plan.HALF_CODE =  #{currentHalfCode}
+        AND  ds_pd_virtual_stock_plan.PD_CODE =  #{productCode}
+        AND  ds_pd_virtual_stock_plan.NORMS_CODE = #{normsCode}
+        AND  ds_pd_virtual_stock_plan.ADJUST_DATE = #{adjustDate}
+    </update>
+</mapper>

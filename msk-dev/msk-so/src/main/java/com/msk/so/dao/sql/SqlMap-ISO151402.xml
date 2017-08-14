@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.rs.ISO151402Logic">
+    <select id = "getOrderInfo" resultType = "com.msk.so.bean.order.OrderPrintBean" parameterType = "com.msk.so.bean.order.OrderPrintParam">
+        SELECT
+        A.ORDER_ID AS orderId,
+        ORDER_CODE AS orderCode,
+        IFNULL(ORDER_VICE_CODE, '') AS orderViceCode,
+        PRO_ID AS proId,
+        PRO_CODE AS proCode,
+        IFNULL(REQUIRE_ORDER_CODE, '') AS requireOrderCode,
+        IFNULL(CONFIRM_ORDER_CODE, '') AS confirmOrderCode,
+        IFNULL(DELIVERY_ORDER_CODE, '') AS deliveryOrderCode,
+        IFNULL(SELLER_CODE,'') AS sellerCode,
+        IFNULL(SELLER_NAME,'') AS sellerName,
+        IFNULL(BUYERS_ID,'') AS buyersId,
+        IFNULL(BUYERS_CODE,'') AS buyersCode,
+        IFNULL(BUYERS_NAME,'') AS buyersName,
+        IFNULL(COMMBY.CONSTANT_NAME,'') AS buyersType,
+        IFNULL((CASE A.NEED_INVOICE
+				WHEN 1 THEN '是'
+				WHEN 0 THEN '否' END), '') AS needInvoice,
+        IFNULL(B.LGCS_AREA_NAME,'') AS districtCode,
+        IFNULL(COMMOS.CONSTANT_NAME,'')  AS orderSource,
+        IFNULL(COMMOT.CONSTANT_NAME,'') AS orderType,
+        IFNULL(date_format(A.ORDER_TIME,'%Y-%c-%d %H:%i:%s'),'') AS orderTime,
+        ORDER_AMOUNT AS orderAmount,
+        IFNULL((CASE A.PAYMENT_TYPE
+		WHEN 1 THEN '在线支付'
+		WHEN 2 THEN '线下支付'
+		END), '') AS paymentType,
+        IFNULL((SELECT
+			DISTINCT
+			sha.HOUSE_SHOW_NAME
+		  FROM
+		   sl_house_account SHA
+		WHERE SELLERS = sha.HOUSE_CODE), '') AS sellers,
+        IFNULL(ORDER_TAKER,'') AS orderTaker,
+        SELF_DELIVERY_FLG AS selfDeliveryFlg,
+        IFNULL(COMMSDF.CONSTANT_NAME,'') AS splitDeliveryFlg,
+        DUSTBIN_FLG AS dustbinFlg,
+        IFNULL((CASE A.RETURN_FLG
+		WHEN 1 THEN '整单退货'
+		WHEN 2 THEN '部分退货'
+		WHEN 0 THEN '否'
+		END),'') AS returnFlg,
+        IFNULL(date_format(A.ORDER_SEND_TIME,'%Y-%c-%d %H:%i:%s'),'') AS orderSendTime,
+        IFNULL(date_format(A.ORDER_RECEIVE_TIME,'%Y-%c-%d %H:%i:%s'),'') AS orderReceiveTime,
+        CANCEL_TYPE AS cancelType,
+        CANCEL_REASON AS cancelReason,
+        CASE WHEN (tt.leftQty = 0 AND A.ORDER_STATUS != 99) THEN '全部退货'
+        ELSE IFNULL(COMMORST.CONSTANT_NAME,'') END AS orderStatus
+        FROM so_order A
+        LEFT JOIN COMM_CONSTANT AS COMMBY
+        ON A.BUYERS_TYPE = COMMBY.CONSTANT_VALUE
+        AND COMMBY.CONSTANT_TYPE = 'OrderBuyerType'
+        LEFT JOIN MD_LOGISTICS_AREA B
+        ON (B.LGCS_AREA_CODE = A.DISTRICT_CODE OR B.LGCS_AREA_ID = A.DISTRICT_CODE)
+        LEFT JOIN COMM_CONSTANT AS COMMOS
+		ON A.ORDER_SOURCE = COMMOS.CONSTANT_VALUE
+		AND COMMOS.CONSTANT_TYPE = 'OrderSource'
+        LEFT JOIN COMM_CONSTANT AS COMMOT
+		ON A.ORDER_TYPE = COMMOT.CONSTANT_VALUE
+		AND COMMOT.CONSTANT_TYPE = 'OrderType'
+		LEFT JOIN COMM_CONSTANT AS COMMSDF
+		ON A.SPLIT_DELIVERY_FLG = COMMSDF.CONSTANT_VALUE
+		AND COMMSDF.CONSTANT_TYPE = 'SplitDeliveryFlg'
+        LEFT JOIN COMM_CONSTANT AS COMMORST
+        ON A.ORDER_STATUS = COMMORST.CONSTANT_VALUE
+        AND COMMORST.CONSTANT_TYPE='OrderStatus'
+        left join (
+		select
+		order_id
+		, sum(leftQty) as leftQty
+		from
+		(
+		SELECT
+		so.order_id
+		, sod.ORDER_QTY - IFNULL(sod.RETURN_QTY,0) - IFNULL(sod.REJECTION_QTY,0) AS leftQty
+		FROM
+		SO_ORDER so
+		INNER JOIN so_order_detail sod
+		ON so.ORDER_ID = sod.ORDER_ID
+		UNION ALL
+		SELECT
+		so.order_id
+		, sod.ORDER_QTY - IFNULL(sod.RETURN_QTY,0) - IFNULL(sod.REJECTION_QTY,0) AS leftQty
+		FROM
+		SO_ORDER so
+		INNER JOIN so_order_relation sor
+		ON so.ORDER_ID = sor.MAIN_ORDER_ID
+		INNER JOIN so_order_detail sod
+		ON sor.CHILD_ORDER_ID = sod.ORDER_ID
+		) t
+		group by
+		order_id
+		) tt
+		on tt.order_id = A.order_id
+        WHERE A.ORDER_ID = #{orderId}
+    </select>
+
+    <select id = "getReceiveInfo" resultType = "com.msk.so.bean.order.OrderPrintReceiveBean" parameterType = "com.msk.so.bean.order.OrderPrintParam">
+        SELECT
+        ID as id,
+        IFNULL(RECEIVER_NAME, '')as receiverName,
+        IFNULL(RECEIVER_QQ, '') as receiverQQ,
+        IFNULL(RECEIVER_WEIXIN, '') as receiverWeixin,
+        IFNULL(RECEIVER_TEL, '') as receiverTel,
+        IFNULL(RECEIVER_MAIL, '') as receiverMail,
+        IFNULL(RECEIVER_PROVINCE, '') as receiverProvince,
+        IFNULL(RECEIVER_CITY, '') as receiverCity,
+        IFNULL(RECEIVER_DISTRICT, '') as receiverDistrict,
+        IFNULL(RECEIVER_ADDR, '') as receiverAddr,
+        IFNULL(RECEIVER_ADDR2, '') as receiverAddr2,
+        IFNULL(REMARK, '') as remark,
+        IFNULL(REMARK2, '') as remark2,
+        IFNULL(REMARK3, '') as remark3,
+        IFNULL(REMARK4, '') as remark4,
+        IFNULL(RECEIVER_ADDR_KEY, '') as receiverAddrKey
+        FROM so_order_receive_demand
+        WHERE ORDER_ID = #{orderId}
+    </select>
+
+    <select id = "getDeliveryInfo" resultType = "com.msk.so.bean.order.OrderPrintDeliveryReqBean" parameterType = "com.msk.so.bean.order.OrderPrintParam">
+        SELECT
+        IFNULL(RECEIVE_TIME,'') as receiveTime,
+		IFNULL(COMMORSTEarliest.CONSTANT_NAME,'') AS receiveEarliest,
+		IFNULL(COMMORSTLast.CONSTANT_NAME,'') AS receiveLast,
+        IFNULL(COMMDELIVERY.CONSTANT_NAME,'') as deliveryType,
+        IFNULL(date_format(A.FORECAST_SEND_TIME,'%Y-%c-%d %H:%i:%s'),'') as forecastSendTime,
+        IFNULL(date_format(A.FORECAST_RECEIVE_TIME,'%Y-%c-%d %H:%i:%s'),'') as forecastReceiveTime,
+        IFNULL(RECEIVE_WAIT_TIME, '') as receiveWaitTime,
+        IFNULL(ADVANCE_NOTICE_TIME, '') as advanceNoticeTime,
+        IFNULL((CASE(A.VIC_FLG)WHEN 0 THEN '不需要' WHEN 1 THEN '需要' END), '') as vicFlg,
+        IFNULL(UNLOAD_REQ, '') as unloadReq,
+        IFNULL(PACKING_REQ, '') as packingReq,
+        IFNULL(PARKING_DISTANCE, '') as parkingDistance,
+        IFNULL(OTHER_DELIVERY_REQ, '') as otherDeliveryReq,
+        IFNULL(THIS_DELIVERY_REQ, '') as thisDeliveryReq
+        FROM so_order_receive_demand A
+        LEFT JOIN COMM_CONSTANT AS  COMMORSTEarliest
+        ON COMMORSTEarliest.CONSTANT_VALUE= LEFT(A.RECEIVE_EARLIEST, 1)
+        AND COMMORSTEarliest.CONSTANT_TYPE = 'HabitReceivePeriodType'
+        LEFT JOIN COMM_CONSTANT AS  COMMORSTLast
+        ON COMMORSTLast.CONSTANT_VALUE= LEFT(A.RECEIVE_LAST, 1)
+        AND COMMORSTLast.CONSTANT_TYPE = 'HabitReceivePeriodType'
+        LEFT  JOIN  COMM_CONSTANT AS COMMDELIVERY
+        ON COMMDELIVERY.CONSTANT_VALUE= A.DELIVERY_TYPE
+        AND COMMDELIVERY.CONSTANT_TYPE = 'DeliveryType'
+        WHERE ORDER_ID = #{orderId}
+    </select>
+
+    <select id = "getAvailabilityInfo" resultType = "com.msk.so.bean.order.OrderPrintAvailabilityBean" parameterType = "com.msk.so.bean.order.OrderPrintParam">
+        SELECT
+        ORDER_DETAIL_AVAILABILITY_ID as orderDetailAvailabilityId,
+        IFNULL(
+		  (
+		  SELECT DISTINCT
+		  ss.SL_CODE_DIS
+		  FROM
+		  sl_seller ss
+		  WHERE
+		  ss.SL_CODE = A.SUPPLIER_CODE
+		  )
+		  , ''
+		  ) AS supplierCode
+		,IFNULL(
+		  (
+		  SELECT DISTINCT
+		  se.EP_NAME
+		  FROM
+		  sl_seller ss
+		  LEFT JOIN sl_enterprise se
+		  ON se.EP_ID = ss.EP_ID
+		  WHERE
+		  ss.SL_CODE = A.SUPPLIER_CODE
+		  )
+		  , ''
+		  ) AS supplierName,
+        IFNULL(B.CLASSES_CODE, '') as classesCode,
+        IFNULL(B.CLASSES_NAME, '') as classesName,
+        IFNULL(B.BREED_CODE, '') as breedCode,
+        IFNULL(B.BREED_NAME, '') as breedName,
+        IFNULL(B.FEATURE_CODE, '') as featureCode,
+        IFNULL(B.FEATURE_NAME, '') as featureName,
+        IFNULL(B.NORMS_CODE, '') as normsCode,
+        IFNULL(B.NORMS_NAME, '') as normsName,
+        IFNULL(B.PD_CODE, '') as pdCode,
+        IFNULL(B.PD_NAME, '') as pdName,
+        IFNULL(B.PD_LEVEL, '') as pdLevel,
+        IFNULL(A.SUPP_QTY, 0) as suppQty,
+        IFNULL(A.SEND_QTY, 0) as sendQty,
+        IFNULL(A.RECEIVE_QTY, 0) as receiveQty,
+        IFNULL(A.CANCEL_QTY, 0) as cancelQty,
+        IFNULL(A.RETURN_QTY, 0) as returnQty,
+        IFNULL(A.REJECTION_QTY, 0) as rejectionQty,
+        IFNULL(B.PD_PRICE, 0) as pdPrice,
+        IFNULL(date_format(A.SEND_TIME,'%Y-%c-%d %H:%i:%s'),'') as sendTime,
+        IFNULL(date_format(A.RECEIVED_TIME,'%Y-%c-%d %H:%i:%s'),'') as receivedTime,
+        IFNULL(COMMORST.CONSTANT_NAME,'') as status
+        FROM so_order_detail_availability A
+        INNER JOIN so_order_detail B
+        ON A.ORDER_DETAIL_ID = B.ORDER_DETAIL_ID
+        LEFT JOIN COMM_CONSTANT AS COMMORST
+        ON A.STATUS = COMMORST.CONSTANT_VALUE
+        AND COMMORST.CONSTANT_TYPE = 'OrderDetailAvailabilityStatus'
+        WHERE A.ORDER_ID = #{orderId}
+        OR A.ORDER_ID = (select CHILD_ORDER_ID
+            from SO_ORDER_RELATION
+            where MAIN_ORDER_ID = #{orderId})
+    </select>
+</mapper>

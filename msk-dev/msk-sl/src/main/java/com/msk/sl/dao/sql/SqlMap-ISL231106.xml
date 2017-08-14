@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.ISL231106Logic">
+    <insert id="insertSlPdOrgStd" parameterType="com.msk.core.entity.SlPdTncStdOther">
+       INSERT INTO sl_pd_tnc_std_other (
+            STD_FLAG,
+            SL_CODE,
+            SL_PD_ID,
+            STANDARD_ID,
+            TNC_STD_ITEM_ID,
+            AGREE_FLG,
+            DEL_FLG,
+            CRT_ID,
+            CRT_TIME,
+            VER
+        )
+        VALUES
+            (
+            #{stdFlag},
+            #{slCode},
+            #{slPdId},
+            #{standardId},
+            #{tncStdItemId},
+            #{agreeFlg},
+            #{delFlg},
+            #{crtId},
+            now(),
+            #{ver}
+            )
+    </insert>
+    <update id="modifySlPdOrgStd" parameterType="com.msk.core.entity.SlPdTncStdOther">
+        UPDATE sl_pd_tnc_std_other
+        SET
+         AGREE_FLG = #{agreeFlg},
+         DEL_FLG = #{delFlg},
+         UPD_ID = #{updId},
+         UPD_TIME = now(),
+         VER=#{ver},
+         DEL_FLG=#{delFlg}
+        WHERE
+        SL_CODE=#{slCode}
+        AND SL_PD_ID = #{slPdId}
+        AND STANDARD_ID = #{standardId}
+        AND TNC_STD_ITEM_ID=#{tncStdItemId}
+        AND  STD_FLAG=#{stdFlag}
+    </update>
+    <select id="findSlPdTncStd" parameterType="BaseParam"
+            resultType="com.msk.core.entity.SlPdTncStdOther">
+       SELECT
+        A.STD_FLAG AS stdFlag,
+        A.SL_CODE AS slCode,
+        A.SL_PD_ID AS slPdId,
+        A.STANDARD_ID AS standardId,
+        A.TNC_STD_ITEM_ID AS tncStdItemId,
+        A.AGREE_FLG AS agreeFlg,
+        A.DEL_FLG AS delFlg
+        FROM
+        sl_pd_tnc_std_other AS A
+        WHERE
+        SL_CODE=#{filterMap.slCode}
+        AND SL_PD_ID = #{filterMap.slPdId}
+        AND STANDARD_ID = #{filterMap.standardId}
+        AND TNC_STD_ITEM_ID=#{filterMap.tncStdItemId}
+        AND  STD_FLAG=#{filterMap.stdFlag}
+        AND (DEL_FLG =0 OR DEL_FLG IS NULL)
+    </select>
+</mapper>

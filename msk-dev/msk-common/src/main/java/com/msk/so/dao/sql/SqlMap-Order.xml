@@ -1,0 +1,860 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.msk.so.logic.OrderLogic">
+    <sql id="selectOrderSql">
+    ORDER_ID AS orderId,
+    ORDER_CODE AS orderCode,
+    ORDER_VICE_CODE AS auxiliaryCode,
+    PRO_CODE AS proCode,
+    REQUIRE_ORDER_CODE AS requireOrderCode,
+    CONFIRM_ORDER_CODE AS confirmOrderCode,
+    DELIVERY_ORDER_CODE AS deliveryOrderCode,
+    BUYERS_ID AS buyersId,
+    BUYERS_CODE AS buyersCode,
+    SELLER_CODE AS sellerCode,
+    SELLER_NAME AS sellerName,
+    DISTRICT_CODE AS districtCode,
+    ORDER_SOURCE AS orderSource,
+    ORDER_TYPE AS orderType,
+    ORDER_STATUS AS orderStatus,
+    NEED_INVOICE AS needInvoice,
+    ORDER_TIME AS orderTime,
+    ORDER_AMOUNT AS orderAmount,
+    PAYMENT_TYPE AS paymentType,
+    SELLERS AS sellers,
+    ORDER_TAKER AS orderTaker,
+    SELF_DELIVERY_FLG AS selfDeliveryFlg,
+    SPLIT_DELIVERY_FLG AS splitDeliveryFlg,
+    CANCEL_REASON AS cancelReason,
+    RETURN_FLG AS returnFlg,
+    CRT_TIME AS crtTime
+    </sql>
+    <sql id="selectOrderDetailSql">
+        sod.ORDER_ID AS orderId,
+        sod.ORDER_CODE AS orderCode,
+        sod.ORDER_DETAIL_ID AS orderDetailId,
+        sod.ORDER_DETAIL_TYPE AS orderDetailType,
+        sod.ORDER_DETAIL_LEVEL AS orderDetailLevel,
+        sod.CLASSES_CODE AS classesCode,
+        sod.CLASSES_NAME AS classesName,
+        sod.BREED_CODE AS breedCode,
+        sod.BREED_NAME AS breedName,
+        sod.FEATURE_CODE AS featureCode,
+        sod.FEATURE_NAME AS featureName,
+        sod.NORMS_CODE AS normsCode,
+        sod.NORMS_NAME AS normsName,
+        sod.PD_CODE AS pdCode,
+        sod.PD_NAME AS pdName,
+        sod.UNIT AS unit,
+        sod.PACKING_VOLUME AS packingVolume,
+        sod.WEIGHT AS weight,
+        sod.VOLUME AS volume,
+        sod.AGREE_JOINT AS agreeJoint,
+        sod.IS_JOINT AS isJoint,
+        sod.BUYERS_CONFIRM_SHIPMENTS AS buyersConfirmShipments,
+        sod.PD_PRICE AS pdPrice,
+        sod.PRICE_CYCLE AS priceCycle,
+        sod.ORDER_QTY AS orderQty,
+        IFNULL(sod.SEND_QTY,0) AS sendQty,
+        sod.RECEIVE_QTY AS receiveQty,
+        sod.CANCEL_QTY AS cancelQty,
+        sod.RETURN_QTY AS returnQty,
+        sod.SEND_TIME AS sendTime,
+        sod.RECEIVED_TIME AS receivedTime,
+        sod.DETAIL_STATUS AS detailStatus,
+        sod.CANCEL_REASON AS cancelReason
+    </sql>
+
+    <update id="modifyOrderStatus" parameterType="BaseParam">
+        UPDATE SO_ORDER
+        SET ORDER_STATUS=#{filterMap.status}
+        ,UPD_ID=#{filterMap.updId}
+        ,UPD_TIME=#{filterMap.updDate}
+        ,VER = VER + 1
+        WHERE ORDER_ID=#{filterMap.orderId}
+    </update>
+    <select id="getBuyerOrderCount" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderBuyerSeq">
+        SELECT
+        ifnull(BUY_COUNT,0) AS buyCount
+        FROM
+        SO_ORDER_BUYER_SEQ
+        WHERE
+        BUYES_CODE=#{filterMap.buyersCode}
+        AND DEL_FLG = 0
+    </select>
+    <insert id="saveBuyerOrder" parameterType="BaseParam">
+        INSERT INTO SO_ORDER_BUYER_SEQ (
+        ID
+        ,BUYES_CODE
+        ,BUY_COUNT
+        ,DEL_FLG
+        ,CRT_ID
+        ,CRT_TIME
+        ,VER
+        )
+        VALUES (
+        #{filterMap.Id}
+        ,#{filterMap.buyersCode}
+        ,1
+        ,0
+        ,#{crtId}
+        ,#{crtTime}
+        ,1
+        )
+    </insert>
+    <update id="modifyBuyerIndexCount" parameterType="BaseParam">
+        UPDATE
+        SO_ORDER_BUYER_SEQ
+        SET
+        BUY_COUNT = BUY_COUNT + 1,
+        UPD_TIME = #{updTime},
+        UPD_ID = #{updId},
+        VER = VER + 1
+        WHERE
+        BUYES_CODE=#{filterMap.buyersCode}
+        AND DEL_FLG = 0
+    </update>
+    <select id="getOrderInfo" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrder">
+        SELECT
+        <include refid="selectOrderSql"></include>
+        FROM
+        so_order
+        WHERE
+        ORDER_ID = #{orderId}
+        AND DEL_FLG = 0
+    </select>
+    <select id="getOrderDetailList" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderDetail">
+        SELECT
+        <include refid="selectOrderDetailSql"></include>
+        FROM
+        so_order_detail sod
+        WHERE
+        sod.ORDER_ID = #{orderId}
+        AND sod.DEL_FLG = 0
+    </select>
+
+    <select id="getChildOrderDetailInfo" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderDetail">
+        SELECT
+        <include refid="selectOrderDetailSql"></include>
+        FROM
+        so_order_detail sod
+        LEFT JOIN so_order so
+        ON so.ORDER_ID = sod.order_id
+        WHERE EXISTS
+        (SELECT
+        sor.CHILD_ORDER_ID
+        FROM
+        so_order_relation sor
+        WHERE sor.MAIN_ORDER_ID = #{orderId}
+        AND sor.CHILD_ORDER_ID = so.ORDER_ID
+        AND sor.DEL_FLG = 0)
+        AND sod.DEL_FLG = 0
+    </select>
+
+    <insert id="saveOrder" parameterType="BaseEntity">
+        INSERT INTO
+        SO_ORDER(
+        ORDER_ID,
+        ORDER_CODE,
+        ORDER_VICE_CODE,
+        PRO_ID,
+        PRO_CODE,
+        REQUIRE_ORDER_CODE,
+        CONFIRM_ORDER_CODE,
+        DELIVERY_ORDER_CODE,
+        SELLER_CODE,
+        SELLER_NAME,
+        BUYERS_ID,
+        BUYERS_CODE,
+        BUYERS_NAME,
+        BUYERS_TYPE,
+        NEED_INVOICE,
+        ORDER_STATUS,
+        DISTRICT_CODE,
+        ORDER_SOURCE,
+        ORDER_TYPE,
+        ORDER_TIME,
+        ORDER_AMOUNT,
+        PAYMENT_TYPE,
+        SELLERS,
+        ORDER_TAKER,
+        ORDER_TAKER_TYPE,
+        SELF_DELIVERY_FLG,
+        SPLIT_DELIVERY_FLG,
+        ORDER_SEND_TIME,
+        ORDER_RECEIVE_TIME,
+        CANCEL_TYPE,
+        CANCEL_REASON,
+        RETURN_FLG,
+        DUSTBIN_FLG,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER
+        )VALUES (
+        #{orderId},
+        #{orderCode},
+        #{orderViceCode},
+        #{proId},
+        #{proCode},
+        #{requireOrderCode},
+        #{confirmOrderCode},
+        #{deliveryOrderCode},
+        #{sellerCode},
+        #{sellerName},
+        #{buyersId},
+        #{buyersCode},
+        #{buyersName},
+        #{buyersType},
+        #{needInvoice},
+        #{orderStatus},
+        #{districtCode},
+        #{orderSource},
+        #{orderType},
+        #{orderTime},
+        #{orderAmount},
+        #{paymentType},
+        #{sellers},
+        #{orderTaker},
+        #{orderTakerType},
+        #{selfDeliveryFlg},
+        #{splitDeliveryFlg},
+        #{orderSendTime},
+        #{orderReceiveTime},
+        #{cancelType},
+        #{cancelReason},
+        #{returnFlg},
+        #{dustbinFlg},
+        0,
+        #{crtId},
+        #{crtTime},
+        #{updId},
+        #{updTime},
+        #{actId},
+        #{actTime},
+        1
+        )
+    </insert>
+    <insert id="saveOrderDetail" parameterType="BaseEntity">
+        INSERT INTO
+        so_order_detail(
+        ORDER_ID,
+        ORDER_CODE,
+        ORDER_DETAIL_ID,
+        ORDER_DETAIL_TYPE,
+        ORDER_DETAIL_LEVEL,
+        CLASSES_CODE,
+        CLASSES_NAME,
+        BREED_CODE,
+        BREED_NAME,
+        FEATURE_CODE,
+        FEATURE_NAME,
+        NORMS_CODE,
+        NORMS_NAME,
+        PD_CODE,
+        PD_NAME,
+        PD_GRADE_CODE,
+        PD_GRADE_NAME,
+        PD_LEVEL,
+        UNIT,
+        PACKING_VOLUME,
+        WEIGHT,
+        VOLUME,
+        AGREE_JOINT,
+        IS_JOINT,
+        BUYERS_CONFIRM_SHIPMENTS,
+        PD_PRICE,
+        PRICE_CYCLE,
+        ORDER_QTY,
+        SEND_QTY,
+        RECEIVE_QTY,
+        CANCEL_QTY,
+        RETURN_QTY,
+        SEND_TIME,
+        RECEIVED_TIME,
+        DETAIL_STATUS,
+        CANCEL_REASON,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER,
+        PRO_DATE
+        )VALUES (
+        #{orderId},
+        #{orderCode},
+        #{orderDetailId},
+        #{orderDetailType},
+        #{orderDetailLevel},
+        #{classesCode},
+        #{classesName},
+        #{breedCode},
+        #{breedName},
+        #{featureCode},
+        #{featureName},
+        #{normsCode},
+        #{normsName},
+        #{pdCode},
+        #{pdName},
+        #{pdGradeCode},
+        #{pdGradeName},
+        #{pdLevel},
+        #{unit},
+        #{packingVolume},
+        #{weight},
+        #{volume},
+        #{agreeJoint},
+        #{isJoint},
+        #{buyersConfirmShipments},
+        #{pdPrice},
+        #{priceCycle},
+        #{orderQty},
+        #{sendQty},
+        #{receiveQty},
+        #{cancelQty},
+        #{returnQty},
+        #{sendTime},
+        #{receivedTime},
+        #{detailStatus},
+        #{cancelReason},
+        0,
+        #{crtId},
+        #{crtTime},
+        #{updId},
+        #{updTime},
+        #{actId},
+        #{actTime},
+        1,
+        date_format(#{proDate},'%Y-%m-%d')
+        )
+    </insert>
+    <insert id="saveOrderDetailAvailability" parameterType="BaseEntity">
+        INSERT INTO
+        so_order_detail_availability(
+        ORDER_ID,
+        ORDER_CODE,
+        ORDER_DETAIL_ID,
+        ORDER_DETAIL_AVAILABILITY_ID,
+        SUPPLIER_CODE,
+        SUPPLIER_NAME,
+        CLASSES_CODE,
+        CLASSES_NAME,
+        BREED_CODE,
+        BREED_NAME,
+        FEATURE_CODE,
+        FEATURE_NAME,
+        NORMS_CODE,
+        NORMS_NAME,
+        PD_CODE,
+        PD_NAME,
+        PD_LEVEL,
+        PD_GRADE_CODE,
+        PD_GRADE_NAME,
+        UNIT,
+        PACKING_VOLUME,
+        WEIGHT,
+        VOLUME,
+        SUPP_QTY,
+        SEND_QTY,
+        RECEIVE_QTY,
+        CANCEL_QTY,
+        RETURN_QTY,
+        REJECTION_QTY,
+        SEND_TIME,
+        RECEIVED_TIME,
+        STATUS,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER
+        )VALUES (
+        #{orderId},
+        #{orderCode},
+        #{orderDetailId},
+        #{orderDetailAvailabilityId},
+        #{supplierCode},
+        #{supplierName},
+        #{classesCode},
+        #{classesName},
+        #{breedCode},
+        #{breedName},
+        #{featureCode},
+        #{featureName},
+        #{normsCode},
+        #{normsName},
+        #{pdCode},
+        #{pdName},
+        #{pdLevel},
+        #{pdGradeCode},
+        #{pdGradeName},
+        #{unit},
+        #{packingVolume},
+        #{weight},
+        #{volume},
+        #{suppQty},
+        #{sendQty},
+        #{receiveQty},
+        #{cancelQty},
+        #{returnQty},
+        #{rejectionQty},
+        #{sendTime},
+        #{receivedTime},
+        #{status},
+        0,
+        #{crtId},
+        #{crtTime},
+        #{updId},
+        #{updTime},
+        #{actId},
+        #{actTime},
+        1
+        )
+    </insert>
+    <insert id="saveOrderReceiveDemand" parameterType="BaseEntity">
+        INSERT INTO
+        so_order_receive_demand(
+        ORDER_ID,
+        ORDER_CODE,
+        ID,
+        RECEIVER_NAME,
+        RECEIVER_TEL,
+        RECEIVER_QQ,
+        RECEIVER_WEIXIN,
+        RECEIVER_MAIL,
+        RECEIVER_PROVINCE,
+        RECEIVER_CITY,
+        RECEIVER_DISTRICT,
+        RECEIVER_ADDR,
+        RECEIVE_TIME,
+        RECEIVE_EARLIEST,
+        RECEIVE_LAST,
+        DELIVERY_TYPE,
+        FORECAST_SEND_TIME,
+        FORECAST_RECEIVE_TIME,
+        RECEIVE_WAIT_TIME,
+        ADVANCE_NOTICE_TIME,
+        VIC_FLG,
+        UNLOAD_REQ,
+        PACKING_REQ,
+        PARKING_DISTANCE,
+        OTHER_DELIVERY_REQ,
+        THIS_DELIVERY_REQ,
+        REMARK,
+        REMARK2,
+        REMARK3,
+        REMARK4,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER,
+        RECEIVER_ADDR2,
+        RECEIVER_ADDR_KEY
+        )VALUES(
+        #{orderId},
+        #{orderCode},
+        #{id},
+        #{receiverName},
+        #{receiverTel},
+        #{receiverQq},
+        #{receiverWeixin},
+        #{receiverMail},
+        #{receiverProvince},
+        #{receiverCity},
+        #{receiverDistrict},
+        #{receiverAddr},
+        #{receiveTime},
+        #{receiveEarliest},
+        #{receiveLast},
+        #{deliveryType},
+        #{forecastSendTime},
+        #{forecastReceiveTime},
+        #{receiveWaitTime},
+        #{advanceNoticeTime},
+        #{vicFlg},
+        #{unloadReq},
+        #{packingReq},
+        #{parkingDistance},
+        #{otherDeliveryReq},
+        #{thisDeliveryReq},
+        #{remark},
+        #{remark2},
+        #{remark3},
+        #{remark4},
+        0,
+        #{crtId},
+        #{crtTime},
+        #{updId},
+        #{updTime},
+        #{actId},
+        #{actTime},
+        1,
+        #{receiverAddr2},
+        #{receiverAddrKey}
+        )
+    </insert>
+    <insert id="saveOrderRelation" parameterType="BaseEntity">
+        INSERT INTO SO_ORDER_RELATION (
+        MAIN_ORDER_CODE
+        ,CHILD_ORDER_CODE
+        ,MAIN_ORDER_ID
+        ,CHILD_ORDER_ID
+        ,DEL_FLG
+        ,CRT_ID
+        ,CRT_TIME
+        ,UPD_ID
+        ,UPD_TIME
+        ,ACT_ID
+        ,ACT_TIME
+        ,VER
+        )
+        VALUES(
+        #{mainOrderCode}
+        ,#{childOrderCode}
+        ,#{mainOrderId}
+        ,#{childOrderId}
+        ,0
+        ,#{crtId}
+        ,#{crtTime}
+        ,#{updId}
+        ,#{updTime}
+        ,#{actId}
+        ,#{actTime}
+        ,#{ver}
+        )
+    </insert>
+
+    <select id="getOrderDetailInfo" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderDetail">
+        SELECT
+        <include refid="selectOrderDetailSql"></include>
+        FROM
+        so_order_detail sod
+        LEFT JOIN so_order_detail_availability soda
+        ON sod.ORDER_DETAIL_ID = soda.ORDER_DETAIL_ID
+        WHERE soda.PD_CODE = sod.PD_CODE
+        AND sod.PD_CODE = #{filterMap.pdCode}
+        AND soda.ORDER_ID = #{filterMap.orderId}
+        AND soda.SUPPLIER_CODE = #{filterMap.supplierCode}
+        AND soda.ORDER_DETAIL_ID = #{filterMap.orderDetailId}
+    </select>
+
+    <update id="modifyOrderDetailInfo" parameterType="BaseEntity">
+        UPDATE SO_ORDER_DETAIL
+        SET VER = VER + 1
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(updId)">
+            ,UPD_ID = #{updId}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(updTime)">
+            ,UPD_TIME = #{updTime}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(sendTime)">
+            ,SEND_TIME = #{sendTime}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(sendQty)">
+            ,CANCEL_QTY = ORDER_QTY - #{sendQty} - IFNULL(SEND_QTY,0)
+            ,SEND_QTY = #{sendQty}+IFNULL(SEND_QTY,0)
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(detailStatus)">
+            ,DETAIL_STATUS = #{detailStatus}
+        </if>
+        WHERE ORDER_DETAIL_ID = #{orderDetailId}
+    </update>
+
+    <update id="modifyOrderInfo" parameterType="BaseEntity">
+        UPDATE SO_ORDER
+        SET VER = VER + 1
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(updId)">
+            ,UPD_ID = #{updId}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(updTime)">
+            ,UPD_TIME = #{updTime}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderSendTime)">
+            ,ORDER_SEND_TIME = #{orderSendTime}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderStatus)">
+            ,ORDER_STATUS = #{orderStatus}
+        </if>
+        WHERE ORDER_ID = #{orderId}
+    </update>
+
+    <select id="getAllOrderInfoList" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrder">
+          SELECT DISTINCT
+              so.order_id AS orderId
+          FROM
+              so_order so
+          WHERE ORDER_ID = #{filterMap.orderId}
+              OR EXISTS
+              (SELECT
+                sor.CHILD_ORDER_ID
+              FROM
+                so_order_relation sor
+              WHERE sor.CHILD_ORDER_ID = so.order_id
+                AND sor.MAIN_ORDER_ID = #{filterMap.orderId})
+    </select>
+
+    <update id="modifyOrderDetailAvailabilityInfo" parameterType="BaseEntity">
+
+        UPDATE so_order_detail_availability
+        SET VER = VER + 1
+        ,SEND_QTY = IFNULL(SEND_QTY,0)
+        ,CANCEL_QTY = SUPP_QTY - IFNULL(SEND_QTY,0)
+        ,STATUS = #{detailStatus}
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(updId)">
+            ,UPD_ID = #{updId}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(updTime)">
+            ,UPD_TIME = #{updTime}
+        </if>
+        <if test="@com.msk.core.utils.MybatisTag@notEmpty(sendTime)">
+            ,SEND_TIME = #{sendTime}
+        </if>
+        WHERE ORDER_DETAIL_ID = #{orderDetailId}
+        <![CDATA[
+        AND STATUS <> #{detailStatus}
+        ]]>
+    </update>
+
+    <select id="getHouseCodeByBsId" parameterType="BaseEntity" resultType="String">
+        SELECT
+        DISTINCT
+          sha.house_code
+        FROM
+          sl_house_account sha
+          LEFT JOIN sl_bs_buyer sbb
+            ON sbb.SL_CODE = sha.SL_CODE
+        <!--ADD for Bug#3421 at 2016/10/24 by sun_jiaju Start-->
+            AND sbb.del_flg != 1
+        <!--ADD for Bug#3421 at 2016/10/24 by sun_jiaju End-->
+        WHERE sbb.BUYER_ID = #{filterMap.bsId}
+          AND sbb.SL_CODE = sha.SL_CODE
+          AND sbb.HOUSE_CODE = sha.HOUSE_CODE
+          AND (sha.DEL_FLG = 0 OR sha.DEL_FLG IS NULL)
+    </select>
+
+    <select id="findOne" resultType="com.msk.core.entity.SoOrder" parameterType="BaseParam">
+        select ORDER_ID as orderId,
+        ORDER_CODE as orderCode,
+        ORDER_SOURCE as orderSource,
+        ORDER_TYPE as orderType,
+        BUYERS_ID as buyersId,
+        BUYERS_CODE as buyersCode,
+        BUYERS_NAME as buyersName,
+        ORDER_TIME as orderTime,
+        ORDER_AMOUNT as orderAmount,
+        PAYMENT_TYPE as paymentType,
+        CRT_ID as crtId,
+        VER as ver
+        from so_order where order_id=#{filterMap.orderId}
+    </select>
+
+    <select id="getSlPdArtNo" resultType="com.msk.core.entity.SlPdArtno" parameterType="BaseParam">
+        SELECT
+        A.SL_PD_ARTNO AS slPdArtno,
+        A.SL_CODE AS slCode,
+        A.SL_CODE_DIS AS slCodeDis
+        FROM
+        sl_pd_artno AS A
+        WHERE
+        A.SL_CODE=#{filterMap.slCode}
+        AND A.CLASSES_CODE=#{filterMap.classesCode}
+        AND A.MACHINING_CODE=#{filterMap.machiningCode}
+        AND A.BREED_CODE=#{filterMap.breedCode}
+        AND A.FEATURE_CODE=#{filterMap.featureCode}
+        AND A.WEIGHT_CODE=#{filterMap.weightCode}
+        AND A.GRADE_CODE=#{filterMap.gradeCode}
+        AND A.SALE_PLATFORM=#{filterMap.salesPlatform}
+    </select>
+
+    <select id="getPdCode" resultType="com.msk.core.entity.SlPdArtno" parameterType="BaseParam">
+        SELECT
+        DISTINCT
+        A.CLASSES_CODE AS classesCode
+        ,A.MACHINING_CODE AS machiningCode
+        ,A.BREED_CODE AS breedCode
+        ,A.FEATURE_CODE AS featureCode
+        ,A.WEIGHT_CODE AS weightCode
+        ,A.GRADE_CODE AS gradeCode
+        FROM
+        sl_pd_artno AS A
+        WHERE
+        A.SL_PD_ARTNO=#{filterMap.slPdArtno}
+        AND A.SL_CODE_DIS=#{filterMap.slCodeDis}
+    </select>
+
+    <!---->
+    <update id="updateSlBsBuyerInfo" parameterType="com.msk.core.entity.SoOrder">
+        <![CDATA[
+        UPDATE
+          sl_bs_buyer sbb
+          LEFT JOIN sl_house_account SHA
+            ON sbb.SL_CODE = sha.SL_CODE
+        SET sbb.END_TIME = DATE_ADD(#{crtTime}, INTERVAL 60 DAY),
+            sbb.START_TIME = #{crtTime},
+            sbb.UPD_TIME = #{crtTime},
+		    sbb.UPD_ID = #{crtId},
+		    sbb.VER = sbb.VER + 1
+        WHERE sbb.BUYER_ID = #{buyersId}
+          AND sbb.SL_CODE = sha.SL_CODE
+          AND sbb.HOUSE_CODE = sha.HOUSE_CODE
+          AND (sbb.DEL_FLG = 0 OR sbb.DEL_FLG IS NULL )
+          AND (sha.DEL_FLG = 0 OR sha.DEL_FLG IS NULL )
+          ]]>
+    </update>
+
+    <!--根据订单id更改订单表的状态-->
+    <update id="modifyOrderInfoByOrderId" parameterType="BaseParam">
+        UPDATE
+        so_order
+        SET
+        ORDER_STATUS = #{filterMap.orderStatus}
+        WHERE order_id = #{filterMap.orderId}
+        AND DEL_FLG = 0
+    </update>
+
+    <!--根据订单id更改订单明细表的状态-->
+    <update id="modifyOrderDetailInfoByOrderId" parameterType="BaseParam">
+        UPDATE
+        so_order_detail
+        SET
+        DETAIL_STATUS = #{filterMap.orderDetailStatus}
+        WHERE order_id = #{filterMap.orderId}
+        AND DEL_FLG = 0
+    </update>
+
+    <!--根据订单id更改订单履历表的状态-->
+    <update id="modifyOrderStatusByOrderId" parameterType="BaseParam">
+        UPDATE
+        so_order_status
+        SET
+        ORDER_STATUS = #{filterMap.orderStatus}
+        WHERE order_id = #{filterMap.orderId}
+        AND DEL_FLG = 0
+    </update>
+
+    <!--根据订单id更改订单明细履历表的状态-->
+    <update id="modifyOrderDetailStatusByOrderId" parameterType="BaseParam">
+        UPDATE
+        so_order_detail_status
+        SET
+        STATUS = #{filterMap.orderDetailStatus}
+        WHERE order_id = #{filterMap.orderId}
+        AND DEL_FLG = 0
+    </update>
+    
+    <select id="countOrdersByBuyerId" parameterType="BaseParam" resultType="java.lang.Integer">
+      SELECT COUNT(1)
+      FROM SO_ORDER so
+      WHERE so.BUYERS_ID = #{filterMap.buyersId}
+      AND <![CDATA[so.CRT_TIME < #{filterMap.crtTime}]]>
+      AND so.DEL_FLG = 0
+    </select>
+
+    <select id="countProductByProductCode" parameterType="BaseParam" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM SO_ORDER_DETAIL sod
+        INNER JOIN SO_ORDER so
+        ON sod.ORDER_ID = so.ORDER_ID
+        WHERE sod.PD_CODE = #{filterMap.pdCode}
+        AND so.BUYERS_ID = #{filterMap.buyersId}
+        AND <![CDATA[so.CRT_TIME < #{filterMap.crtTime}]]>
+        AND so.DEL_FLG = 0
+        AND sod.DEL_FLG = 0
+    </select>
+
+    <select id="findPackageQty" resultType="java.lang.String">
+        SELECT
+        CONSTANT_VALUE
+        FROM
+        SO_CONSTANT
+        WHERE CONSTANT_TYPE = 'PackageQty'
+        AND DEL_FLG = 0
+    </select>
+
+    <update id="modifyOrderPendingAudit" parameterType="BaseParam">
+        UPDATE
+        SO_ORDER so
+        SET
+        ORDER_STATUS = #{filterMap.orderStatus},
+        UPD_TIME = #{filterMap.updTime},
+        VER = VER +1
+        WHERE so.ORDER_ID = #{filterMap.orderId}
+        AND so.DEL_FLG = 0
+    </update>
+
+    <update id="modifySubOrderDetailPendingAudit" parameterType="BaseParam">
+        UPDATE
+        SO_ORDER_DETAIL sod
+        SET
+        DETAIL_STATUS = #{filterMap.detailStatus},
+        UPD_TIME = #{filterMap.updTime},
+        VER = VER +1
+        WHERE sod.ORDER_ID =#{filterMap.orderId}
+        AND sod.DEL_FLG = 0
+    </update>
+
+    <update id="modifySubOrderDetailAvailabilityPendingAudit" parameterType="com.msk.core.entity.SoOrderDetailAvailability">
+        UPDATE
+        SO_ORDER_DETAIL_AVAILABILITY
+        SET
+        STATUS = #{status},
+        UPD_TIME = #{updTime},
+        VER = VER +1
+        WHERE
+        ORDER_ID = #{orderId}
+        AND DEL_FLG = 0
+    </update>
+
+    <select id="findMainOrderIdByChildOrderId" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderRelation">
+        SELECT
+        MAIN_ORDER_ID AS mainOrderId,
+        MAIN_ORDER_CODE AS mainOrderCode
+        FROM SO_ORDER_RELATION
+        WHERE CHILD_ORDER_ID = #{filterMap.childOrderId}
+        AND DEL_FLG = 0
+    </select>
+
+    <select id="orderCreateGetConfirmedCount" parameterType="BaseParam" resultType="Integer">
+        SELECT
+        COUNT(1)
+        FROM
+        SO_ORDER_DETAIL_AVAILABILITY soda
+        INNER JOIN SO_ORDER so
+        ON soda.ORDER_ID = so.ORDER_ID
+        WHERE
+        soda.PD_CODE = #{filterMap.pdCode}
+        AND so.BUYERS_ID = #{filterMap.buyersId}
+        AND <![CDATA[so.CRT_TIME < #{filterMap.crtTime}]]>
+        AND so.ORDER_STATUS != #{filterMap.status}
+        AND so.ORDER_STATUS != #{filterMap.failStatus}
+        AND soda.DEL_FLG = 0
+        AND so.DEL_FLG = 0
+    </select>
+
+    <select id="findRelationById" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderRelation">
+        SELECT
+        MAIN_ORDER_ID AS mainOrderId,
+        MAIN_ORDER_CODE AS mainOrderCode,
+        CHILD_ORDER_ID AS childOrderId,
+        CHILD_ORDER_CODE AS childOrderCode
+        FROM SO_ORDER_RELATION
+        WHERE
+        (CHILD_ORDER_ID = #{filterMap.orderId}
+        OR MAIN_ORDER_ID = #{filterMap.orderId})
+        AND DEL_FLG = 0
+    </select>
+</mapper>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.ISL231202Logic">
+    <delete id="remove" parameterType="com.msk.core.entity.SlDistReguSug">
+        delete from sl_dist_regu_sug
+        where SL_CODE=#{slCode} and CHAP_ID=#{chapId} and CHAP_CLASS=#{chapClass}
+    </delete>
+    <insert id="addSlDistReguSug" parameterType="com.msk.core.entity.SlDistReguSug">
+        INSERT INTO sl_dist_regu_sug (
+        SL_CODE,
+        CHAP_ID,
+        CHAP_CLASS,
+        AGREE_FLG,
+        SL_SUG,
+        CRT_ID,
+        CRT_TIME
+        )
+        VALUES
+        (
+        #{slCode},
+        #{chapId},
+        #{chapClass},
+        #{agreeFlg},
+        #{slSug},
+        #{crtId},
+        now()
+        )
+    </insert>
+    <insert id="addSlDistSugHis" parameterType="com.msk.core.entity.SlDistSugHis">
+        INSERT INTO sl_dist_sug_his (
+        SL_SUG_HIS_ID,
+        SL_CODE,
+        CHAP_ID,
+        CHAP_CLASS,
+        AGREE_FLG,
+        SL_SUG,
+        CRT_ID,
+        CRT_TIME
+        )
+        VALUES
+        (
+        #{slSugHisId},
+        #{slCode},
+        #{chapId},
+        #{chapClass},
+        #{agreeFlg},
+        #{slSug},
+        #{crtId},
+        now()
+        )
+    </insert>
+</mapper>

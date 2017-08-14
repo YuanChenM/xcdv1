@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.batch.ds.logic.ProductPricePlateLogic">
+
+    <insert id="insertPriceHistory" parameterType="BaseParam">
+        INSERT INTO PD_PRICEPRD_LOGIAREA_HISTORY(
+        History_Id,
+        Pricecycle_Period,
+        Pdt_Mixcode,
+        Classes_Code,
+        Classes_Name,
+        Machining_Code,
+        Machining_Name,
+        Breed_Code,
+        Breed_Name,
+        Feature_Code,
+        Feature_Name,
+        Weight_Code,
+        Pkg_Code,
+        Grade_Code,
+        Pdt_Name,
+        Logiarea_Code,
+        Logiarea_Name,
+        Orderlevel_Code,
+        Orderlevel_Name,
+        Netweight,
+        Priceofkg,
+        Priceofbox,
+        Del_Flg,
+        Crt_Id,
+        Crt_Time,
+        Upd_Id,
+        Upd_Time,
+        Act_Id,
+        Act_Time,
+        Ver
+        )
+        SELECT
+          @i:=@i+1 AS History_Id,
+          Pricecycle_Period,
+          Pdt_Mixcode,
+          Classes_Code,
+          Classes_Name,
+          Machining_Code,
+          Machining_Name,
+          Breed_Code,
+          Breed_Name,
+          Feature_Code,
+          Feature_Name,
+          Weight_Code,
+          Pkg_Code,
+          Grade_Code,
+          Pdt_Name,
+          Logiarea_Code,
+          Logiarea_Name,
+          Orderlevel_Code,
+          Orderlevel_Name,
+          Netweight,
+          Priceofkg,
+          Priceofbox,
+          Del_Flg,
+          Crt_Id,
+          Crt_Time,
+          Upd_Id,
+          Upd_Time,
+          Act_Id,
+          Act_Time,
+          Ver
+        FROM pd_priceprd_logiarea
+        ,(SELECT @i :=(SELECT
+               CASE
+               WHEN MAX(HISTORY_ID) IS NULL THEN 1
+               ELSE MAX(HISTORY_ID) END
+               FROM pd_priceprd_logiarea_history)) priceHistoryId
+    </insert>
+    <delete id="deletePricePlate" parameterType="BaseParam">
+       DELETE FROM pd_priceprd_logiarea
+    </delete>
+    <insert id="insertPricePlate" parameterType="BaseEntity">
+        INSERT INTO pd_priceprd_logiarea(
+          Pricecycle_Id,
+          Pricecycle_Period,
+          Pdt_Mixcode,
+          Classes_Code,
+          Classes_Name,
+          Machining_Code,
+          Machining_Name,
+          Breed_Code,
+          Breed_Name,
+          Feature_Code,
+          Feature_Name,
+          Weight_Code,
+          Pkg_Code,
+          Grade_Code,
+          Pdt_Name,
+          Logiarea_Code,
+          Logiarea_Name,
+          Orderlevel_Code,
+          Orderlevel_Name,
+          Netweight,
+          Priceofkg,
+          Priceofbox,
+          Del_Flg,
+          Crt_Id,
+          Crt_Time,
+          Upd_Id,
+          Upd_Time,
+          Act_Id,
+          Act_Time,
+          Ver
+        )
+        SELECT
+         #{pricecycleId},
+         #{pricecyclePeriod},
+         #{pdtMixcode},
+         #{classesCode},
+         null,
+         #{machiningCode},
+         null,
+         #{breedCode},
+         null,
+         #{featureCode},
+         null,
+         #{weightCode},
+         null,
+         #{gradeCode},
+         null,
+         #{logiareaCode},
+         null,
+         #{orderlevelCode},
+         null,
+         netWeight,
+         #{priceofkg},
+         #{priceofkg} * netWeight,
+         0,
+         #{crtId},
+         #{crtTime},
+         NULL,
+         null,
+         #{actId},
+         #{actTime},
+         0
+         FROM (SELECT
+             pdWeight.WEIGHT_VAL AS netWeight
+          FROM
+             pd_weight pdWeight
+          WHERE
+           pdWeight.CLASSES_CODE = #{classesCode}
+          AND pdWeight.MACHINING_CODE = #{machiningCode}
+          AND pdWeight.BREED_CODE = #{breedCode}
+          AND pdWeight.FEATURE_CODE = #{featureCode}
+          AND pdWeight.WEIGHT_CODE = #{weightCode}) normKg
+    </insert>
+
+    <!-- 条件语句 -->
+    <sql id="whereCondition">
+        <where>
+            Classes_Code = #{classesCode} AND
+            Machining_Code = #{machiningCode} AND
+            Breed_Code = #{breedCode} AND
+            Feature_Code = #{featureCode} AND
+            Orderlevel_Code = #{orderLevelCode} AND
+            BOX_CNTMIN = #{boxCntMin} AND
+            BOX_CNTMAX = #{boxCntMax}
+        </where>
+    </sql>
+    <select id="selectOrderLevel" parameterType="BaseParam" resultType="com.msk.core.entity.PdLogiareaOrderlevel">
+        SELECT
+            Classes_Code AS classesCode
+        FROM
+            pd_logiarea_orderlevel
+        <include refid="whereCondition" />
+    </select>
+    <update id="updateOrderLevel" parameterType="BaseEntity">
+        UPDATE
+            pd_logiarea_orderlevel
+        SET
+            Weight_Code = #{weightCode},
+            Grade_Code =  #{gradeCode},
+            UPD_ID = #{crtId},
+            Upd_Time = #{updTime},
+            Orderlevel_Code = #{orderlevelCode},
+            Box_Cntmin = #{boxCntmin},
+            Box_Cntmax = #{boxCntmax},
+            VER = VER + 1
+        <include refid="whereCondition" />
+    </update>
+    <insert id="insertOrderLevel" parameterType="BaseEntity">
+        INSERT INTO pd_logiarea_orderlevel(
+              Classes_Code,
+              Machining_Code,
+              Breed_Code,
+              Feature_Code,
+              Weight_Code,
+              Grade_Code,
+              Logiarea_Code,
+              Orderlevel_Code,
+              Orderlevel_Name,
+              Price_Percent,
+              Box_Cntlvl,
+              Box_Cntmin,
+              Box_Cntmax,
+              Del_Flg,
+              Crt_Id,
+              Crt_Time,
+              Upd_Id,
+              Upd_Time,
+              Act_Id,
+              Act_Time,
+              Ver
+        )
+        VALUES(
+        #{classesCode},
+        #{machiningCode},
+        #{breedCode},
+        #{featureCode},
+        #{weightCode},
+        #{gradeCode},
+        #{logiareaCode},
+        #{orderlevelCode},
+        null,
+        null,
+        null,
+        #{boxCntmin},
+        #{boxCntmax},
+        0,
+        #{crtId},
+        #{crtTime},
+        NULL,
+        null,
+        #{actId},
+        #{actTime},
+        0
+        )
+    </insert>
+</mapper>

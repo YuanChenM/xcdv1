@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.batch.so.logic.BSO152402Logic">
+    <update id="modifyConfirmCode" parameterType="BaseParam">
+        UPDATE SO_ORDER
+        SET CONFIRM_ORDER_CODE=#{confirmOrderCode}
+        WHERE ORDER_ID=#{orderId}
+        AND DEL_FLG=0
+    </update>
+
+    <update id="modifyDistributionFail" parameterType="BaseParam">
+        UPDATE SO_ORDER
+        SET ORDER_STATUS=#{orderStatus}
+        ,VER=VER+1
+        WHERE ORDER_ID=#{orderId}
+        AND DEL_FLG=0
+    </update>
+
+    <!--更新订单状态为分销失败-->
+    <update id="modify" parameterType="com.msk.so.bean.OrderStatusParam">
+        UPDATE SO_ORDER
+        SET ORDER_STATUS=#{newStatus}
+        ,UPD_ID=#{updId}
+        ,UPD_TIME=#{updTime}
+        ,VER = VER + 1
+        WHERE ORDER_ID=#{orderId}
+    </update>
+
+    <select id="findMaxSalesRanking" parameterType="BaseParam" resultType="com.msk.core.entity.SoSalesRanking">
+        SELECT
+        IFNULL(MAX(SALES_RANKING),0) AS salesRanking
+        FROM so_sales_ranking
+        WHERE PD_CODE = #{filterMap.pdCode}
+        AND LGCS_CODE = #{filterMap.lgcsCode}
+    </select>
+
+    <select id="findSpForSalesRanking" parameterType="BaseParam" resultType="com.msk.core.entity.SoStockSp">
+        SELECT
+        SUPPLIER_CODE AS supplierCode
+        FROM so_stock_sp
+        WHERE
+        PD_CODE = #{filterMap.pdCode}
+        AND LGCS_CODE = #{filterMap.lgcsCode}
+    </select>
+
+    <select id="countOrdersByBuyerId" parameterType="com.msk.core.entity.SoOrder" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM SO_ORDER so
+        WHERE so.BUYERS_ID = #{buyersId}
+        AND <![CDATA[so.CRT_TIME < #{crtTime}]]>
+        AND so.DEL_FLG = 0
+    </select>
+
+    <select id="countProductByProductCode" parameterType="BaseParam" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM SO_ORDER_DETAIL sod
+        INNER JOIN SO_ORDER so
+        ON sod.ORDER_ID = so.ORDER_ID
+        WHERE sod.PD_CODE = #{filterMap.pdCode}
+        AND so.BUYERS_ID = #{filterMap.buyersId}
+        AND <![CDATA[so.CRT_TIME < #{filterMap.crtTime}]]>
+        AND so.DEL_FLG = 0
+        AND sod.DEL_FLG = 0
+    </select>
+
+    <update id="batchModifyOrderPendingAudit" parameterType="BaseParam">
+        UPDATE SO_ORDER so
+        SET
+        so.ORDER_STATUS = #{filterMap.status},
+        so.UPD_TIME = #{filterMap.updTime},
+        so.UPD_ID = #{filterMap.updId},
+        so.VER = VER +1
+        WHERE
+            (
+                so.ORDER_ID = #{filterMap.orderId}
+                OR so.ORDER_ID = (
+                    SELECT
+                        sor.child_order_id
+                    FROM
+                        so_order_relation sor
+                    WHERE
+                        sor.main_order_id = #{filterMap.orderId}
+                )
+            )
+        AND so.DEL_FLG = 0
+    </update>
+
+    <update id="batchModifyOrderDetailPendingAudit" parameterType="BaseParam">
+        UPDATE
+        SO_ORDER_DETAIL sod
+        SET
+        sod.DETAIL_STATUS = #{filterMap.status},
+        sod.UPD_TIME = #{filterMap.updTime},
+        sod.UPD_ID = #{filterMap.updId},
+        sod.VER = VER +1
+        WHERE (
+                sod.ORDER_ID = #{filterMap.orderId}
+                OR sod.ORDER_ID = (
+                    SELECT
+                        sor.child_order_id
+                    FROM
+                        so_order_relation sor
+                    WHERE
+                        sor.main_order_id = #{filterMap.orderId}
+                )
+            )
+        AND sod.DEL_FLG = 0
+    </update>
+
+    <update id="batchModifyOrderDetailAvailabilityPendingAudit" parameterType="BaseParam">
+        UPDATE
+        SO_ORDER_DETAIL_AVAILABILITY soda
+        SET
+        soda.STATUS = #{filterMap.status},
+        soda.UPD_TIME = #{filterMap.updTime},
+        soda.UPD_ID = #{filterMap.updId},
+        soda.VER = VER +1
+        WHERE (
+                soda.ORDER_ID = #{filterMap.orderId}
+                OR soda.ORDER_ID = (
+                    SELECT
+                        sor.child_order_id
+                    FROM
+                        so_order_relation sor
+                    WHERE
+                        sor.main_order_id = #{filterMap.orderId}
+                )
+            )
+        AND soda.DEL_FLG = 0
+    </update>
+
+    <select id="findOrderDetails" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderDetail">
+        SELECT
+        sod.PD_CODE AS pdCode,
+        sod.ORDER_QTY AS orderQty,
+        sod.ORDER_ID AS orderId
+        FROM
+        SO_ORDER_DETAIL sod
+        INNER JOIN SO_ORDER so
+        ON sod.ORDER_ID = so.ORDER_ID
+        WHERE
+        (so.ORDER_ID = #{filterMap.orderId}
+        <if test="null != filterMap.childOrderId">
+            OR so.ORDER_ID = #{filterMap.childOrderId}
+        </if>
+        )
+        AND so.DEL_FLG = 0
+    </select>
+
+
+    <select id="batchGetEmailAddress" resultType="com.msk.batch.so.bean.BatchSoConstantBean">
+        SELECT
+        CONSTANT_VALUE AS emailAddress
+        FROM SO_CONSTANT
+        WHERE CONSTANT_TYPE = 'EmailAddress'
+        AND DEL_FLG = 0
+    </select>
+
+    <select id="findPackageQty" resultType="java.lang.String">
+        SELECT
+        CONSTANT_VALUE
+        FROM
+        SO_CONSTANT
+        WHERE CONSTANT_TYPE = 'PackageQty'
+        AND DEL_FLG = 0
+  </select>
+
+    <select id="getConfirmedCount" parameterType="BaseParam" resultType="Integer">
+        SELECT
+        COUNT(1)
+        FROM
+        SO_ORDER_DETAIL_AVAILABILITY soda
+        INNER JOIN SO_ORDER so
+        ON soda.ORDER_ID = so.ORDER_ID
+        WHERE
+        soda.PD_CODE = #{filterMap.pdCode}
+        AND so.BUYERS_ID = #{filterMap.buyersId}
+        AND <![CDATA[so.CRT_TIME < #{filterMap.crtTime}]]>
+        AND so.ORDER_STATUS != #{filterMap.status}
+        AND so.ORDER_STATUS != #{filterMap.failStatus}
+        AND soda.DEL_FLG = 0
+        AND so.DEL_FLG = 0
+    </select>
+
+    <select id="batchFindRelationById" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderRelation">
+        SELECT
+        MAIN_ORDER_ID AS mainOrderId,
+        MAIN_ORDER_CODE AS mainOrderCode,
+        CHILD_ORDER_ID AS childOrderId,
+        CHILD_ORDER_CODE AS childOrderCode
+        FROM SO_ORDER_RELATION
+        WHERE
+        (CHILD_ORDER_ID = #{filterMap.orderId}
+        OR MAIN_ORDER_ID = #{filterMap.orderId})
+        AND DEL_FLG = 0
+    </select>
+
+    <select id="findSubOrderByChildId" parameterType="BaseParam" resultType="Integer">
+        SELECT
+        COUNT(1)
+        FROM SO_ORDER
+        WHERE
+        ORDER_ID = #{filterMap.childOrderId}
+        AND ORDER_STATUS = #{filterMap.status}
+        AND DEL_FLG = 0
+    </select>
+</mapper>

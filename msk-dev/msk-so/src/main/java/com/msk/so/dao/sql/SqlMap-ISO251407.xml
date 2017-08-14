@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO251407Logic">
+    <select id="findOne" resultType="com.msk.core.entity.SoOrder" parameterType="BaseParam">
+    SELECT
+    A.REQUIRE_ORDER_CODE AS requireOrderCode,
+    A.ORDER_STATUS AS status,
+    A.UPD_TIME AS updTime,
+    A.ORDER_CODE AS orderCode,
+    A.ORDER_ID AS orderId
+    FROM
+    so_order AS A
+    <where>
+    <if test="filterMap.orderId!=null and filterMap.orderId!=''">
+        A.ORDER_ID=#{filterMap.orderId}
+    </if>
+    <if test="filterMap.orderCode!=null and filterMap.orderCode!=''">
+        AND A.ORDER_CODE=#{filterMap.orderCode}
+    </if>
+    </where>
+    </select>
+</mapper>

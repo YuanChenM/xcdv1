@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.ds.logic.DS174101Logic">
+    <sql id="select">
+        SELECT
+        LOT_ID AS lotId,
+        CLASSES_CODE AS classesCode,
+        BREED_CODE AS breedCode,
+        FEATURE_CODE AS featureCode,
+        GRADE_CODE AS gradeCode,
+        PKG_CODE AS pkgCode,
+        SL_CODE AS slCode,
+        LGCS_CODE AS lgcsCode,
+        DATE_CODE AS dateCode,
+        PD_CODE AS pdCode,
+        CLASSES_NAME AS classesName,
+        BREED_NAME AS breedName,
+        FEATURE_NAME AS featureName,
+        GRADE_NAME AS gradeName,
+        SL_NAME AS slName,
+        LGCS_NAME AS lgcsName,
+        PD_NAME AS pdName,
+        PD_STATUS AS pdStatus,
+        ORIGIN AS origin,
+        PRODCINGAREA AS prodcingarea,
+        MANUFACTURER AS manufacturer,
+        BRAND AS brand,
+        NETWEIGHT AS netweight,
+        PKG_SPEC AS pkgSpec,
+        PKG_WAY AS pkgWay,
+        PD_TIME AS pdTime,
+        SHELF_LIFE AS shelfLife,
+        PROCESSING_WAY AS processingWay,
+        STORAGE_WAY AS storageWay
+    </sql>
+    <sql id="whereCondition">
+        <where>
+            <if test="filterMap.slCode!=null and filterMap.slCode!=''">
+                AND SL_CODE like #{filterMap.slCode}
+            </if>
+            <if test="filterMap.slName!=null and filterMap.slName!=''">
+                AND SL_NAME like #{filterMap.slName}
+            </if>
+            <if test="filterMap.classesCode!=null and filterMap.classesCode!=''">
+                AND CLASSES_CODE like #{filterMap.classesCode}
+            </if>
+            <if test="filterMap.breedCode!=null and filterMap.breedCode!=''">
+                AND BREED_CODE like #{filterMap.breedCode}
+            </if>
+            <if test="filterMap.featureCode!=null and filterMap.featureCode!=''">
+                AND FEATURE_CODE like #{filterMap.featureCode}
+            </if>
+            <if test="filterMap.breedName!=null and filterMap.breedName!=''">
+                AND BREED_NAME like #{filterMap.breedName}
+            </if>
+            <if test="filterMap.classesName!=null and filterMap.classesName!=''">
+                AND CLASSES_NAME like #{filterMap.classesName}
+            </if>
+            <if test="filterMap.featureName!=null and filterMap.featureName!=''">
+                AND FEATURE_NAME like #{filterMap.featureName}
+            </if>
+            <if test="filterMap.gradeName!=null and filterMap.gradeName!=''">
+                AND GRADE_CODE = #{filterMap.gradeName}
+            </if>
+            <if test="filterMap.pkgCode!=null and filterMap.pkgCode!=''">
+                AND PKG_CODE = #{filterMap.pkgCode}
+            </if>
+            <if test="filterMap.lgcsName!=null and filterMap.lgcsName!=''">
+                AND (LGCS_NAME LIKE #{filterMap.lgcsName} OR
+                LGCS_CODE LIKE #{filterMap.lgcsName})
+            </if>
+            <if test="filterMap.dateCode!=null and filterMap.dateCode!=''">
+                AND DATE_CODE LIKE #{filterMap.dateCode}
+            </if>
+        </where>
+    </sql>
+    <select id="getPageCount" parameterType="BaseParam" resultType="int">
+        SELECT count(1)
+        FROM ds_sl_pd_lot
+        <include refid="whereCondition" />
+    </select>
+    <select id="findPageList" parameterType="BaseParam" resultType="com.msk.core.entity.DsSlPdLot">
+        <include refid="select" />
+        FROM ds_sl_pd_lot
+        <include refid="whereCondition" />
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize}
+        </if>
+    </select>
+    <select id="findOne" parameterType="BaseParam" resultType="com.msk.core.entity.DsSlPdLot">
+        <include refid="select" />
+        FROM ds_sl_pd_lot
+        WHERE LOT_ID = #{filterMap.lotId}
+    </select>
+    <select id="findLogisticsArea" resultType="com.msk.core.entity.MdLogisticsArea">
+        SELECT
+            lgcs.LGCS_AREA_CODE AS lgcsAreaCode,
+            lgcs.LGCS_AREA_NAME AS lgcsAreaName
+        FROM
+            md_logistics_area lgcs
+    </select>
+    <delete id="remove" parameterType="com.msk.core.entity.DsSlPdLot">
+        DELETE FROM ds_sl_pd_lot  WHERE LOT_ID = #{lotId}
+    </delete>
+    <delete id="removeSerial" parameterType="com.msk.core.entity.DsLotSerial">
+        DELETE FROM ds_lot_serial  WHERE LOT_ID = #{lotId}
+    </delete>
+</mapper>

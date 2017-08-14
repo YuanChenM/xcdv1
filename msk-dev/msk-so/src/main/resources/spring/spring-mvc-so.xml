@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"   
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-4.0.xsd   
+        http://www.springframework.org/schema/context   
+        http://www.springframework.org/schema/context/spring-context-4.0.xsd   
+        http://www.springframework.org/schema/mvc   
+        http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd   
+        ">
+    <!-- 静态资源文件，不会被Spring MVC拦截 -->
+    <mvc:resources location="/static/so/js/" mapping="/js/so/**"/>
+  	<!-- JSP视图解析器-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+        <property name="prefix" value="/jsp/so/" />
+        <property name="suffix" value=".jsp" />
+        <property name="order" value="3" />
+    </bean>
+
+    <bean id="orderFactory" class="com.msk.so.logic.order.OrderFactory">
+        <property name="orderBuilder" ref="orderBuilder"/>
+    </bean>
+    <!--标准分销第三方买手销售订单 -->
+    <bean id="standardBuyerOrder" class="com.msk.so.logic.order.buyer.StandardBuyerOrder"/>
+    <!--第三方买手销售订单 -->
+    <bean id="thirdPartyBuyersOrder" class="com.msk.so.logic.order.buyer.ThirdPartyBuyersOrder"/>
+    <!-- 标准分销订单 -->
+    <bean id="standardOrder" class="com.msk.so.logic.order.StandardOrder">
+        <property name="standardBuyerOrder" ref="standardBuyerOrder"/>
+    </bean>
+    <!-- 第三方订单 -->
+    <bean id="thirdPartyOrder" class="com.msk.so.logic.order.ThirdPartyOrder">
+    </bean>
+    <!-- 大促销订单 -->
+    <bean id="bigPromotionOrder" class="com.msk.so.logic.order.BigPromotionOrder"></bean>
+    <!-- 买手订单 -->
+    <bean id="buyerOrder" class="com.msk.so.logic.order.BuyerOrder"></bean>
+    <!--第三方买手囤货订单 -->
+    <bean id="thirdPartyBuyerOrder" class="com.msk.so.logic.order.ThirdPartyBuyerOrder"></bean>
+    <!-- 订单明细等级 -->
+    <bean id="orderDetailLevelImp" class="com.msk.so.logic.order.level.imp.OrderDetailLevelImp"></bean>
+    <!-- 订单状态 -->
+    <bean id="orderStatusHandle" class="com.msk.so.logic.order.OrderStatusHandle"></bean>
+    <!-- 卖家订单查询 -->
+    <bean id="sellerOrderSearch" class="com.msk.so.logic.order.search.SellerOrderSearch"></bean>
+    <!-- 买家订单查询 -->
+    <bean id="buyersOrderSearch" class="com.msk.so.logic.order.search.BuyersOrderSearch"></bean>
+    <!-- 买手订单查询 -->
+    <bean id="buyerOrderSearch" class="com.msk.so.logic.order.search.BuyerOrderSearch"></bean>
+    <bean id="com.msk.so.logic.rs.ISO151416Logic" class="com.msk.so.logic.rs.ISO151416Logic"/>
+
+    <bean id="orderBuilder" class="com.msk.so.logic.order.OrderBuilder">
+        <constructor-arg name="orderMap">
+            <map>
+                <entry key="1" value-ref="standardOrder"/><!--标准分销订单 -->
+                <entry key="2" value-ref="thirdPartyOrder"/><!--第三方订单 -->
+                <entry key="4" value-ref="buyerOrder"/><!--神农客买手订单 -->
+                <entry key="7" value-ref="thirdPartyBuyerOrder"/><!--神农客买手订单 -->
+            </map>
+        </constructor-arg>
+    </bean>
+</beans>  

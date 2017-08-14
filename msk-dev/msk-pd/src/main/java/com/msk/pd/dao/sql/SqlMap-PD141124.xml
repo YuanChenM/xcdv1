@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pd.logic.PD141124Logic">
+
+
+    <!--下拉框列表显示-->
+    <select id="findList" parameterType="com.msk.core.bean.BaseParam" resultType="com.msk.pd.bean.PD141124Bean">
+        SELECT
+        CLASSESTREE_CODE AS levelCode
+        ,A.LEVEL_NAME AS levelName
+        ,A.LEVEL_CODE AS classestreeCode
+        FROM PD_CLASSESTREE A
+        <!--Modify 改善 #2615 产品系统录入慢，影响操作，需要优化 2016/09/20 by 杨春艳 Start-->
+        WHERE A.TREE_LEVEL = #{filterMap.level} and A.DEL_FLG = 0
+        <if test="filterMap.parentCode != '' and filterMap.parentCode != null">
+            AND A.PARENT_CODE = #{filterMap.parentCode}
+        </if>
+        <!--Modify 改善 #2615 产品系统录入慢，影响操作，需要优化 2016/09/20 by 杨春艳 End -->
+        ORDER BY A.CLASSESTREE_ID
+    </select>
+</mapper>

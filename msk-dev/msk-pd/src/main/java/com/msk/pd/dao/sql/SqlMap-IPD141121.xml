@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pd.logic.IPD141121Logic">
+    <select id="findList" parameterType="BaseParam" resultType="com.msk.pd.bean.IPD141121RsResult">
+		SELECT
+		 A.MCT_STD_ITEM_ID AS mctStdItemId
+		,B.MCT_STD_ITEM_NAME AS mctStdItemName
+		,A.MCT_OK_VAL AS mctStdVal1
+		,A.MCT_NG_VAL AS mctStdVal2
+		FROM
+		PD_MCT_STD AS A
+		LEFT JOIN PD_MCT_STD_ITEM B ON A.MCT_STD_ITEM_ID = B.MCT_STD_ITEM_ID
+		WHERE
+		A.STANDARD_ID = (SELECT mct.STANDARD_ID FROM PD_STANDARD AS mct WHERE mct.CLASSESTREE_CODE = #{filterMap.classestreeCode})
+		ORDER BY A.MCT_STD_ITEM_ID
+	</select>
+</mapper>

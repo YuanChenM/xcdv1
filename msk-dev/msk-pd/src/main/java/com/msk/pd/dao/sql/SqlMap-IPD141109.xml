@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pd.logic.IPD141109Logic">
+	<!--插入操作 -->
+	<insert id="savePdNormsStd" parameterType="com.msk.pd.bean.IPD141109RsParam">
+		INSERT INTO
+		PD_NORMS_STD (
+		STANDARD_ID,
+		NORMS_CODE,
+		NORMS_SUTTLE,
+		NORMS_ERROR,
+		NORMS_NUMBER,
+		NORMS_SIZE,
+		NORMS_TEXTURE,
+		NORMS_OUT,
+		NORMS_KG,
+		NORMS_OUT_SIZE,
+		NORMS_OUT_TEXTURE,
+		NORMS_TEN,
+		NORMS_LENGTH,
+		NORMS_WIDTH,
+		NORMS_HEIGHT,
+		NORMS_VOLUME,
+		NETWEIGHT_INNER,
+		NETWEIGHT_OUT,
+		DEL_FLG,
+		CRT_ID,
+		CRT_TIME,
+		UPD_ID,
+		UPD_TIME,
+		ACT_ID,
+		ACT_TIME,
+		VER
+		)
+		VALUES
+		(
+		#{standardId},
+		#{normsCode},
+		#{normsSuttle},
+		#{normsError},
+		#{normsNumber},
+		#{normsSize},
+		#{normsTexture},
+		#{normsOut},
+		#{normsKg},
+		#{normsOutSize},
+		#{normsOutTexture},
+		#{normsTen},
+		#{normsLength},
+		#{normsWidth},
+		#{normsHeight},
+		#{normsVolume},
+		#{netWeightInner},
+		#{netWeightOut},
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+		);
+	</insert>
+
+
+	<!-- 查询产品标准表 -->
+	<select id="findPdStandard" parameterType="BaseParam"
+		resultType="com.msk.core.entity.PdStandard">
+		SELECT
+		A.STANDARD_ID AS standardId
+		FROM
+		PD_STANDARD AS A
+		WHERE
+		CLASSES_CODE =
+		#{filterMap.classesCode} AND BREED_CODE =
+		#{filterMap.breedCode}
+		AND A.FEATURE_CODE = #{filterMap.featureCode}
+		AND A.GRADE_CODE = #{filterMap.gradeCode}
+	</select>
+</mapper>

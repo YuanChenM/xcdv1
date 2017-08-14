@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170212Logic">
+
+
+    <!-- 查询合伙人数据 -->
+    <select id="findList" parameterType="BaseParam" resultType="com.msk.pl.bean.IPL2017021201Result">
+		SELECT
+		A.PL_ID AS plId,
+		A.STATUS AS status,
+		IFNULL(A.INCENTIVE_FEE,0) AS incentiveFee,
+		DATE_FORMAT(B.REPORT_DATE,'%Y年%m月%d日')  AS crtTimes
+		from PL_INFO A
+		INNER JOIN pl_bs_task B  ON  B.TASK_ID = A.TASK_ID AND  B.DEL_FLG = 0
+		where
+		A.BS_CODE=#{bsCode}
+          <if test="status != null and status != ''">
+			  AND A.STATUS =#{status}
+	      </if>
+        AND DATE_FORMAT(A.CRT_TIME,'%Y-%m') = DATE_FORMAT(#{nowMonth},'%Y-%m') AND A.DEL_FLG = 0
+	</select>
+
+</mapper>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170213Logic">
+    <insert id="save" parameterType="com.msk.pl.bean.PLRuler">
+        INSERT  INTO  PL_RULER
+        (
+        STATEMENT_ID,
+        PARTNER_ID,
+        TERMINAL_ID,
+        STATEMENT_NUMBER,
+        REPAY_DAY,
+        EFFECTIVE_TIME,
+        REMARK,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        VER
+        )VALUES
+        (
+        #{statementId},
+        #{partnerId},
+        #{terminalId},
+        #{statementNumber},
+        #{repayDay},
+        #{effectiveDate},
+        #{remark},
+        0,
+        #{crtId},
+        now(),
+        1
+        )
+    </insert>
+    <select id="findOne" resultType="com.msk.pl.bean.IPL20170213RsResult" parameterType="com.msk.pl.bean.IPL20170214RsParam">
+        select
+        <include refid="findOneSql"/>
+        FROM PL_RULER
+        WHERE PARTNER_ID=#{partnerId} AND (DEL_FLG=0 or DEL_FLG is NULL)
+        ORDER BY CRT_TIME DESC limit 1
+    </select>
+    <sql id="findOneSql">
+        STATEMENT_ID AS statementId,
+        PARTNER_ID as partnerId,
+        TERMINAL_ID as terminalId,
+        STATEMENT_NUMBER as statementNumber,
+        REPAY_DAY as repayDay,
+        EFFECTIVE_TIME as effectiveTime,
+        VER as ver
+    </sql>
+    <update id="modifyDate" parameterType="com.msk.pl.bean.IPL20170213RsParam">
+        UPDATE PL_RULER
+        SET DEL_FLG=1,
+        UPD_ID=#{crtId},
+        UPD_TIME=now(),
+        VER=VER+1
+        WHERE PARTNER_ID=#{partnerId}
+        AND DATE_FORMAT(EFFECTIVE_TIME,'%Y-%m-%d') &gt;= #{effectiveTime}
+    </update>
+    <update id="modify" parameterType="com.msk.pl.bean.IPL20170214RsParam">
+        UPDATE PL_RULER
+        SET OVER_TIME=#{overTime},
+        UPD_ID=#{updId},
+        UPD_TIME=now(),
+        VER=#{ver}
+        WHERE STATEMENT_ID=#{statementId}
+    </update>
+</mapper>

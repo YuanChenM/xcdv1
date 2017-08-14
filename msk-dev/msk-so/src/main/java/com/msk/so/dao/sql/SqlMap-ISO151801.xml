@@ -1,0 +1,655 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.rs.ISO151801Logic">
+  <select id="getOrderInfo" parameterType="com.msk.so.bean.rs.ISO151801RsParam" resultType="com.msk.core.entity.SoOrder">
+        SELECT
+          so.ORDER_ID AS orderId,
+          so.ORDER_CODE AS orderCode,
+          so.SELLER_CODE AS sellerCode,
+          so.SELLER_NAME AS sellerName,
+          so.BUYERS_ID AS buyersId,
+          so.BUYERS_CODE AS buyersCode,
+          so.BUYERS_NAME AS buyersName,
+          so.BUYERS_TYPE AS buyersType,
+          so.NEED_INVOICE AS needInvoice,
+          so.DISTRICT_CODE AS districtCode,
+          so.PAYMENT_TYPE AS paymentType,
+          so.SELLERS AS sellers
+        FROM
+          SO_ORDER so
+          LEFT JOIN so_order_ship soh
+            ON soh.order_id = so.order_id
+        WHERE soh.ship_id = #{shipId}
+    </select>
+
+    <insert id="saveReturnInfo" parameterType="com.msk.core.entity.SoReturn">
+        INSERT INTO so_return (
+          RETURN_ID,
+          RETURN_CODE,
+          ORDER_ID,
+          ORDER_CODE,
+          BUYERS_CODE,
+          BUYERS_NAME,
+          SELLER_CODE,
+          SELLER_NAME,
+          DISTRICT_CODE,
+          RETURN_SOURCE,
+          RETURN_TYPE,
+          RETURN_MODE,
+          RETURN_AMOUNT,
+          RETURN_REASON,
+          APPLY_MAN,
+          APPLY_TIME,
+          APPLY_REMARK,
+          RECEIVER_NAME,
+          RECEIVER_TEL,
+          IS_PAID,
+          REFUND_MODE,
+          IS_INVOICE,
+          RETURN_ACTOR,
+          RETURN_STATUS,
+          SELLERS,
+          ORDER_TAKER,
+          CANCEL_REASON,
+          IMAGE1,
+          IMAGE2,
+          IMAGE3,
+          IMAGE4,
+          IMAGE5,
+          DEL_FLG,
+          CRT_ID,
+          CRT_TIME,
+          UPD_ID,
+          UPD_TIME,
+          VER
+        )
+        VALUES(
+          #{returnId},
+          #{returnCode},
+          #{orderId},
+          #{orderCode},
+          #{buyersCode},
+          #{buyersName},
+          #{sellerCode},
+          #{sellerName},
+          #{districtCode},
+          #{returnSource},
+          #{returnType},
+          #{returnMode},
+          #{returnAmount},
+          #{returnReason},
+          #{applyMan},
+          #{applyTime},
+          #{applyRemark},
+          #{receiverName},
+          #{receiverTel},
+          #{isPaid},
+          #{refundMode},
+          #{isInvoice},
+          #{returnActor},
+          #{returnStatus},
+          #{sellers},
+          #{orderTaker},
+          #{cancelReason},
+          #{image1},
+          #{image2},
+          #{image3},
+          #{image4},
+          #{image5},
+          0,
+          #{crtId},
+          #{crtTime},
+          #{crtId},
+          #{crtTime},
+          1
+        )
+    </insert>
+
+    <select id="getAllAmountByShipId" parameterType="com.msk.so.bean.rs.ISO151801RsParam" resultType="BigDecimal">
+        SELECT
+          SUM(IFNULL(soda.SEND_QTY,0) * IFNULL(sod.pd_price,0))
+        FROM
+          so_order_detail_availability soda
+          LEFT JOIN so_order_detail sod
+            ON sod.order_detail_id = soda.ORDER_DETAIL_ID
+        WHERE soda.SHIP_ID = #{shipId}
+    </select>
+
+    <select id="getReturnDetail" resultType="com.msk.so.bean.order.SoReturnDetailInfo" parameterType="com.msk.so.bean.rs.ISO151801RsParam">
+      SELECT
+        soda.SHIP_ID AS shipId,
+        sos.SHIP_CODE AS shipCode,
+        sd.deliver_id AS deliverId,
+        soda.SUPPLIER_CODE AS supplierCode,
+        soda.SUPPLIER_NAME AS supplierName,
+        sod.CLASSES_CODE AS classesCode,
+        sod.CLASSES_NAME AS classesName,
+        sod.BREED_CODE AS breedCode,
+        sod.BREED_NAME AS breedName,
+        sod.FEATURE_CODE AS featureCode,
+        sod.FEATURE_NAME AS featureName,
+        sod.NORMS_CODE AS normsCode,
+        sod.NORMS_NAME AS normsName,
+        sod.PD_CODE AS pdCode,
+        sod.PD_NAME AS pdName,
+        sod.PD_LEVEL AS pdLevel,
+        sod.PD_GRADE_CODE AS pdGradeCode,
+        sod.PD_GRADE_NAME AS pdGradeName,
+        sod.UNIT AS unit,
+        sod.PACKING_VOLUME AS packingVolume,
+        soda.SKU_CODE AS skuCode,
+        sod.WEIGHT AS weight,
+        sod.VOLUME AS volume,
+        soda.SEND_QTY AS returnQty,
+        soda.ORDER_DETAIL_AVAILABILITY_ID AS suppId
+      FROM
+        so_order_detail_availability soda
+        LEFT JOIN so_order_detail sod
+          ON soda.ORDER_DETAIL_ID = sod.ORDER_DETAIL_ID
+        LEFT JOIN so_deliver sd
+          ON sd.SHIP_ID = soda.SHIP_ID
+        LEFT JOIN so_order_ship sos
+          ON sos.ship_id = soda.SHIP_ID
+      WHERE soda.SHIP_ID = #{shipId}
+    </select>
+
+    <insert id="saveReturnDetail" parameterType="com.msk.so.bean.order.SoReturnDetailInfo">
+        INSERT INTO so_return_detail (
+          DETAIL_ID,
+          RETURN_ID,
+          SHIP_ID,
+          SHIP_CODE,
+          ORDER_DETAIL_AVAILABILITY_ID,
+          DELIVER_ID,
+          SUPPLIER_CODE,
+          SUPPLIER_NAME,
+          CLASSES_CODE,
+          CLASSES_NAME,
+          BREED_CODE,
+          BREED_NAME,
+          FEATURE_CODE,
+          FEATURE_NAME,
+          NORMS_CODE,
+          NORMS_NAME,
+          PD_CODE,
+          PD_NAME,
+          PD_LEVEL,
+          PD_GRADE_CODE,
+          PD_GRADE_NAME,
+          SKU_CODE,
+          UNIT,
+          PACKING_VOLUME,
+          WEIGHT,
+          VOLUME,
+          RETURN_QTY,
+          DEL_FLG,
+          CRT_ID,
+          CRT_TIME,
+          UPD_ID,
+          UPD_TIME,
+          VER,
+          INBOUND_BATCH
+        )
+        VALUES
+          (
+            #{detailId},
+            #{returnId},
+            #{shipId},
+            #{shipCode},
+            #{suppId},
+            #{deliverId},
+            #{supplierCode},
+            #{supplierName},
+            #{classesCode},
+            #{classesName},
+            #{breedCode},
+            #{breedName},
+            #{featureCode},
+            #{featureName},
+            #{normsCode},
+            #{normsName},
+            #{pdCode},
+            #{pdName},
+            #{pdLevel},
+            #{pdGradeCode},
+            #{pdGradeName},
+            #{skuCode},
+            #{unit},
+            #{packingVolume},
+            #{weight},
+            #{volume},
+            #{rejectQty},
+            0,
+            #{crtId},
+            #{crtTime},
+            #{crtId},
+            #{crtTime},
+            1,
+            #{inboundBatch}
+          )
+    </insert>
+
+    <select id="getReturnDetailInfo" parameterType="com.msk.so.bean.order.OrderShipProductInfo" resultType="com.msk.so.bean.order.SoReturnDetailInfo">
+      SELECT
+        soda.SHIP_ID AS shipId,
+        sos.SHIP_CODE AS shipCode,
+        sd.deliver_id AS deliverId,
+        soda.SUPPLIER_CODE AS supplierCode,
+        soda.SUPPLIER_NAME AS supplierName,
+        sod.CLASSES_CODE AS classesCode,
+        sod.CLASSES_NAME AS classesName,
+        sod.BREED_CODE AS breedCode,
+        sod.BREED_NAME AS breedName,
+        sod.FEATURE_CODE AS featureCode,
+        sod.FEATURE_NAME AS featureName,
+        sod.NORMS_CODE AS normsCode,
+        sod.NORMS_NAME AS normsName,
+        sod.PD_CODE AS pdCode,
+        sod.PD_NAME AS pdName,
+        sod.PD_LEVEL AS pdLevel,
+        sod.PD_GRADE_CODE AS pdGradeCode,
+        sod.PD_GRADE_NAME AS pdGradeName,
+        sod.UNIT AS unit,
+        sod.PACKING_VOLUME AS packingVolume,
+        soda.SKU_CODE AS skuCode,
+        sod.WEIGHT AS weight,
+        sod.VOLUME AS volume,
+        soda.SEND_QTY AS returnQty,
+        sod.ORDER_DETAIL_ID AS orderDetailId,
+        sod.PD_PRICE AS pdPrice,
+        soda.ORDER_DETAIL_AVAILABILITY_ID AS suppId,
+        sod.ORDER_ID AS orderId,
+        sod.ORDER_CODE AS orderCode,
+        sod.ORDER_DETAIL_TYPE AS orderDetailType,
+        sod.ORDER_DETAIL_LEVEL AS orderDetailLevel,
+        sod.AGREE_JOINT AS agreeJoint,
+        sod.IS_JOINT AS isJoint,
+        sod.BUYERS_CONFIRM_SHIPMENTS AS buyersConfirmShipments,
+        sod.PRICE_CYCLE AS priceCycle,
+        IFNULL(soda.SEND_QTY,0) AS suppSendQty,
+        IFNULL(soda.RECEIVE_QTY,0) AS suppReceiveQty,
+        IFNULL(soda.CANCEL_QTY,0) AS suppCancelQty,
+        IFNULL(soda.RETURN_QTY,0) AS suppReturnQty,
+        IFNULL(soda.REJECTION_QTY,0) AS suppRejectionQty,
+        IFNULL(soda.SEND_QTY,0) - IFNULL(soda.RECEIVE_QTY,0) - IFNULL(soda.CANCEL_QTY,0) - IFNULL(soda.REJECTION_QTY,0) AS suppLaterQty,
+        IFNULL(sod.SEND_QTY,0) AS detailSendQty,
+        IFNULL(sod.RECEIVE_QTY,0) AS detailReceiveQty,
+        IFNULL(sod.CANCEL_QTY,0) AS detailCancelQty,
+        IFNULL(sod.RETURN_QTY,0) AS detailReturnQty,
+        IFNULL(sod.REJECTION_QTY,0) AS detailRejectionQty,
+        sod.DETAIL_STATUS AS orderDetailStatus,
+        soda.STATUS AS suppStatus,
+        IFNULL(sod.SEND_QTY,0) - IFNULL(sod.RECEIVE_QTY,0) - IFNULL(sod.CANCEL_QTY,0) - IFNULL(sod.REJECTION_QTY,0) AS detailLaterQty
+      FROM
+        so_order_detail_availability soda
+        LEFT JOIN so_order_detail sod
+          ON soda.ORDER_DETAIL_ID = sod.ORDER_DETAIL_ID
+        LEFT JOIN so_deliver sd
+          ON sd.SHIP_ID = soda.SHIP_ID
+        LEFT JOIN so_order_ship sos
+          ON sos.ship_id = soda.SHIP_ID
+      WHERE soda.SHIP_ID = #{shipId}
+        AND sd.DELIVER_CODE = #{deliverCode}
+        AND soda.ORDER_DETAIL_AVAILABILITY_ID = #{shipDetailId}
+        AND soda.SKU_CODE = #{skuCode}
+    </select>
+
+    <update id="modifyOrderSupp" parameterType="com.msk.so.bean.order.SoReturnDetailInfo">
+      UPDATE
+        so_order_detail_availability
+      SET
+        SEND_QTY = 0,
+        SEND_TIME = NULL,
+        STATUS = #{suppStatus},
+        UPD_ID = #{crtId},
+        UPD_TIME = #{crtTime},
+        VER = VER + 1,
+        SHIP_ID = NULL
+      WHERE ORDER_DETAIL_ID = #{orderDetailId}
+    </update>
+
+    <update id="modifyOrderDetail" parameterType="com.msk.so.bean.order.SoReturnDetailInfo">
+      UPDATE
+        so_order_detail
+      SET
+        PRO_DATE = #{receiptDate},
+        SEND_QTY = 0,
+        SEND_TIME = NULL,
+        DETAIL_STATUS = #{orderDetailStatus},
+        UPD_ID = #{crtId},
+        UPD_TIME = #{crtTime},
+        VER = VER + 1
+      WHERE ORDER_DETAIL_ID = #{orderDetailId}
+    </update>
+
+    <insert id="saveDetailInfo" parameterType="com.msk.so.bean.order.SoReturnDetailInfo">
+      INSERT INTO so_order_detail (
+        ORDER_ID,
+        ORDER_CODE,
+        ORDER_DETAIL_ID,
+        ORDER_DETAIL_TYPE,
+        ORDER_DETAIL_LEVEL,
+        CLASSES_CODE,
+        CLASSES_NAME,
+        BREED_CODE,
+        BREED_NAME,
+        FEATURE_CODE,
+        FEATURE_NAME,
+        NORMS_CODE,
+        NORMS_NAME,
+        PD_CODE,
+        PD_NAME,
+        PD_GRADE_CODE,
+        PD_GRADE_NAME,
+        PD_LEVEL,
+        UNIT,
+        PACKING_VOLUME,
+        WEIGHT,
+        VOLUME,
+        AGREE_JOINT,
+        IS_JOINT,
+        BUYERS_CONFIRM_SHIPMENTS,
+        PD_PRICE,
+        PRICE_CYCLE,
+        ORDER_QTY,
+        SEND_QTY,
+        RECEIVE_QTY,
+        CANCEL_QTY,
+        RETURN_QTY,
+        SEND_TIME,
+        RECEIVED_TIME,
+        DETAIL_STATUS,
+        CANCEL_REASON,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        VER,
+        PRO_DATE
+      )
+      VALUES
+        (#{orderId},
+        #{orderCode},
+        #{orderDetailIdNew},
+        #{orderDetailType},
+        #{orderDetailLevel},
+        #{classesCode},
+        #{classesName},
+        #{breedCode},
+        #{breedName},
+        #{featureCode},
+        #{featureName},
+        #{normsCode},
+        #{normsName},
+        #{pdCode},
+        #{pdName},
+        #{pdGradeCode},
+        #{pdGradeName},
+        #{pdLevel},
+        #{unit},
+        #{packingVolume},
+        #{weight},
+        #{volume},
+        #{agreeJoint},
+        #{isJoint},
+        #{buyersConfirmShipments},
+        #{pdPrice},
+        #{priceCycle},
+        #{laterQty},
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        #{orderDetailStatusNew},
+        null,
+        0,
+        #{crtId},
+        #{crtTime},
+        1,
+        DATE_FORMAT(#{receiptDate},'%Y-%m-%d')
+        )
+    </insert>
+
+    <insert id="saveSuppInfo" parameterType="com.msk.so.bean.order.SoReturnDetailInfo">
+        INSERT INTO so_order_detail_availability (
+          ORDER_ID,
+          ORDER_CODE,
+          ORDER_DETAIL_ID,
+          ORDER_DETAIL_AVAILABILITY_ID,
+          SUPPLIER_CODE,
+          SUPPLIER_NAME,
+          CLASSES_CODE,
+          CLASSES_NAME,
+          BREED_CODE,
+          BREED_NAME,
+          FEATURE_CODE,
+          FEATURE_NAME,
+          NORMS_CODE,
+          NORMS_NAME,
+          PD_CODE,
+          PD_NAME,
+          PD_LEVEL,
+          PD_GRADE_CODE,
+          PD_GRADE_NAME,
+          UNIT,
+          PACKING_VOLUME,
+          WEIGHT,
+          VOLUME,
+          SUPP_QTY,
+          SEND_QTY,
+          RECEIVE_QTY,
+          CANCEL_QTY,
+          RETURN_QTY,
+          REJECTION_QTY,
+          SEND_TIME,
+          RECEIVED_TIME,
+          STATUS,
+          DEL_FLG,
+          CRT_ID,
+          CRT_TIME,
+          VER
+        )
+        VALUES
+          (
+            #{orderId},
+            #{orderCode},
+            #{orderDetailIdNew},
+            #{suppIdNew},
+            #{supplierCode},
+            #{supplierName},
+            #{classesCode},
+            #{classesName},
+            #{breedCode},
+            #{breedName},
+            #{featureCode},
+            #{featureName},
+            #{normsCode},
+            #{normsName},
+            #{pdCode},
+            #{pdName},
+            #{pdLevel},
+            #{pdGradeCode},
+            #{pdGradeName},
+            #{unit},
+            #{packingVolume},
+            #{weight},
+            #{volume},
+            #{laterQty},
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            #{suppStatusNew},
+            0,
+            #{crtId},
+            #{crtTime},
+            1
+          )
+    </insert>
+
+    <update id="modifyOrderDetailById" parameterType="com.msk.so.bean.order.SoReturnDetailInfo">
+        UPDATE
+          so_order_detail
+        SET
+          SEND_QTY = SEND_QTY - #{laterQty},
+          ORDER_QTY = ORDER_QTY - #{laterQty},
+          UPD_ID = #{crtId},
+          UPD_TIME = #{crtTime},
+          VER = VER + 1
+        WHERE ORDER_DETAIL_ID = #{orderDetailId}
+    </update>
+
+    <update id="modifyOrderSuppById" parameterType="com.msk.so.bean.order.SoReturnDetailInfo">
+        UPDATE
+          so_order_detail_availability
+        SET
+          SEND_QTY = SEND_QTY - #{laterQty},
+          SUPP_QTY = SUPP_QTY - #{laterQty},
+          UPD_ID = #{crtId},
+          UPD_TIME = #{crtTime},
+          VER = VER + 1
+        WHERE ORDER_DETAIL_AVAILABILITY_ID = #{suppId}
+    </update>
+
+    <insert id="saveReturnStatus" parameterType="com.msk.core.entity.SoReturnStatus" >
+        INSERT INTO so_return_status (
+          STATUS_ID,
+          RETURN_ID,
+          RETURN_CODE,
+          RETURN_STATUS,
+          DEL_FLG,
+          CRT_ID,
+          CRT_TIME,
+          VER
+        )
+        VALUES
+          (
+            #{statusId},
+            #{returnId},
+            #{returnCode},
+            #{returnStatus},
+            0,
+            #{crtId},
+            #{crtTime},
+            1
+          )
+    </insert>
+
+    <select id="getResultInfo" parameterType="com.msk.core.entity.SoReturn" resultType="com.msk.so.bean.rs.ISO151801RsResult">
+      SELECT
+        RETURN_ID AS returnId,
+        RETURN_CODE AS returnCode,
+        DATE_FORMAT(CRT_TIME, "%Y-%m-%d %T") AS createTime,
+        RETURN_STATUS AS returnStatus,
+        VER AS ver
+      FROM
+        so_return
+      WHERE return_id = #{returnId}
+    </select>
+
+    <update id="modifyOrderDetailInfoByShipId" parameterType="com.msk.so.bean.rs.ISO151801RsParam">
+      UPDATE
+        so_order_detail sod
+        LEFT JOIN so_order_detail_availability soda
+          ON soda.ORDER_DETAIL_ID = sod.ORDER_DETAIL_ID
+      SET sod.PRO_DATE = #{receiptDate},
+        sod.SEND_QTY = NULL,
+        sod.RECEIVE_QTY = NULL,
+        sod.CANCEL_QTY = NULL,
+        sod.RETURN_QTY = NULL,
+        sod.REJECTION_QTY = NULL,
+        sod.SEND_TIME = NULL,
+        sod.RECEIVED_TIME = NULL,
+        sod.DETAIL_STATUS = #{detailStatus},
+        sod.UPD_ID = #{crtId},
+        sod.UPD_TIME = #{crtTime},
+        sod.VER = sod.VER + 1
+      WHERE soda.SHIP_ID = #{shipId}
+    </update>
+
+    <update id="modifyOrderSuppInfoByShipId" parameterType="com.msk.so.bean.rs.ISO151801RsParam">
+        UPDATE
+          so_order_detail_availability soda
+        SET
+          soda.SHIP_ID = NULL ,
+          soda.SEND_QTY = NULL ,
+          soda.RECEIVE_QTY = NULL ,
+          soda.CANCEL_QTY = NULL ,
+          soda.RETURN_QTY = NULL ,
+          soda.REJECTION_QTY = NULL ,
+          soda.SEND_TIME = NULL ,
+          soda.RECEIVED_TIME = NULL ,
+          soda.STATUS = #{suppStatus},
+          soda.UPD_ID = #{crtId},
+          soda.UPD_TIME = #{crtTime},
+          soda.VER = soda.VER + 1
+        WHERE soda.SHIP_ID = #{shipId}
+    </update>
+
+    <select id="getAllLaterCountFlag" resultType="Integer" parameterType="com.msk.so.bean.rs.ISO151801RsParam">
+      SELECT
+      COUNT(1)
+      FROM
+      so_order_detail_availability soda
+      LEFT JOIN so_order_detail sod ON soda.ORDER_DETAIL_ID = sod.ORDER_DETAIL_ID
+      WHERE
+      soda.SHIP_ID = #{shipId}
+      AND sod.ORDER_QTY = sod.SEND_QTY
+      AND (
+      sod.RECEIVE_QTY IS NULL
+      OR sod.RECEIVE_QTY = 0
+      )
+      AND (
+      sod.CANCEL_QTY IS NULL
+      OR sod.CANCEL_QTY = 0
+      )
+      AND (
+      sod.RETURN_QTY IS NULL
+      OR sod.RETURN_QTY = 0
+      )
+      AND (
+      sod.REJECTION_QTY IS NULL
+      OR sod.REJECTION_QTY = 0
+      )
+      AND sod.RECEIVED_TIME IS NULL
+      AND soda.SUPP_QTY = soda.SEND_QTY
+      AND (
+      soda.RECEIVE_QTY IS NULL
+      OR soda.RECEIVE_QTY = 0
+      )
+      AND (
+      soda.CANCEL_QTY IS NULL
+      OR soda.CANCEL_QTY = 0
+      )
+      AND (
+      soda.RETURN_QTY IS NULL
+      OR soda.RETURN_QTY = 0
+      )
+      AND (
+      soda.REJECTION_QTY IS NULL
+      OR soda.REJECTION_QTY = 0
+      )
+    </select>
+
+  <select id="getSuppCount" parameterType="com.msk.so.bean.rs.ISO151801RsParam" resultType="Integer">
+    SELECT count(1)
+    FROM so_order_detail_availability soda
+    WHERE soda.ship_id = #{shipId}
+    AND soda.status != #{suppStatus}
+  </select>
+
+  <update id="modify" parameterType="com.msk.so.bean.rs.ISO151801RsParam">
+    UPDATE
+    so_order_ship
+    SET
+    SHIP_STATUS = 6,
+    UPD_ID = #{crtId},
+    UPD_TIME = #{crtTime},
+    VER = VER + 1
+    WHERE SHIP_ID = #{shipId}
+  </update>
+</mapper>

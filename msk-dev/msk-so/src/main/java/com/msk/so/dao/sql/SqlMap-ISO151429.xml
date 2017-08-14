@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151429Logic">
+
+    <select id="findPageList" resultType="com.msk.so.bean.ISO151429HouseKeepingPd" parameterType="BaseParam">
+        SELECT
+        sss.SL_CODE AS slCode,
+        sss.PD_CODE AS pdCode,
+        sss.PD_NAME AS pdName,
+        sss.STOCK_QTY AS stockQty
+        FROM
+        so_stock_sp sss
+        INNER JOIN sl_house_account sha ON sss.SL_CODE = sha.SL_CODE
+        WHERE
+        sss.DEL_FLG = 0
+        AND sha.DEL_FLG = 0
+        AND sha.HOUSE_CODE_DIS = #{houseCodeDis}
+        <if test="paging == true">
+            LIMIT #{startPos},#{pageCount}
+        </if>
+    </select>
+
+    <select id="getPageCount" resultType="Integer" parameterType="com.msk.so.bean.ISO151429RsParam">
+        SELECT COUNT(1)
+        FROM
+        so_stock_sp sss
+        INNER JOIN sl_house_account sha ON sss.SL_CODE = sha.SL_CODE
+        WHERE
+        sss.DEL_FLG = 0
+        AND sha.DEL_FLG = 0
+        AND sha.HOUSE_CODE_DIS = #{houseCodeDis}
+    </select>
+</mapper>

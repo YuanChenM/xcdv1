@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170207Logic">
+
+
+    <!-- 查询进货单产品数据 -->
+    <select id="findBuyerInfo" parameterType="BaseParam" resultType="com.msk.pl.bean.IPL20170207Result">
+		SELECT
+		A.BUYER_ID AS buyerId
+	   ,B.BUYER_NAME AS buyerName
+	   ,C.BS_CODE AS bsCode
+	   ,C.BS_NAME AS bsName
+       ,C.TERMINAL_ID AS terminalId
+       ,C.TERMINAL_NAME AS terminalName
+	    FROM by_buyer_account A
+         LEFT JOIN by_buyer_basic_info B on B.BUYER_ID = A.BUYER_ID AND B.DEL_FLG = 0
+         LEFT JOIN PL_DOMAIN_BS C ON C.BS_CODE = #{bsCode} AND C.DEL_FLG = 0
+         WHERE A.TEL_NO = #{phoneNumber} AND A.DEL_FLG = 0
+	</select>
+</mapper>

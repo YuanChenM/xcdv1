@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170202Logic">
+
+
+    <!-- 根据月份查询每日进货单列表 -->
+    <select id="findList" parameterType="BaseParam" resultType="com.msk.pl.bean.IPL20170202Result">
+		SELECT
+			A.BS_CODE AS bsCode,
+		    DATE_FORMAT(A.REPORT_DATE,'%Y-%m-%d') AS reportDate,
+			A.STATUS AS status
+			FROM PL_BS_TASK A
+			WHERE
+			A.BS_CODE = #{bsCode} AND A.DEL_FLG = 0
+			AND  MONTH(A.REPORT_DATE) = MONTH(#{nowMonth})
+			AND YEAR(A.REPORT_DATE) = YEAR(#{nowMonth})
+			order by  A.REPORT_DATE  desc
+	</select>
+    <!--查询当前买手注册时间-->
+	<select id="findOne" parameterType="BaseParam" resultType="com.msk.pl.bean.PlDomainBs">
+		SELECT
+		A.CRT_TIME AS crtTime
+		FROM PL_DOMAIN_BS A
+		WHERE
+		A.BS_CODE = #{bsCode} AND A.DEL_FLG = 0
+	</select>
+
+	<select id="findPlInfoId" parameterType="BaseParam" resultType="com.msk.pl.bean.PLInfo">
+		SELECT
+		A.TERMINAL_ID AS terminalId,
+		B.PARTNER_ID AS partnerId
+		FROM PL_DOMAIN_BS A
+		INNER JOIN PL_TERMINAL_PARTNER B ON B.TERMINAL_ID = A.TERMINAL_ID
+		WHERE A.BS_CODE = #{filterMap.bsCode} AND A.DEL_FLG = 0
+	</select>
+
+	<select id="findPlRulerInfo" parameterType="BaseParam" resultType="com.msk.pl.bean.PLRuler">
+		SELECT
+		REPAY_DAY AS repayDay
+		FROM PL_RULER
+		WHERE
+		(PARTNER_ID = #{filterMap.partnerId} AND DATE_FORMAT(NOW(),'%Y-%m-%d') >= EFFECTIVE_TIME AND IFNULL(OVER_TIME,NOW()) > DATE_FORMAT(NOW(),'%Y-%m-%d') AND DEL_FLG = 0 )
+		OR (PARTNER_ID = #{filterMap.partnerId} AND TERMINAL_ID =#{filterMap.terminalId} AND DATE_FORMAT(NOW(),'%Y-%m-%d') >= EFFECTIVE_TIME AND IFNULL(OVER_TIME,NOW()) > DATE_FORMAT(NOW(),'%Y-%m-%d') AND DEL_FLG = 0)
+		OR (PARTNER_ID = #{filterMap.partnerId} AND TERMINAL_ID =#{filterMap.terminalId} AND BS_CODE =#{bsCode} AND DATE_FORMAT(NOW(),'%Y-%m-%d') >= EFFECTIVE_TIME AND IFNULL(OVER_TIME,NOW()) > DATE_FORMAT(NOW(),'%Y-%m-%d') AND DEL_FLG = 0)
+		ORDER BY USER_ROLE,EFFECTIVE_TIME DESC  limit 1
+	</select>
+
+</mapper>

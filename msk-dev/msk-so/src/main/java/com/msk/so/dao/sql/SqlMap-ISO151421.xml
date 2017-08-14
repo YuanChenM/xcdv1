@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151421Logic">
+	<select id="findPageList" resultType="com.msk.so.bean.ISO151421ComplainRsResult" parameterType="BaseParam">
+		SELECT
+		sc.ORDER_ID AS orderId,
+		sc.COMPLAIN_ID AS complainId,
+		sc.COMPLAIN_CODE AS complainCode,
+		sc.COMPLAIN_STATUS AS complainStatus,
+		sc.COMPLAIN_REASON_CODE AS complainReasonCode,
+		IFNULL(COMM.CONSTANT_NAME,'') AS complainReason,
+		sc.COMPLAIN_DESC AS complainDescription,
+		sc.COMPLAIN_IMG AS complainImg
+		FROM
+		so_complain sc
+		LEFT JOIN COMM_CONSTANT AS COMM
+		ON sc.COMPLAIN_REASON_CODE = COMM.CONSTANT_VALUE
+		AND COMM.CONSTANT_TYPE='OrderComplainReason'
+		WHERE
+		sc.DEL_FLG = 0
+		AND sc.USER_ID = #{userId}
+		<if test="complainStatus != 0">
+			AND sc.COMPLAIN_STATUS = #{complainStatus}
+		</if>
+		<if test="orderId!=null and orderId!=''">
+			AND sc.ORDER_ID = #{orderId}
+		</if>
+		<if test="complainId != null and complainId != ''">
+			AND sc.COMPLAIN_ID = #{complainId}
+		</if>
+		<if test="complainCode != null and complainCode != ''">
+			AND sc.COMPLAIN_CODE = #{complainCode}
+		</if>
+		<if test="paging == true">
+			LIMIT #{startPos},#{pageCount}
+		</if>
+	</select>
+
+	<select id="getPageCount" resultType="Integer" parameterType="BaseParam">
+		SELECT COUNT(1)
+		FROM
+		so_complain sc
+		WHERE
+		sc.DEL_FLG = 0
+		AND sc.USER_ID = #{userId}
+		<if test="complainStatus != 0">
+			AND sc.COMPLAIN_STATUS = #{complainStatus}
+		</if>
+		<if test="orderId!=null and orderId!=''">
+			AND sc.ORDER_ID = #{orderId}
+		</if>
+		<if test="complainId != null and complainId != ''">
+			AND sc.COMPLAIN_ID = #{complainId}
+		</if>
+		<if test="complainCode != null and complainCode != ''">
+			AND sc.COMPLAIN_CODE = #{complainCode}
+		</if>
+	</select>
+</mapper>

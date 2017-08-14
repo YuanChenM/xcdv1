@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>填写价格</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link rel="stylesheet" href="../css/sm.min.css">
+    <link rel="stylesheet" href="../css/sm-extend.min.css">
+    <link rel="stylesheet" href="../css/laypage.css">
+    <style type="text/css">
+
+        .rj-table {
+            /*padding:8px;*/
+            margin-bottom: 0 !important;
+            border: 1px solid #ddd;
+            border-collapse: collapse !important;
+            border-radius: 1px;
+            width: 100%;
+            font-size: 12px;
+            margin-left: 2px;
+            margin-right: 2px;
+        }
+
+        .rj-table td {
+            margin-bottom: 0 !important;
+            border: 1px solid #d2dcf8;
+            border-collapse: collapse !important;
+            border-radius: 1px;
+        }
+
+        .rj-table thead td {
+            /*font-weight: bold;*/
+            text-align: center;
+            background: #DCDCDC;
+        }
+
+        .rj-table tbody td {
+            text-align: center;
+        }
+    </style>
+
+    <script src="../js/common.js"></script>
+</head>
+<body>
+<div class="page-group">
+    <div class="page page-current" id="page1">
+        <header class="bar bar-nav">
+            <a class="button button-link button-nav pull-left back" href="buyer_agent_declaration_edit_list.html"
+               id="back">
+                <span class="icon icon-left"></span>
+                <!--返回-->
+            </a>
+            <a class="button button-link button-nav pull-right back" href="buyer_agent_declaration_operations.html"
+               id="home">
+                <span class="icon icon-home"></span>
+            </a>
+            <h1 class="title">填写价格</h1>
+        </header>
+
+
+        <div class="content" style="background: white">
+            <div class="row" style="margin-top:10px; ">
+                <div class="col-95">
+                    <div style="font-size: 16px;">
+                        <label id="pricePeriodAndDate"></label>
+                    </div>
+                </div>
+                <div class="col-40">
+                    <div style="font-size: 14px;">
+                        <label id="status"></label>
+                    </div>
+                </div>
+
+            </div>
+            <table class="rj-table" style="margin-top:10px;">
+                <thead>
+                <tr>
+                    <td nowrap>品牌</td>
+                    <td nowrap>品种/单品</td>
+                    <td nowrap>单箱净重（KG）</td>
+                    <td nowrap>申报价(元)</td>
+                </tr>
+                </thead>
+                <tbody id="tBodyDate">
+                </tbody>
+            </table>
+
+            <div class="row" style="margin-top:10px;margin-left: 10px">
+                <div id="pageBar"></div>
+            </div>
+
+            <div class="row" style="margin-top:10px; ">
+                <div class="col-60">
+                    <select id="date">
+                    </select>
+                </div>
+                <div class="col-40">
+                    <div style="font-size: 14px;">
+                        <a href="#" id="synchronization" class="button button-light">快速同步</a>
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="margin-top:10px">
+                <a href="#" id="save" class="button button-fill">保存</a>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+</div>
+<script type='text/javascript' src='../js/zepto.min.js' charset='utf-8'></script>
+<script type="text/javascript">
+    $.config = {router: false}
+</script>
+<script type='text/javascript' src='../js/touch.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type="text/javascript" src="../js/common.js"></script>
+<script type="text/javascript" src="../js/zepto.cookie.min.js"></script>
+<script type="text/javascript" src="../js/laypage.js"></script>
+<script type="text/javascript">
+    var id = $.fn.cookie("id");
+    var name = $.fn.cookie("name");
+    var ppId = getUrlParam("ppId");
+    var classesCode = getUrlParam("classesCode");
+    var machiningCode = getUrlParam("machiningCode");
+    var pricePeriodAndDate = getUrlParam("pricePeriodAndDate");
+    var status = getUrlParam("status");
+    var dtId = getUrlParam("dtId");
+    var pdCodeList = [];
+
+    var curPage = 1; //当前页码
+    var total, pageSize, totalPage;
+    var tBody = "";
+    var dataExist = "1";
+
+    $(function () {
+        loadDate(false);
+
+        $("#pricePeriodAndDate").text("申报价盘期：" + pricePeriodAndDate);
+
+        dateSelect();
+        if(dataExist == "1"){
+            getPageBar();
+        }
+
+        $("#synchronization").click(function () {
+            synchronizations();
+        });
+
+        $("#save").click(function () {
+            saveAll();
+        })
+    });
+
+    function synchronizations() {
+        var mySelect = document.getElementById("date");
+        var oldPpId = mySelect.options[mySelect.selectedIndex].value;
+        $.confirm('确认同步？同步时将覆盖已填写的内容 ! ',
+            function () {
+                $.ajax({
+                    type: "post",
+                    url: "/" + _webroot + "/api/v1/pl/bs_declaration_sync",
+                    data: JSON.stringify({
+                        "siteCode": "318",
+                        "auth": "pl",
+                        "loginId": id,
+                        "param": {
+                            "bsCode": id,
+                            "ppId": oldPpId,
+                            "pdCodeList": pdCodeList
+                        }
+                    }),
+                    contentType: "application/json",
+                    async: false,
+                    success: function (data) {
+                        if (data.status == "S" && data.result) {
+                            var dataList = data.result;
+                            $.each(dataList, function (index, element) {
+                                if (element.declarePrice != null && element.declarePrice != undefined) {
+                                    var pdCode = element.pdCode;
+                                    $("#" + pdCode + "").val(element.declarePrice);
+
+                                }
+                            });
+                            $.alert("同步成功");
+                        } else {
+//                            $("tbody").find("tr").remove();
+                            $.alert(data.message);
+                        }
+                    }
+
+                });
+            },
+            function () {
+                $.alert("同步取消");
+            }
+        );
+
+
+    }
+    function loadDate(flag) {
+        $.ajax({
+            type: "post",
+            url: "/" + _webroot + "/api/v1/pl/bs_declaration_detail",
+            data: JSON.stringify({
+                "siteCode": "318",
+                "auth": "pl",
+                "loginId": id,
+                "param": {
+                    "bsCode": id,
+                    "ppId": ppId,
+                    "classesCode": classesCode,
+                    "machiningCode": machiningCode,
+                    "paging": true,
+                    "pageCount": 10,
+                    "pageNo": curPage
+                }
+            }),
+            contentType: "application/json",
+            async: false,
+            success: function (data) {
+                if (data.status == "S" && data.result) {
+                    var dataList = data.result.dtList;
+                    total = data.result.totalCount; //总记录数
+                    totalPage = data.result.totalPage; //总页数
+                    pageSize = 10; //每页显示条数
+                    curPage = data.result.pageNo; //当前页
+                    var view;
+                    $("tbody").find("tr").remove();
+                    if (flag) {
+                        $.each(dataList, function (index, element) {
+                            var param = {
+                                pdCode: element.pdCode
+                            };
+                            var pdCodeS = '"'+element.pdCode+'"';
+                            pdCodeList.push(param);
+                            if (element.declarePrice != null && element.declarePrice != undefined) {
+                                view = "<input size='5' type='tel' id='" + element.pdCode + "' pdName='" + element.pdName + "' dtDetailId='" + element.dtDetailId + "' name='declarePrice' type='text' " +
+                                    "value='" + element.declarePrice + "' onkeyup='return numCheck(this.value,"+pdCodeS+")'>";
+                            } else {
+                                view = "<input size='5' type='tel' id='" + element.pdCode + "' pdName='" + element.pdName + "' dtDetailId='" + element.dtDetailId + "' name='declarePrice' type='text'  onkeyup='return numCheck(this.value,"+pdCodeS+")'>";
+                            }
+                            tBody += "<tr style='height:40px;'><td>" + element.brandName + "</td><td>" + element.breedName + element.featureName + "</td><td>" + element.weightName + "</td><td>" + view + "</td></tr>";
+                        });
+                    }
+                    dataExist = "1";
+                } else {
+                    dataExist = "0";
+                    $("tbody").find("tr").remove();
+                    $("tbody").append("<tr ><td colspan='4'>未查询到数据 !</td></tr>");
+                    $.alert(data.message);
+                }
+            }
+        });
+    }
+    function dateSelect() {
+        $.ajax({
+            type: "post",
+            url: "/" + _webroot + "/api/v1/pl/bs_declaration_periodlist",
+            data: JSON.stringify({
+                "siteCode": "318",
+                "auth": "pl",
+                "loginId": id,
+                "param": {}
+            }),
+            contentType: "application/json",
+            async: false,
+            success: function (data) {
+                if (data.status == "S") {
+                    var declareYMList = data.result;
+                    $.each(declareYMList, function (i, value) {
+                        $("#date").append("<option value='" + value.ppId + "'>" + value.pricePeriod + "</option>");
+                    });
+                } else {
+                    $.alert(data.message);
+                }
+            }
+        });
+    }
+
+    function saveAll() {
+        var detailList = [];
+        $("input[name='declarePrice']").each(function () {
+            var pdCode = $(this).attr("id");
+            var pdName = $(this).attr("pdName");
+            var dtDetailId = $(this).attr("dtDetailId");
+            var declarePrice = $(this).val();
+            var param = {
+                "pdCode": pdCode,
+                "pdName": pdName,
+                "dtDetailId": dtDetailId,
+                "declarePrice": declarePrice
+            };
+            detailList.push(param);
+        });
+        $.ajax({
+            type: "post",
+            url: "/" + _webroot + "/api/v1/pl/bs_declaration_save",
+            data: JSON.stringify({
+                "siteCode": "318",
+                "auth": "pl",
+                "loginId": id,
+                "param": {
+                    "bsCode": id,
+                    "ppId": ppId,
+                    "taskId": dtId,
+                    "detailList": detailList
+                }
+            }),
+            contentType: "application/json",
+            async: false,
+            success: function (data) {
+                if (data.result > 0) {
+                    $.alert("保存成功");
+                    location.href = "buyer_agent_declaration_edit_list.html";
+                } else {
+                    $.alert("保存失败");
+                }
+            }
+        });
+    }
+
+    function getPageBar() {
+        laypage({
+            cont: 'pageBar',
+            pages: totalPage,
+            jump: function (obj) {
+                curPage = obj.curr;
+                loadDate(true);
+                document.getElementById('tBodyDate').innerHTML = tBody;
+                tBody = "";
+            }
+        })
+    }
+
+    function numCheck(value,pdCode) {
+        var value1 = value.split(".")[0];
+        var value2 = value.split(".")[1];
+        if (value1.length >= 5) {
+            $.alert("限数字，小数点后限2位，最大支持9999.99");
+            $("#"+pdCode).val("");
+            return false;
+        }
+        if (value2 != null && value2 != undefined && value2.length >= 3) {
+            $.alert("限数字，小数点后限2位，最大支持9999.99");
+            $("#"+pdCode).val("");
+            return false;
+        }
+    }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170211Logic">
+
+
+    <!-- 删除进货单产品数据 -->
+    <update id="modify" parameterType="BaseParam">
+		UPDATE PL_INFO_PD SET
+        DEL_FLG = 1,
+		UPD_ID = #{updId},
+		UPD_TIME = NOW(),
+		VER = VER+1
+		WHERE PL_PD_ID = #{plPdId} AND DEL_FLG = 0
+	</update>
+
+    <select id="findList" parameterType="BaseParam" resultType="com.msk.pl.bean.PLInfoPd">
+		SELECT
+		PL_PD_ID AS plPdId
+		FROM PL_INFO_PD
+	    WHERE
+	    PL_ID = (SELECT PL_ID FROM PL_INFO_PD where PL_PD_ID = #{plPdId} AND DEL_FLG = 0)
+	    AND DEL_FLG = 0
+	</select>
+
+    <update id="modifyPlInfo" parameterType="BaseParam">
+		UPDATE pl_info
+			SET
+			STATUS = 0,
+			UPD_ID = #{updId},
+			UPD_TIME = NOW(),
+			VER = VER+1
+			WHERE
+			PL_ID = (SELECT PL_ID FROM PL_INFO_PD where PL_PD_ID = #{plPdId}) AND DEL_FLG = 0
+	</update>
+
+    <update id="modifyPlTask" parameterType="BaseParam">
+		UPDATE PL_BS_TASK SET
+		ALREADY_RECORD_NUMBER = ALREADY_RECORD_NUMBER-1,
+		STATUS = CASE WHEN ALREADY_RECORD_NUMBER >= NEED_RECORD_NUMBER THEN 1 ELSE 0 END,
+		UPD_ID =  #{updId},
+		UPD_TIME = NOW(),
+		VER = VER+1
+		WHERE TASK_ID = (
+		SELECT B.TASK_ID FROM PL_INFO B WHERE B.PL_ID = (SELECT A.PL_ID FROM PL_INFO_PD A WHERE A.PL_PD_ID =#{plPdId}) AND B.DEL_FLG = 0)
+		AND DEL_FLG = 0
+	</update>
+</mapper>

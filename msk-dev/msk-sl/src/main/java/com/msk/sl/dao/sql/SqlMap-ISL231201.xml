@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.ISL231201Logic">
+    <select id="findSlDistReguChap" resultType="com.msk.sl.bean.ISL231201RsResult" parameterType="BaseParam">
+     SELECT
+        A.CHAP_ID AS chapId,
+        A.CHAP_NO AS chapNo,
+        A.CHAP_TITLE AS chapTitle,
+        A.VER AS ver
+        FROM
+        sl_dist_regu_chap AS A
+        WHERE CHAP_CLASS=${filterMap.chapClass}
+    </select>
+</mapper>

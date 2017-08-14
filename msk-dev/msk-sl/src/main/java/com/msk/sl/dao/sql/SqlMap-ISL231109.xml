@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.ISL231109Logic">
+    <sql id="PdTncStdSql">
+        A.STANDARD_ID AS standardId,
+        A.TNC_STD_ITEM_ID AS tncStdItemId,
+        A.TNC_STD_VAL1 AS tncStdVal1,
+        A.TNC_STD_VAL2 AS tncStdVal2,
+        A.TNC_STD_VAL3 AS tncStdVal3
+    </sql>
+    <sql id="PdTncStdItemSql">
+        B.TNC_STD_ITEM_ID AS tncStdItemId,
+        B.TNC_STD_ITEM_NAME AS tncStdItemName,
+        B.LEVEL_ID AS levelId,
+        B.PARENT_ID AS parentId,
+        B.IS_CATALOG AS isCatalog,
+        IFNULL(C.STD_VAL,'') AS stdVal,
+        IFNULL(C.AGREE_FLG,'') AS agreeFlg,
+        C.CRT_TIME AS stdDate,
+        C.SL_CODE AS slCode,
+        C.SL_PD_ID AS slPdId,
+        C.VER AS ver
+    </sql>
+    <select id="getTncStdInfo" resultType="com.msk.sl.bean.SL241117Bean" parameterType="BaseParam">
+        SELECT
+        <include refid="PdTncStdItemSql"/>
+        ,
+        <include refid="PdTncStdSql"/>
+        FROM PD_TNC_STD_ITEM B
+        INNER JOIN PD_TNC_STD A ON A.TNC_STD_ITEM_ID=B.TNC_STD_ITEM_ID
+        <if test="filterMap.standardId!=null and filterMap.standardId!=''">
+            AND A.STANDARD_ID=#{filterMap.standardId}
+            LEFT JOIN sl_pd_tnc_std_new C ON A.STANDARD_ID=C.STANDARD_ID AND B.TNC_STD_ITEM_ID=C.STD_ITEM_ID
+        </if>
+        <if test="filterMap.standardId==null or filterMap.standardId==''">
+            AND A.STANDARD_ID=(SELECT DISTINCT(STANDARD_ID) FROM sl_pd_tnc_std_new WHERE SL_PD_ID=#{filterMap.slPdId})
+            INNER JOIN sl_pd_tnc_std_new C ON A.STANDARD_ID=C.STANDARD_ID AND B.TNC_STD_ITEM_ID=C.STD_ITEM_ID
+            AND (C.DEL_FLG=0 OR C.DEL_FLG IS NULL)
+        </if>
+        WHERE B.LEVEL_ID=#{filterMap.levelId} AND (B.DEL_FLG=0 OR B.DEL_FLG IS NULL)
+        AND (A.DEL_FLG=0 OR A.DEL_FLG IS NULL)
+    </select>
+    <sql id="PdMctStdSql">
+        A.STANDARD_ID AS standardId,
+        A.MCT_STD_ITEM_ID AS mctStdItemId,
+        A.MCT_OK_VAL AS mctOkVal,
+        A.MCT_NG_VAL AS mctNgVal
+    </sql>
+    <sql id="PdMctStdItemSql">
+        B.MCT_STD_ITEM_ID AS mctStdItemId,
+        B.MCT_STD_ITEM_NAME AS mctStdItemName,
+        B.LEVEL_ID AS levelId,
+        B.PARENT_ID AS parentId,
+        B.IS_CATALOG AS isCatalog,
+        IFNULL(C.STD_VAL,'') AS stdVal,
+        IFNULL(C.AGREE_FLG,'') AS agreeFlg,
+        C.CRT_TIME AS stdDate,
+        C.SL_CODE AS slCode,
+        C.SL_PD_ID AS slPdId,
+        C.VER AS ver
+    </sql>
+    <select id="getMctStdInfo" resultType="com.msk.sl.bean.SL241118Bean" parameterType="BaseParam">
+        SELECT
+        <include refid="PdMctStdItemSql"/>
+        ,
+        <include refid="PdMctStdSql"/>
+        FROM PD_MCT_STD_ITEM B
+        LEFT JOIN PD_MCT_STD A ON A.MCT_STD_ITEM_ID=B.MCT_STD_ITEM_ID
+        <if test="filterMap.standardId!=null and filterMap.standardId!=''">
+            AND A.STANDARD_ID=#{filterMap.standardId}
+            LEFT JOIN sl_pd_mct_std_new C ON A.STANDARD_ID=C.STANDARD_ID AND B.MCT_STD_ITEM_ID=C.STD_ITEM_ID
+        </if>
+        <if test="filterMap.standardId==null or filterMap.standardId==''">
+            AND A.STANDARD_ID=(SELECT DISTINCT(STANDARD_ID) FROM sl_pd_mct_std_new WHERE SL_PD_ID=#{filterMap.slPdId})
+            INNER JOIN sl_pd_mct_std_new C ON A.STANDARD_ID=C.STANDARD_ID AND B.MCT_STD_ITEM_ID=C.STD_ITEM_ID
+            AND (C.DEL_FLG=0 OR C.DEL_FLG IS NULL)
+        </if>
+        WHERE  B.LEVEL_ID=#{filterMap.levelId} AND (A.DEL_FLG=0 OR A.DEL_FLG IS NULL)
+        AND (B.DEL_FLG=0 OR B.DEL_FLG IS NULL)
+    </select>
+
+    <sql id="PdOrgStdSql">
+        A.STANDARD_ID AS standardId,
+        A.ORG_STD_ITEM_ID AS orgStdItemId,
+        A.ORG_GOOD_VAL AS orgGoodVal,
+        A.ORG_NORMAL_VAL AS orgNormalVal,
+        A.ORG_BAD_VAL AS orgBadVal
+    </sql>
+    <sql id="PdOrgStdItemSql">
+        B.ORG_STD_ITEM_ID AS orgStdItemId,
+        B.ORG_STD_ITEM_NAME AS orgStdItemName,
+        B.LEVEL_ID AS levelId,
+        B.PARENT_ID AS parentId,
+        B.IS_CATALOG AS isCatalog,
+        IFNULL(C.AGREE_FLG,'') AS agreeFlg,
+        C.SL_CODE AS slCode,
+        C.SL_PD_ID AS slPdId
+    </sql>
+    <select id="getOrgStdInfo" resultType="com.msk.sl.bean.SL241122Bean" parameterType="BaseParam">
+        SELECT
+        <include refid="PdOrgStdItemSql"/>
+        ,
+        <include refid="PdOrgStdSql"/>
+        FROM PD_Org_STD_ITEM B
+        INNER JOIN PD_Org_STD A ON A.ORG_STD_ITEM_ID=B.ORG_STD_ITEM_ID
+        <if test="filterMap.standardId!=null and filterMap.standardId!=''">
+            AND A.STANDARD_ID=#{filterMap.standardId}
+            LEFT JOIN sl_pd_tnc_std_other C ON A.STANDARD_ID=C.STANDARD_ID AND B.ORG_STD_ITEM_ID=C.TNC_STD_ITEM_ID AND STD_FLAG=#{filterMap.stdFlg} AND C.SL_PD_ID=#{filterMap.slPdId}
+        </if>
+        <if test="filterMap.standardId==null or filterMap.standardId==''">
+            AND A.STANDARD_ID=(SELECT DISTINCT(STANDARD_ID) FROM sl_pd_tnc_std_other WHERE SL_PD_ID=#{filterMap.slPdId} AND STD_FLAG=#{filterMap.stdFlg})
+            INNER JOIN sl_pd_tnc_std_other C ON A.STANDARD_ID=C.STANDARD_ID AND B.ORG_STD_ITEM_ID=C.TNC_STD_ITEM_ID AND STD_FLAG=#{filterMap.stdFlg} AND C.SL_PD_ID=#{filterMap.slPdId}
+            AND (C.DEL_FLG=0 OR C.DEL_FLG IS NULL)
+        </if>
+        WHERE  B.LEVEL_ID=#{filterMap.levelId} AND (B.DEL_FLG=0 OR B.DEL_FLG IS NULL)
+        AND (A.DEL_FLG=0 OR A.DEL_FLG IS NULL)
+    </select>
+
+    <sql id="PdFedStdSql">
+        A.STANDARD_ID AS standardId,
+        A.FED_STD_ITEM_ID AS fedStdItemId,
+        A.FED_GOOD_VAL AS fedGoodVal,
+        A.FED_NORMAL_VAL AS fedNormalVal,
+        A.FED_BAD_VAL AS fedBadVal
+    </sql>
+    <sql id="PdFedStdItemSql">
+        B.FED_STD_ITEM_ID AS fedStdItemId,
+        B.FED_STD_ITEM_NAME AS fedStdItemName,
+        B.LEVEL_ID AS levelId,
+        B.PARENT_ID AS parentId,
+        B.IS_CATALOG AS isCatalog,
+        IFNULL(C.AGREE_FLG,'') AS agreeFlg,
+        C.SL_CODE AS slCode,
+        C.SL_PD_ID AS slPdId
+    </sql>
+    <select id="getFedStdInfo" resultType="com.msk.sl.bean.SL241123Bean" parameterType="BaseParam">
+        SELECT
+        <include refid="PdFedStdItemSql"/>
+        ,
+        <include refid="PdFedStdSql"/>
+        FROM PD_FED_STD_ITEM B
+        LEFT JOIN PD_FED_STD A ON A.FED_STD_ITEM_ID=B.FED_STD_ITEM_ID
+        <if test="filterMap.standardId!=null and filterMap.standardId!=''">
+            AND A.STANDARD_ID=#{filterMap.standardId}
+            LEFT JOIN sl_pd_tnc_std_other C ON A.STANDARD_ID=C.STANDARD_ID AND B.FED_STD_ITEM_ID=C.TNC_STD_ITEM_ID AND STD_FLAG=#{filterMap.stdFlg} AND C.SL_PD_ID=#{filterMap.slPdId}
+        </if>
+        <if test="filterMap.standardId==null or filterMap.standardId==''">
+            AND A.STANDARD_ID=(SELECT DISTINCT(STANDARD_ID) FROM sl_pd_tnc_std_other WHERE SL_PD_ID=#{filterMap.slPdId} AND STD_FLAG=#{filterMap.stdFlg})
+            INNER JOIN sl_pd_tnc_std_other C ON A.STANDARD_ID=C.STANDARD_ID AND B.FED_STD_ITEM_ID=C.TNC_STD_ITEM_ID AND STD_FLAG=#{filterMap.stdFlg} AND C.SL_PD_ID=#{filterMap.slPdId}
+            AND (C.DEL_FLG=0 OR C.DEL_FLG IS NULL)
+        </if>
+        WHERE  B.LEVEL_ID=#{filterMap.levelId} AND (A.DEL_FLG=0 OR A.DEL_FLG IS NULL)
+        AND (B.DEL_FLG=0 OR B.DEL_FLG IS NULL)
+    </select>
+
+    <sql id="PdGnqStdSql">
+        A.STANDARD_ID AS standardId,
+        A.GNQ_STD_ITEM_ID AS gnqStdItemId,
+        A.GNQ_GOOD_VAL AS gnqGoodVal,
+        A.GNQ_OK_VAL AS gnqOkVal,
+        A.GNQ_NG_VAL AS gnqNgVal
+    </sql>
+    <sql id="PdGnqStdItemSql">
+        B.GNQ_STD_ITEM_ID AS gnqStdItemId,
+        B.GNQ_STD_ITEM_NAME AS gnqStdItemName,
+        B.LEVEL_ID AS levelId,
+        B.PARENT_ID AS parentId,
+        B.IS_CATALOG AS isCatalog,
+        IFNULL(C.AGREE_FLG,'') AS agreeFlg,
+        C.SL_CODE AS slCode,
+        C.SL_PD_ID AS slPdId
+    </sql>
+    <select id="getGnqStdInfo" resultType="com.msk.sl.bean.SL241124Bean" parameterType="BaseParam">
+        SELECT
+        <include refid="PdGnqStdItemSql"/>
+        ,
+        <include refid="PdGnqStdSql"/>
+        FROM PD_GNQ_STD_ITEM B
+        LEFT JOIN PD_GNQ_STD A ON A.GNQ_STD_ITEM_ID=B.GNQ_STD_ITEM_ID
+        <if test="filterMap.standardId!=null and filterMap.standardId!=''">
+            AND A.STANDARD_ID=#{filterMap.standardId}
+            LEFT JOIN sl_pd_tnc_std_other C ON A.STANDARD_ID=C.STANDARD_ID AND B.GNQ_STD_ITEM_ID=C.TNC_STD_ITEM_ID AND STD_FLAG=#{filterMap.stdFlg} AND C.SL_PD_ID=#{filterMap.slPdId}
+        </if>
+        <if test="filterMap.standardId==null or filterMap.standardId==''">
+            <if test="filterMap.levelId==1">
+            AND A.STANDARD_ID=(SELECT DISTINCT(STANDARD_ID) FROM sl_pd_tnc_std_other WHERE SL_PD_ID=#{filterMap.slPdId} AND STD_FLAG=#{filterMap.stdFlg})
+            LEFT JOIN sl_pd_tnc_std_other C ON A.STANDARD_ID=C.STANDARD_ID AND B.GNQ_STD_ITEM_ID=C.TNC_STD_ITEM_ID AND STD_FLAG=#{filterMap.stdFlg} AND C.SL_PD_ID=#{filterMap.slPdId}
+            </if>
+            <if test="filterMap.levelId==2">
+                AND A.STANDARD_ID=(SELECT DISTINCT(STANDARD_ID) FROM sl_pd_tnc_std_other WHERE SL_PD_ID=#{filterMap.slPdId} AND STD_FLAG=#{filterMap.stdFlg})
+                INNER JOIN sl_pd_tnc_std_other C ON A.STANDARD_ID=C.STANDARD_ID AND B.GNQ_STD_ITEM_ID=C.TNC_STD_ITEM_ID AND STD_FLAG=#{filterMap.stdFlg} AND C.SL_PD_ID=#{filterMap.slPdId}
+                AND (C.DEL_FLG=0 OR C.DEL_FLG IS NULL)
+            </if>
+        </if>
+        WHERE  B.LEVEL_ID=#{filterMap.levelId}
+        AND (B.DEL_FLG=0 OR B.DEL_FLG IS NULL)
+        <if test="filterMap.parentId!=null and filterMap.parentId!=''">
+          AND B.PARENT_ID=#{filterMap.parentId}
+        </if>
+    </select>
+
+    <sql id="PdTspStdSql">
+        A.STANDARD_ID AS standardId,
+        A.TSP_STD_ITEM_ID AS tspStdItem,
+        A.TSP_GOOD_VAL AS tspGoodVal,
+        A.TSP_OK_VAL AS tspOkVal,
+        A.TSP_NG_VAL AS tspNgVal
+    </sql>
+    <sql id="PdTspStdItemSql">
+        B.TSP_STD_ITEM_ID AS tspStdItemId,
+        B.TSP_STD_ITEM_NAME AS tspStdItemName,
+        B.LEVEL_ID AS levelId,
+        B.PARENT_ID AS parentId,
+        B.IS_CATALOG AS isCatalog,
+        IFNULL(C.AGREE_FLG,'') AS agreeFlg,
+        C.SL_CODE AS slCode,
+        C.SL_PD_ID AS slPdId
+    </sql>
+    <select id="getTspStdInfo" resultType="com.msk.sl.bean.SL241125Bean" parameterType="BaseParam">
+        SELECT
+        <include refid="PdTspStdItemSql"/>
+        ,
+        <include refid="PdTspStdSql"/>
+        FROM PD_TSP_STD_ITEM B
+        LEFT JOIN PD_TSP_STD A ON A.TSP_STD_ITEM_ID=B.TSP_STD_ITEM_ID
+        <if test="filterMap.standardId!=null and filterMap.standardId!=''">
+            AND A.STANDARD_ID=#{filterMap.standardId}
+            LEFT JOIN sl_pd_tnc_std_other C ON A.STANDARD_ID=C.STANDARD_ID AND B.TSP_STD_ITEM_ID=C.TNC_STD_ITEM_ID AND STD_FLAG=#{filterMap.stdFlg} AND C.SL_PD_ID=#{filterMap.slPdId}
+        </if>
+        <if test="filterMap.standardId==null or filterMap.standardId==''">
+            <if test="filterMap.levelId==1">
+                AND A.STANDARD_ID=(SELECT DISTINCT(STANDARD_ID) FROM sl_pd_tnc_std_other WHERE SL_PD_ID=#{filterMap.slPdId} AND STD_FLAG=#{filterMap.stdFlg})
+                LEFT JOIN sl_pd_tnc_std_other C ON A.STANDARD_ID=C.STANDARD_ID AND B.TSP_STD_ITEM_ID=C.TNC_STD_ITEM_ID AND STD_FLAG=#{filterMap.stdFlg} AND C.SL_PD_ID=#{filterMap.slPdId}
+            </if>
+            <if test="filterMap.levelId==2">
+                AND A.STANDARD_ID=(SELECT DISTINCT(STANDARD_ID) FROM sl_pd_tnc_std_other WHERE SL_PD_ID=#{filterMap.slPdId} AND STD_FLAG=#{filterMap.stdFlg})
+                INNER JOIN sl_pd_tnc_std_other C ON A.STANDARD_ID=C.STANDARD_ID AND B.TSP_STD_ITEM_ID=C.TNC_STD_ITEM_ID AND STD_FLAG=#{filterMap.stdFlg} AND C.SL_PD_ID=#{filterMap.slPdId}
+                AND (C.DEL_FLG=0 OR C.DEL_FLG IS NULL)
+            </if>
+        </if>
+        WHERE  B.LEVEL_ID=#{filterMap.levelId}
+        AND (B.DEL_FLG=0 OR B.DEL_FLG IS NULL)
+        <if test="filterMap.parentId!=null and filterMap.parentId!=''">
+            AND B.PARENT_ID=#{filterMap.parentId}
+        </if>
+    </select>
+    <sql id="PdSftStdSql">
+        A.STANDARD_ID AS standardId,
+        A.SFT_STD_ITEM_ID AS sftStdItem,
+        A.SFT_GOOD_VAL AS sftGoodVal,
+        A.SFT_OK_VAL AS sftOkVal,
+        A.SFT_NG_VAL AS sftNgVal
+    </sql>
+    <sql id="PdSftStdItemSql">
+        B.SFT_STD_ITEM_ID AS sftStdItemId,
+        B.SFT_STD_ITEM_NAME AS sftStdItemName,
+        B.LEVEL_ID AS levelId,
+        B.PARENT_ID AS parentId,
+        B.IS_CATALOG AS isCatalog,
+        IFNULL(C.AGREE_FLG,'') AS agreeFlg,
+        C.SL_CODE AS slCode,
+        C.SL_PD_ID AS slPdId
+    </sql>
+    <select id="getSftStdInfo" resultType="com.msk.sl.bean.SL241126Bean" parameterType="BaseParam">
+        SELECT
+        <include refid="PdSftStdItemSql"/>
+        ,
+        <include refid="PdSftStdSql"/>
+        FROM PD_SFT_STD_ITEM B
+        LEFT JOIN PD_SFT_STD A ON A.SFT_STD_ITEM_ID=B.SFT_STD_ITEM_ID
+        <if test="filterMap.standardId!=null and filterMap.standardId!=''">
+            AND A.STANDARD_ID=#{filterMap.standardId}
+            LEFT JOIN sl_pd_tnc_std_other C ON A.STANDARD_ID=C.STANDARD_ID AND B.SFT_STD_ITEM_ID=C.TNC_STD_ITEM_ID AND STD_FLAG=#{filterMap.stdFlg} AND C.SL_PD_ID=#{filterMap.slPdId}
+        </if>
+        <if test="filterMap.standardId==null or filterMap.standardId==''">
+            <if test="filterMap.levelId==1">
+                AND A.STANDARD_ID=(SELECT DISTINCT(STANDARD_ID) FROM sl_pd_tnc_std_other WHERE SL_PD_ID=#{filterMap.slPdId} AND STD_FLAG=#{filterMap.stdFlg})
+                LEFT JOIN sl_pd_tnc_std_other C ON A.STANDARD_ID=C.STANDARD_ID AND B.SFT_STD_ITEM_ID=C.TNC_STD_ITEM_ID AND STD_FLAG=#{filterMap.stdFlg} AND C.SL_PD_ID=#{filterMap.slPdId}
+            </if>
+            <if test="filterMap.levelId==2">
+                AND A.STANDARD_ID=(SELECT DISTINCT(STANDARD_ID) FROM sl_pd_tnc_std_other WHERE SL_PD_ID=#{filterMap.slPdId} AND STD_FLAG=#{filterMap.stdFlg})
+                INNER JOIN sl_pd_tnc_std_other C ON A.STANDARD_ID=C.STANDARD_ID AND B.SFT_STD_ITEM_ID=C.TNC_STD_ITEM_ID AND STD_FLAG=#{filterMap.stdFlg} AND C.SL_PD_ID=#{filterMap.slPdId}
+                AND (C.DEL_FLG=0 OR C.DEL_FLG IS NULL)
+            </if>
+        </if>
+        WHERE  B.LEVEL_ID=#{filterMap.levelId}
+        AND (B.DEL_FLG=0 OR B.DEL_FLG IS NULL)
+        <if test="filterMap.parentId!=null and filterMap.parentId!=''">
+            AND B.PARENT_ID=#{filterMap.parentId}
+        </if>
+    </select>
+</mapper>

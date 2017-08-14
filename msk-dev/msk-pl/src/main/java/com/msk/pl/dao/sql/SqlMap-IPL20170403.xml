@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170403Logic">
+
+    <select id="searchClasses" parameterType="BaseParam" resultType="com.msk.pl.bean.PlPdMst">
+        SELECT
+           PD_ID AS pdId,
+           CLASSES_CODE  AS  classesCode,
+           CLASSES_NAME AS  classesName
+        FROM PL_PD_MST
+        WHERE 1=1
+        AND DEL_FLG = 0
+        GROUP BY CLASSES_CODE
+    </select>
+</mapper>

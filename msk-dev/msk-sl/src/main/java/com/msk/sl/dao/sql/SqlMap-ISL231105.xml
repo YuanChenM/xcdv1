@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.ISL231105Logic">
+    <select id="findSlAccount" resultType="com.msk.sl.bean.ISL231105RsResult"
+            parameterType="com.msk.core.bean.BaseParam">
+        select
+        IFNULL(A.SL_ACCOUNT,'') AS slAccount,
+        IFNULL(A.SL_TEL,'') AS slTel,
+        IFNULL(A.SL_SHOW_NAME,'') AS slShowName,
+        IFNULL(A.SL_CONTACT,'') AS slContact,
+        IFNULL(A.ACCOUNT_PSD,'') AS accountPsd,
+        IFNULL(A.ACCOUNT_IMG,'') AS accountImg,
+        IFNULL(A.AUTH_STATUS,'') AS authStatus,
+        IFNULL(A.FROM_FLG,'') AS fromFlg,
+        B.SL_MAIN_CLASS AS slMainClass
+        from sl_account AS A
+        LEFT JOIN sl_seller B ON A.SL_ACCOUNT = B.SL_ACCOUNT
+        <where>
+            <if test="filterMap.slAccount!=null and filterMap.slAccount!=''">
+                AND A.SL_ACCOUNT=#{filterMap.slAccount}
+            </if>
+            <if test="filterMap.accountPsd!=null and filterMap.accountPsd!=''">
+                AND A.ACCOUNT_PSD=#{filterMap.accountPsd}
+            </if>
+            <if test="filterMap.slTel!=null and filterMap.slTel!=''">
+                AND A.SL_TEL=#{filterMap.slTel}
+            </if>
+        </where>
+    </select>
+</mapper>

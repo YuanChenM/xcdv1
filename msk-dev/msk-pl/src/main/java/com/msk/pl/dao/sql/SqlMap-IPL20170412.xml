@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170412Logic">
+
+
+    <select id="findPageList" parameterType="com.msk.pl.bean.IPL20170412Param"
+            resultType="com.msk.pl.bean.IPL20170412Result">
+        SELECT
+        b.DT_ID AS taskId,
+        a.PRICE_PERIOD_YM AS crtDate,
+        a.PRICE_PERIOD_DATE AS periodInfo,
+        c.BS_CODE AS bsCode,
+        c.BS_NAME AS bsName,
+        b.PARTNER_ID AS partnerId
+        FROM
+        PL_DECLARE_PRICEPERIOD_MST a
+        INNER JOIN PL_DECLARE_TASK b ON a.PP_ID = b.PP_ID
+        AND a.DEL_FLG = b.DEL_FLG
+        LEFT JOIN PL_DECLARE_INFO c ON c.DT_ID = b.DT_ID
+        AND c.DEL_FLG = b.DEL_FLG
+        INNER JOIN PL_TERMINAL d ON c.TERMINAL_ID = d.TERMINAL_ID
+        AND c.DEL_FLG = d.DEL_FLG
+        WHERE
+        a.DEL_FLG = 0
+        AND a.PRICE_PERIOD_YM =#{crtDate}
+        AND c.PARTNER_ID =#{partnerId}
+        <if test="bsCode!=null and bsCode!='' ">
+            AND c.BS_CODE =#{bsCode}
+        </if>
+        GROUP BY b.DT_ID ,c.BS_CODE
+        ORDER BY b.DT_ID
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageCount}
+        </if>
+    </select>
+
+    <select id="getPageCount" resultType="Integer" parameterType="com.msk.pl.bean.IPL20170412Param">
+        SELECT
+        count(1)
+        FROM
+        (
+        SELECT
+        b.DT_ID AS taskId,
+        a.PRICE_PERIOD_YM AS crtDate,
+        a.PRICE_PERIOD_DATE AS periodInfo,
+        c.BS_CODE AS bsCode,
+        c.BS_NAME AS bsName,
+        b.PARTNER_ID AS partnerId
+        FROM
+        PL_DECLARE_PRICEPERIOD_MST a
+        INNER JOIN PL_DECLARE_TASK b ON a.PP_ID = b.PP_ID
+        AND a.DEL_FLG = b.DEL_FLG
+        LEFT JOIN PL_DECLARE_INFO c ON c.DT_ID = b.DT_ID
+        AND c.DEL_FLG = b.DEL_FLG
+        INNER JOIN PL_TERMINAL d ON c.TERMINAL_ID = d.TERMINAL_ID
+        AND c.DEL_FLG = d.DEL_FLG
+        WHERE
+        a.DEL_FLG = 0
+        AND c.PARTNER_ID =#{partnerId}
+        AND a.PRICE_PERIOD_YM =#{crtDate}
+        <if test="bsCode!=null and bsCode!=''">
+            AND c.BS_CODE =#{bsCode}
+        </if>
+        GROUP BY b.DT_ID ,c.BS_CODE
+        ORDER BY b.DT_ID
+        )t
+    </select>
+
+
+    <select id="searchTask" resultType="Integer" parameterType="com.msk.pl.bean.IPL20170412Param">
+        SELECT
+        COUNT(1) AS taskNumber
+        FROM(
+        SELECT
+         b.DT_ID AS taskId,
+        a.PRICE_PERIOD_DATE AS periodInfo,
+        c.BS_CODE AS bsCode,
+        c.BS_NAME AS bsName,
+        b.PARTNER_ID AS partnerId
+        FROM
+        PL_DECLARE_PRICEPERIOD_MST a
+        INNER JOIN PL_DECLARE_TASK b ON a.PP_ID = b.PP_ID
+        AND a.DEL_FLG = b.DEL_FLG
+        LEFT JOIN PL_DECLARE_INFO c ON c.DT_ID = b.DT_ID
+        AND c.DEL_FLG = b.DEL_FLG
+        INNER JOIN PL_TERMINAL d ON c.TERMINAL_ID = d.TERMINAL_ID
+        AND c.DEL_FLG = d.DEL_FLG
+        WHERE
+        a.DEL_FLG = 0
+        AND a.PRICE_PERIOD_YM =#{crtDate}
+        AND c.PARTNER_ID =#{partnerId}
+        AND b.DT_ID =#{taskId}
+        AND c.BS_CODE =#{bsCode}
+        AND c.DECLARE_PRICE IS NULL
+        )dt
+    </select>
+
+
+</mapper>

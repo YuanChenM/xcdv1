@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151427Logic">
+
+    <select id="findPageList" resultType="com.msk.so.bean.ISO151427SettlementDetail" parameterType="BaseParam">
+        select * from (
+        <if test="settlementStatus==1 or settlementStatus==0">
+            SELECT
+            so.ORDER_ID AS orderId,
+            so.ORDER_CODE AS orderCode,
+            '1' AS settlementStatus
+            FROM
+            so_deliver sod
+            INNER JOIN so_order so ON sod.ORDER_ID = so.ORDER_ID where so.DEL_FLG = 0 and sod.DELIVER_CODE in
+            <foreach item="item" index="index" collection="deliverList" open="(" separator="," close=")">
+                #{item.deliverCode}
+            </foreach>
+        </if>
+        <if test="settlementStatus!=1 and settlementStatus!=2">
+        UNION
+        </if>
+        <if test="settlementStatus==2 or settlementStatus==0">
+            SELECT
+            so.ORDER_ID AS orderId,
+            so.ORDER_CODE AS orderCode,
+            '2' AS settlementStatus
+            FROM
+            so_return sro
+            INNER JOIN so_order so ON sro.ORDER_ID = so.ORDER_ID where so.DEL_FLG = 0 and sro.RETURN_CODE in
+            <foreach item="item" index="index" collection="returnList" open="(" separator="," close=")">
+                #{item.returnCode}
+            </foreach>
+        </if>
+        ) as settlement
+        <if test="paging == true">
+            LIMIT #{startPos},#{pageCount}
+        </if>
+    </select>
+
+    <select id="getPageCount" resultType="Integer" parameterType="BaseParam">
+        select count(1) from (
+        <if test="settlementStatus==1 or settlementStatus==0">
+        SELECT
+        so.ORDER_ID AS orderId,
+        so.ORDER_CODE AS orderCode,
+        '1' AS settlementStatus
+        FROM
+        so_deliver sod
+        INNER JOIN so_order so ON sod.ORDER_ID = so.ORDER_ID where so.DEL_FLG = 0 and sod.DELIVER_CODE in
+        <foreach item="item" index="index" collection="deliverList" open="(" separator="," close=")">
+            #{item.deliverCode}
+        </foreach>
+        </if>
+        <if test="settlementStatus!=1 and settlementStatus!=2">
+            UNION
+        </if>
+        <if test="settlementStatus==2 or settlementStatus==0">
+        SELECT
+        so.ORDER_ID AS orderId,
+        so.ORDER_CODE AS orderCode,
+        '2' AS settlementStatus
+        FROM
+        so_return sro
+        INNER JOIN so_order so ON sro.ORDER_ID = so.ORDER_ID where so.DEL_FLG = 0 and sro.RETURN_CODE in
+        <foreach item="item" index="index" collection="returnList" open="(" separator="," close=")">
+            #{item.returnCode}
+        </foreach>
+        </if>
+        ) as settlement
+    </select>
+
+
+    <select id="findPdInfo" resultType="com.msk.so.bean.ISO151427SoProduct" parameterType="BaseParam">
+        SELECT
+	           sod.PD_CODE AS pdCode,
+	           sod.PD_NAME AS pdName,
+               sod.PD_PRICE AS unitPrice,
+	           sod.RECEIVE_QTY AS pdCount
+        FROM
+            so_order_detail sod
+        INNER JOIN so_order so ON sod.ORDER_ID = so.ORDER_ID
+        WHERE
+            so.DEL_FLG = 0
+        AND sod.DEL_FLG = 0
+        AND so.SELLER_CODE = #{filterMap.sellerCode}
+        AND so.ORDER_ID = #{filterMap.orderId}
+    </select>
+
+</mapper>

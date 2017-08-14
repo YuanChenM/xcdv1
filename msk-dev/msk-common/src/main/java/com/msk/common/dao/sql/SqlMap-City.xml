@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.msk.common.logic.CityLogic">
+    <select id="findList" parameterType="BaseParam" resultType="com.msk.core.entity.MdCity">
+        SELECT
+              CITY_ID AS cityId
+              ,CITY_CODE AS cityCode
+              ,CITY_NAME AS cityName
+        FROM MD_CITY
+        WHERE 1=1
+        <if test="filterMap.lgcsId != null">
+            AND LGCS_AREA_ID = #{filterMap.lgcsId}
+        </if>
+    </select>
+</mapper>

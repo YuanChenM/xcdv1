@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL2411030081Logic">
+    <insert id="saveManager" parameterType="com.msk.sl.bean.SL24110306Bean">
+    INSERT INTO sl_ep_manager
+    (EP_ID,MEMBER_ID,MEMBER_DUTIES,MEMBER_NAME,MEMBER_AGE,MEMBER_EDUC,MEMBER_TEL)
+    VALUES (#{epId},#{memberId},#{memberDuties},#{memberName},#{memberAge},#{memberEduc},#{memberTel})
+</insert>
+
+</mapper>

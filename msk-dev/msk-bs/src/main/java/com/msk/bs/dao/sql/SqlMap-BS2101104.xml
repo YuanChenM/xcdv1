@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.bs.logic.BS2101104Logic">
+
+    <sql id="selectFiled">
+        IFNULL(A.BUYER_ID, '') AS buyerId,
+        IFNULL(A.BUYER_CODE,'') AS buyerCode,
+        IFNULL(A.BUYER_NAME, '') AS buyerName,
+        IFNULL(CONCAT(B.PROVINCE_NAME,' ',C.CITY_NAME,' ',D.DISTRICT_NAME,' '),'') AS cityName,
+        IFNULL(A.BUYER_ADDR, '') AS buyerAddr,
+        IFNULL(A.BUSI_TEL, '') AS busiTel,
+        IFNULL(A.PROVINCE_CODE, '') AS provinceCode,
+        IFNULL(A.LGCS_AREA_CODE, '') AS lgcsAreaAode,
+        IFNULL(A.CITY_CODE, '') AS citycCode,
+        IFNULL(A.DISTRICT_CODE, '') AS districtCode
+    </sql>
+    <sql id="selectFrom">
+       FROM
+        by_buyer_basic_info AS A
+        INNER JOIN md_province AS B ON B.PROVINCE_CODE = A.PROVINCE_CODE
+        INNER JOIN md_city AS C ON C.PROVINCE_ID = B.PROVINCE_ID
+        AND A.CITY_CODE = C.CITY_CODE
+        INNER JOIN md_district AS D ON D.DISTRICT_CODE = A.DISTRICT_CODE
+        /*AND D.DISTRICT_ID = B.PROVINCE_ID*/
+        AND D.CITY_ID = C.CITY_ID
+
+    </sql>
+    <sql id="whereCondition">
+        <where>
+            <if test="filterMap.provinceCode!=null and filterMap.provinceCode!=''">
+                AND B.PROVINCE_CODE = #{filterMap.provinceCode}
+            </if>
+            <if test="filterMap.cityCode!=null and filterMap.cityCode!=''">
+                AND C.CITY_CODE = #{filterMap.cityCode}
+            </if>
+            <if test="filterMap.districtCode!=null and filterMap.districtCode!=''">
+                AND D.DISTRICT_CODE = #{filterMap.districtCode}
+            </if>
+            <if test="filterMap.buyerCode!=null and filterMap.buyerCode!=''">
+                AND A.BUYER_CODE LIKE #{filterMap.buyerCode}
+            </if>
+            AND A.BUYER_ID NOT IN (
+            SELECT
+            E.BUYER_ID
+            FROM
+            sl_bs_buyer AS E
+            WHERE
+            E.APPLY_STATUS = '1'
+            OR E.APPLY_STATUS = '2'
+            )
+            AND (A.DEL_FLG IS NULL OR A.DEL_FLG =0)
+        </where>
+    </sql>
+    <select id="getPageCount" resultType="int" parameterType="BasePageParam">
+        SELECT COUNT(1)
+        <include refid="selectFrom"/>
+        <include refid="whereCondition"/>
+    </select>
+    <select id="findPageList" resultType="com.msk.bs.bean.BS2101104Bean"
+            parameterType="BasePageParam">
+        SELECT
+        <include refid="selectFiled"/>
+        <include refid="selectFrom"/>
+        <include refid="whereCondition"/>
+        <!--order by suppDsId, planFlowId, distMonth-->
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+
+    <insert id="saveSlApply" parameterType="com.msk.bs.bean.BS2101104Bean">
+        INSERT INTO by_buyer_basic_info (
+        SL_CODE,
+        HOUSE_ACCOUNT,
+        BUYER_ID,
+        START_TIME,
+        END_TIME,
+        DEL_FLG,
+        VER
+        )
+        VALUES
+        (
+        #{slCode},
+        #{houseAccount},
+        #{buyerId},
+        #{startTime},
+        #{endTime},
+        0,
+        #{ver}
+        )
+    </insert>
+
+
+    <!--<select id="findList" parameterType="BaseParam" resultType="com.msk.core.entity.MdProvince">
+        SELECT
+        PROVINCE_CODE AS provinceCode,
+        PROVINCE_NAME AS provinceName
+        FROM
+        md_province
+    </select>
+-->
+</mapper>

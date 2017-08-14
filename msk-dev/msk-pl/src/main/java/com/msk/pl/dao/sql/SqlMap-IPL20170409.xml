@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170409Logic">
+
+    <select id="searchPricePeriod" parameterType="BaseParam" resultType="com.msk.pl.bean.PlDeclarePriceperiodMst">
+        SELECT
+        PP_ID AS ppId,
+        concat(PRICE_PERIOD,'(',PRICE_PERIOD_DATE,')') AS pricePeriod,
+        PRICE_PERIOD_DATE AS pricePeriodDate,
+        PRICE_PERIOD_MONTH AS pricePeriodMonth,
+        PRICE_PERIOD AS pricePeriod
+        FROM PL_DECLARE_PRICEPERIOD_MST
+        WHERE
+        DEL_FLG ='0'
+        <if test="filterMap.startPricePeriod!=null and filterMap.startPricePeriod!=''">
+            AND PRICE_PERIOD <![CDATA[ >= #{filterMap.startPricePeriod}]]>
+        </if>
+
+        <if test="filterMap.endPricePeriod!=null and filterMap.endPricePeriod!=''">
+            AND PRICE_PERIOD <![CDATA[ <= #{filterMap.endPricePeriod}]]>
+        </if>
+        ORDER BY pricePeriod desc
+    </select>
+
+    <select id="searchPricePeriodByDate" parameterType="BaseParam" resultType="com.msk.pl.bean.IPL20170409Result">
+        SELECT
+          PRICE_PERIOD AS pricePeriod
+          FROM PL_DECLARE_PRICEPERIOD_MST
+          WHERE DEL_FLG ='0'
+           AND PRICE_PERIOD_YM = #{filterMap.priceYm}
+           AND PRICE_PERIOD_DATE = #{filterMap.day}
+    </select>
+
+</mapper>

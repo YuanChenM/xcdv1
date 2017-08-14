@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.ISL231203Logic">
+    <update id="modifySlDistReguSug" parameterType="com.msk.core.entity.SlDistReguSug">
+        update sl_dist_regu_sug SET
+        AGREE_FLG= #{agreeFlg},
+        SL_SUG=#{slSug},
+        UPD_ID=#{updId},
+        UPD_TIME=NOW(),
+        VER=#{ver}
+        WHERE SL_CODE= #{slCode} AND CHAP_ID=#{chapId} AND CHAP_CLASS= #{chapClass}
+    </update>
+</mapper>

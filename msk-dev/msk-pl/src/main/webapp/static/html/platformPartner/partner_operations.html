@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>合伙人功能面板</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link rel="stylesheet" href="../css/sm.min.css">
+    <link rel="stylesheet" href="../css/sm-extend.min.css">
+
+    <style type="text/css">
+    </style>
+
+</head>
+<body>
+<div class="page-group">
+    <div class="page page-current">
+
+        <!--标题栏-->
+        <header class="bar bar-nav">
+            <!--<a class="button button-link button-nav pull-left back" href="/docs-demos/router">-->
+            <!--<span class="icon icon-left"></span>-->
+            <!--返回-->
+            <!--</a>-->
+            <h1 class="title">进货单管理系统</h1>
+        </header>
+
+        <!--内容区-->
+        <div class="content">
+            <h2>欢迎您：合伙人 <span style="color:blue" id="name"></span></h2>
+            <div class="content-block">
+                <p><a href="#" class="button button-fill" id="ruler_setting">【管理】进货单填报设置</a></p>
+                <p><a href="#" class="button button-fill" id="fee_setting">【管理】激励费用设置&nbsp;&nbsp;&nbsp;</a></p>
+                <p><a href="#" class="button button-fill" id="task_list">【管理】进货单查看审核</a></p>
+                <p><a href="#" class="button button-fill" id="fee_list">【统计】激励费用查看&nbsp;&nbsp;</a></p>
+                <p><a href="#" class="button button-fill" id="task_sum">【统计】进货单统计&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a></p>
+                <p><a href="#" class="button button-fill" id="task_percent">【统计】任务完成统计&nbsp;&nbsp;</a></p>
+            </div>
+        </div>
+
+    </div>
+
+
+</div>
+
+<script type='text/javascript' src='../js/zepto.min.js' charset='utf-8'></script>
+<script type="text/javascript">
+    $.config = {router: false}
+</script>
+<script type='text/javascript' src='../js/touch.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type="text/javascript" src="../js/common.js"></script>
+<script type="text/javascript">
+    var name = getUrlParam("name");
+    var id = getUrlParam("id");
+    $(function () {
+        $("#name").text(name);
+        $("#ruler_setting").click(function () {
+            $(this).attr("href", "/"+_webroot+"/static/html/platformPartner/partner_ruler_setting.html?name="+name+"&id="+id);
+        })
+        $("#fee_setting").click(function () {
+            $(this).attr("href", "/"+_webroot+"/static/html/platformPartner/partner_fee_setting.html?name="+name+"&id="+id);
+        })
+        $("#task_list").click(function () {
+            $(this).attr("href", "/"+_webroot+"/static/html/platformPartner/partner_task_list.html?name="+name+"&id="+id);
+        })
+        $("#fee_list").click(function () {
+            $(this).attr("href", "/"+_webroot+"/static/html/platformPartner/partner_fee_list.html?name="+name+"&id="+id);
+        })
+        $("#task_sum").click(function () {
+            $(this).attr("href", "/"+_webroot+"/static/html/platformPartner/partner_task_sum.html?name="+name+"&id="+id);
+        })
+        $("#task_percent").click(function () {
+            $(this).attr("href", "/"+_webroot+"/static/html/platformPartner/partner_task_percent.html?name="+name+"&id="+id);
+        })
+
+    });
+
+</script>
+
+</body>
+</html>

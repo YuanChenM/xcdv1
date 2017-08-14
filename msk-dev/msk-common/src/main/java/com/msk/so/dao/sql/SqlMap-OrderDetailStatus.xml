@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.msk.so.logic.OrderDetailStatusLogic">
+    <update id="modify" parameterType="BaseParam">
+        UPDATE SO_ORDER_DETAIL_STATUS
+        SET DEL_FLG = 1,
+        UPD_ID = #{filterMap.updId},
+        UPD_TIME = #{filterMap.updTime},
+        VER = VER + 1
+        WHERE ORDER_DETAIL_ID = #{filterMap.orderDetailId}
+    </update>
+
+    <!-- 更新订单明细表状态 -->
+    <update id="modifyDetailStatus" parameterType="BaseParam">
+      UPDATE SO_ORDER_DETAIL
+      SET
+      DETAIL_STATUS=#{filterMap.status}
+      ,UPD_ID = #{filterMap.updId}
+      ,UPD_TIME = #{filterMap.updTime}
+      ,VER = VER + 1
+      WHERE ORDER_ID = #{filterMap.orderId}
+      AND DEL_FLG = 0
+    </update>
+
+    <select id="findOrderStatusByOrderId" parameterType="BaseParam" resultType="java.util.HashMap">
+        SELECT
+        ORDER_ID
+        ,ORDER_CODE
+        ,ORDER_DETAIL_ID
+        ,ID
+        ,STATUS
+        ,DEL_FLG
+        ,CRT_ID
+        ,CRT_TIME
+        ,UPD_ID
+        ,UPD_TIME
+        ,ACT_ID
+        ,ACT_TIME
+        ,VER
+        FROM SO_ORDER_DETAIL_STATUS
+        WHERE ORDER_ID=#{filterMap.orderId}
+        AND DEL_FLG = 0
+    </select>
+
+    <update id="modifyStatusByOrderId" parameterType="BaseParam">
+        UPDATE SO_ORDER_DETAIL_STATUS
+        SET DEL_FLG=1
+        ,UPD_ID=#{filterMap.updId}
+        ,UPD_TIME = #{filterMap.updTime}
+        WHERE ORDER_ID=#{filterMap.orderId}
+    </update>
+
+
+    <insert id="saveStatusByOrderDetail" parameterType="BaseParam">
+      INSERT INTO SO_ORDER_DETAIL_STATUS(
+                  ORDER_ID
+                  ,ORDER_CODE
+                  ,ORDER_DETAIL_ID
+                  ,ID
+                  ,STATUS
+                  ,DEL_FLG
+                  ,CRT_ID
+                  ,CRT_TIME
+                  ,UPD_ID
+                  ,UPD_TIME
+                  ,ACT_ID
+                  ,ACT_TIME
+                  ,VER
+                  )
+      SELECT
+                  ORDER_ID
+                  ,ORDER_CODE
+                  ,ORDER_DETAIL_ID
+                  ,@i:=@i+1 AS ID
+                  ,${filterMap.status}
+                  ,0
+                  ,'${filterMap.crtId}'
+                  ,'${filterMap.crtTime}'
+                  ,NULL
+                  ,NULL
+                  ,NULL
+                  ,NULL
+                  ,1
+      FROM SO_ORDER_DETAIL ORDERDETAIL
+      ,(SELECT
+                  @i :=(
+                  SELECT
+                        ifnull(MAX(ID),0)
+                  FROM SO_ORDER_DETAIL_STATUS )
+      ) SO_ORDER_DETAIL_STATUS
+      WHERE ORDERDETAIL.ORDER_ID = #{filterMap.orderId}
+    </insert>
+
+
+    <select id="getCodeAvailabilityCanel" parameterType="BaseParam" resultType="com.msk.core.entity.SoStockSupp">
+        SELECT
+            soOrder.SELLER_CODE AS slCode,
+            soOrder.DISTRICT_CODE AS lgcsCode,
+            orderDetail.PD_CODE AS pdCode,
+            detailAvailability.SUPPLIER_CODE AS supplierCode,
+            detailAvailability.SEND_QTY AS stockQty
+        FROM 
+            SO_ORDER soOrder, so_order_detail_availability detailAvailability, SO_ORDER_DETAIL orderDetail
+        WHERE 
+            soOrder.ORDER_ID = orderDetail.ORDER_ID
+            AND soOrder.ORDER_CODE = orderDetail.ORDER_CODE
+            AND orderDetail.ORDER_ID = detailAvailability.ORDER_ID
+            AND orderDetail.ORDER_DETAIL_ID = detailAvailability.ORDER_DETAIL_ID
+            AND soOrder.ORDER_ID = #{orderId} 
+            AND soOrder.ORDER_CODE= #{orderCode}
+            AND soOrder.DEL_FLG = 0
+            AND orderDetail.DEL_FLG = 0
+    </select>
+    <select id="getCodeDetailCanel" parameterType="BaseParam" resultType="com.msk.core.entity.SoStockSupp">
+        SELECT
+            soOrder.SELLER_CODE AS slCode,
+            soOrder.DISTRICT_CODE AS lgcsCode,
+            orderDetail.PD_CODE AS pdCode,
+            soOrder.ORDER_AMOUNT AS stockQty
+        FROM 
+            SO_ORDER soOrder,SO_ORDER_DETAIL orderDetail
+        WHERE 
+            soOrder.ORDER_ID = orderDetail.ORDER_ID
+            AND soOrder.ORDER_CODE = orderDetail.ORDER_CODE
+            AND soOrder.ORDER_ID = #{orderId} 
+            AND soOrder.ORDER_CODE= #{orderCode}
+            AND soOrder.DEL_FLG = 0
+            AND orderDetail.DEL_FLG = 0
+    </select>
+</mapper>

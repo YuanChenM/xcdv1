@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.ds.logic.SC182205Logic">
+
+    <select id="getDsProductLot" parameterType="BaseParam" resultType="com.msk.ds.bean.SC182205Bean">
+        SELECT
+        dsproductlot.classes_code as classesCode,
+        dsproductlot.breed_code as breedCode,
+        dsproductlot.machining_code as machiningCode,
+        dsproductlot.feature_code as featureCode,
+        dsproductlot.weight_code as weightCode,
+        dsproductlot.grade_code as gradeCode,
+        dsproductlot.manu_date as manuDate,
+        dsproductlot.shelf_life as shelfLife,
+        dsproductlot.stor_condition as storCondition,
+        dsproductlot.food_manu_licen as foodManuLicen,
+        dsproductlot.client as client,
+        dsproductlot.un_client as unClient,
+        dsproductlot.client_addr as clientAddr,
+        dsproductlot.un_client_addr as unClientAddr,
+        dsproductlot.client_phone as clientPhone,
+        dsproductlot.un_client_phone as unClientPhone,
+        dsproductlot.manu_origin as manuOrigin,
+        dsproductlot.sum_new_act_num as sumNewActNum,
+        dsproductlot.brand_logo as brandLogo,
+        dsproductlot.pro_lot_num as proLotNum,
+        dsproductlot.read_pro_lot_num as readProLotNum
+        FROM
+        ds_product_lot dsproductlot
+        WHERE
+        dsproductlot.pro_lot_num = #{proLotNum}
+    </select>
+
+    <select id="getClasses" parameterType="BaseParam" resultType="com.msk.ds.bean.SC182205Bean">
+        SELECT
+        classes_name as classesName
+        FROM
+        pd_classes
+        WHERE
+        pd_classes.classes_code=#{classesCode}
+    </select>
+
+    <select id="getBreed" parameterType="BaseParam" resultType="com.msk.ds.bean.SC182205Bean">
+        SELECT
+        breed_name as breedName
+        FROM
+        pd_breed
+        WHERE
+        pd_breed.breed_code=#{breedCode}
+    </select>
+
+    <select id="getMachining" parameterType="BaseParam" resultType="com.msk.ds.bean.SC182205Bean">
+        SELECT
+        machining_name as machiningName
+        FROM
+        pd_machining
+        WHERE
+        pd_machining.machining_code=#{machiningCode}
+    </select>
+
+    <select id="getFeature" parameterType="BaseParam" resultType="com.msk.ds.bean.SC182205Bean">
+    SELECT
+    feature_name as featureName
+    FROM
+    pd_feature
+    WHERE
+    pd_feature.feature_code=#{featureCode}
+   </select>
+
+    <select id="getWeight" parameterType="BaseParam" resultType="com.msk.ds.bean.SC182205Bean">
+        SELECT
+        weight_name as weightName
+        FROM
+        pd_weight
+        WHERE
+        pd_weight.weight_code=#{weightCode}
+    </select>
+
+    <select id="getGrade" parameterType="BaseParam" resultType="com.msk.ds.bean.SC182205Bean">
+        SELECT
+        grade_name as gradeName
+        FROM
+        pd_grade
+        WHERE
+        pd_grade.grade_code=#{gradeCode}
+    </select>
+
+    <insert id="save" parameterType="BaseParam">
+        INSERT INTO ds_print_label(ds_print_label.pro_lot_num,
+        ds_print_label.product_print_num,
+        ds_print_label.print_time)
+        VALUES(#{proLotNum},#{productPrintNum},#{printTime})
+    </insert>
+
+</mapper>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>申报单列表</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link rel="stylesheet" href="../css/sm.min.css">
+    <link rel="stylesheet" href="../css/sm-extend.min.css">
+    <link rel="stylesheet" href="../css/laypage.css">
+    <style type="text/css">
+
+        .rj-table {
+            margin-bottom: 0 !important;
+            border: 1px solid #ddd;
+            border-collapse: collapse !important;
+            border-radius: 1px;
+            width: 100%;
+            font-size: 12px;
+            margin-left: 2px;
+            margin-right: 2px;
+        }
+
+        .rj-table td {
+            margin-bottom: 0 !important;
+            border: 1px solid #d2dcf8;
+            border-collapse: collapse !important;
+            border-radius: 1px;
+        }
+
+        .rj-table thead td {
+            /*font-weight: bold;*/
+            text-align: center;
+            background: #DCDCDC;
+        }
+
+        .rj-table tbody td {
+            text-align: center;
+        }
+    </style>
+
+    <script src="../js/common.js"></script>
+</head>
+<body>
+<div class="page-group">
+    <div class="page page-current" id="page1">
+        <header class="bar bar-nav">
+            <a class="button button-link button-nav pull-left back" href="dpartner_operations.html" id="back">
+                <span class="icon icon-left"></span>
+                <!--返回-->
+            </a>
+            <a class="button button-link button-nav pull-right back" href="dpartner_operations.html"
+               id="home">
+                <span class="icon icon-home"></span>
+            </a>
+            <h1 class="title">申报单列表</h1>
+        </header>
+
+        <div class="content" style="background: white">
+            <div class="row" style="margin-top:10px; ">
+                <div class="col-40">
+                    <select id="bsId">
+                        <option value="">全部</option>
+                    </select>
+                </div>
+                <!---年月-->
+                <div class="col-40">
+                    <select id="date">
+                    </select>
+                </div>
+
+                <!--搜索按钮-->
+                <div class="col-20">
+                    <div style="font-size: 14px;">
+                        <a href="#" id="search" class="button button-light">搜索</a>
+                    </div>
+                </div>
+
+            </div>
+
+            <table class="rj-table" style="margin-top:10px;">
+                <thead>
+                <tr>
+                    <td>申报单号</td>
+                    <td>买手</td>
+                    <td>状态</td>
+                    <td>操作</td>
+                </tr>
+                </thead>
+                <tbody id="tBodyDate">
+                </tbody>
+            </table>
+
+            <div class="row" style="margin-top:10px;margin-left: 10px">
+                <div id="pageBar" style="font-size: 8px;"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+</div>
+<script type='text/javascript' src='../js/zepto.min.js' charset='utf-8'></script>
+<script type="text/javascript">
+    $.config = {router: false}
+</script>
+<script type='text/javascript' src='../js/touch.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type="text/javascript" src="../js/common.js"></script>
+<script type="text/javascript" src="../js/zepto.cookie.min.js"></script>
+<script type="text/javascript" src="../js/laypage.js"></script>
+
+<script type="text/javascript">
+    var id = $.fn.cookie("id");
+    var name = $.fn.cookie("name");
+    $(function () {
+        initDate();
+        initbsName();
+        search();
+        $("#search").click(function () {
+            debugger;
+            search();
+        });
+    });
+
+    function search() {
+        var mySelect = document.getElementById("date");
+        var crtDate = mySelect.options[mySelect.selectedIndex].value;
+
+        var bsId = document.getElementById("bsId");
+        var bsCode = bsId.options[bsId.selectedIndex].value;
+
+        $.ajax({
+            type: "post",
+            url: "/" + _webroot + "/api/v1/pl/partner_declaration_list",
+            data: JSON.stringify({
+                "siteCode": "318",
+                "auth": "pl",
+                "loginId": id,
+                "param": {
+                    "partnerId": id,
+                    "crtDate": crtDate,
+                    "bsCode": bsCode,
+                    "paging": false
+                }
+            }),
+            contentType: "application/json",
+            async: false,
+            success: function (data) {
+                if (data.status == "S" && data.result) {
+                    var datas = data.result.dataList;
+                    var view;
+//                    total = data.result.totalCount; //总记录数
+//                    totalPage = data.result.totalPage; //总页数
+//                    pageSize = 10; //每页显示条数
+//                    curPage = data.result.pageNo; //当前页
+                    $("tbody").find("tr").remove();
+                    $.each(datas, function (index, element) {
+                        view = "<a href='#'>查看</a>";
+//                        tBody += "<tr><td>" + element.taskId + "</td><td>" + element.bsName + "</td><td>" +statusView(element.status)+ "</td><td>" + view + "</td></tr>";
+//                        $("tbody").append("<tr><td>" + element.taskId + "</td><td>" + element.bsName + "</td><td>" + statusView(element.status) + "</td><td>" + view + "</td></tr>");
+                        $("tbody").append("<tr><td>" + element.taskId + "</td><td>" + element.bsName + "</td>" + statusView(element.status) + "<td>" + view + "</td></tr>");
+                    })
+                } else {
+                    $("tbody").find("tr").remove();
+                    $("tbody").append("<tr ><td colspan='4'>未查询到数据 !</td></tr>");
+                    $.alert(data.message);
+                }
+            }
+        })
+    }
+
+    function initDate() {
+        $.ajax({
+            type: "post",
+            url: "/" + _webroot + "/api/v1/pl/bs_declaration_datelist",
+            data: JSON.stringify({
+                "siteCode": "318",
+                "auth": "pl",
+                "loginId": id,
+                "param": {}
+            }),
+            contentType: "application/json",
+            async: false,
+            success: function (data) {
+                if (data.status == "S") {
+                    var declareYMList = data.result;
+                    $.each(declareYMList, function (i, value) {
+                        $("#date").append("<option value='" + value.declareYM + "'>" + value.declareYM + "</option>");
+                    });
+                } else {
+                    $.alert(data.message);
+                }
+            }
+        });
+    }
+
+    function initbsName() {
+        debugger;
+        $.ajax({
+            type: "POST",
+            url: "/" + _webroot + "/api/v1/pl/partner_bs_list",
+            contentType: 'application/json',
+            dataType: "json",
+            async: false,
+            data: JSON.stringify({
+                "siteCode": "318",
+                "auth": "pl",
+                "loginId": id,
+                "param": {
+                    "partnerId": id
+                }
+            }),
+            contentType: "application/json",
+            async: false,
+            success: function (data) {
+                if (data.status == "S") {
+
+                    var bsList = data.result;
+                    $.each(bsList, function (i, value) {
+//                        $("#bsId").append("<option value='" + value.bsCode + "' bsId='" + value.bsId + "'>" + value.bsName + "</option>");
+                        $("#bsId").append("<option bsId='" + value.bsId + "' value='" + value.bsCode + "'>" + value.bsName + "</option>");
+                    });
+                } else {
+                    $.alert(data.message);
+                }
+            }
+        });
+    }
+    ;
+
+    function statusView(status) {
+        if (status == "0") {
+            return "<td style='color: red'>未完成</td>";
+//            return "未完成";
+        } else if (status == "1") {
+            return "<td>完成</td>";
+        } else {
+            return "<td></td>";
+        }
+
+    }
+
+    function setTd() {
+        $("tbody").find("tr").remove();
+    }
+
+
+</script>
+</body>
+</html>

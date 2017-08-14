@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170205Logic">
+
+
+     <!--返回集合数据-->
+    <resultMap id="findPlInfo" type="com.msk.pl.bean.IPL20170205Result">
+        <id property="plId" column="PL_ID" />
+        <result property="buyerId" column="BUYER_ID" />
+        <result property="buyerName" column="BUYER_NAME" />
+        <result property="bsCode" column="BS_CODE" />
+        <result property="bsName" column="BS_NAME" />
+        <result property="terminalId" column="TERMINAL_ID" />
+        <result property="terminalName" column="TERMINAL_NAME" />
+        <result property="ftpUrl" column="FTP_URL" />
+        <collection property="pdList" ofType="com.msk.pl.bean.IPL2017020501Result">
+            <id property="plPdId" column="PL_PD_ID" />
+            <result property="pdName" column="PD_NAME" />
+            <result property="unitPrice" column="UNIT_PRICE" />
+            <result property="salesVolume" column="SALES_VOLUME" />
+            <result property="pricePeriod" column="PRICE_PERIOD" />
+            <result property="priceChannel" column="PRICE_CHANNEL" />
+            <result property="manufacturer" column="MANUFACTURER" />
+        </collection>
+    </resultMap>
+
+    <!-- 进货单详细数据数据 -->
+    <select id="findOne" parameterType="BaseParam" resultMap="findPlInfo">
+		SELECT
+        A.PL_ID,
+        A.BUYER_ID,
+        A.BUYER_NAME,
+        A.BS_CODE,
+        A.BS_NAME,
+        A.TERMINAL_ID,
+        A.TERMINAL_NAME,
+        A.FTP_URL,
+        B.PL_PD_ID,
+        B.PD_NAME,
+        B.UNIT_PRICE,
+        B.SALES_VOLUME,
+        B.PRICE_PERIOD,
+        B.PRICE_CHANNEL,
+        B.MANUFACTURER
+		 FROM PL_INFO A
+		 LEFT JOIN PL_INFO_PD B ON A.PL_ID = B.PL_ID AND B.DEL_FLG = 0
+		 WHERE A.PL_ID = #{plId} AND A.DEL_FLG = 0
+	</select>
+</mapper>

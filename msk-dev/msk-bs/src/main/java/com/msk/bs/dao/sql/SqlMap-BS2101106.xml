@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.bs.logic.BS2101106Logic">
+
+    <select id="findSlBuyerhop" resultType="java.lang.Integer" parameterType="BaseParam">
+        SELECT COUNT(1) FROM sl_buyershop
+        <where>
+            (DEL_FLG IS NULL OR DEL_FLG =0)
+            <if test="filterMap.slCode != null and filterMap.slCode != ''">
+                AND SL_CODE = #{filterMap.slCode}
+            </if>
+        </where>
+    </select>
+
+    <select id="findOne" resultType="com.msk.core.entity.SlShopInfo" parameterType="BaseParam">
+        SELECT SHOP_ID as shopId FROM sl_shop_info
+        <where>
+            (DEL_FLG IS NULL OR DEL_FLG =0)
+            <if test="filterMap.slCode2 != null and filterMap.slCode2 != ''">
+                AND SL_CODE = #{filterMap.slCode2}
+            </if>
+        </where>
+    </select>
+
+    <select id="findSlCode" resultType="com.msk.core.entity.SlSeller" parameterType="BaseParam">
+        SELECT SL_CODE as slCode FROM sl_seller
+        <where>
+            (DEL_FLG IS NULL OR DEL_FLG =0)
+            <if test="filterMap.slAccount2 != null and filterMap.slAccount2 != ''">
+                AND SL_ACCOUNT = #{filterMap.slAccount2}
+            </if>
+        </where>
+    </select>
+</mapper>

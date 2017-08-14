@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Sample</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link rel="stylesheet" href="//g.alicdn.com/msui/sm/0.6.2/css/sm.min.css">
+    <link rel="stylesheet" href="//g.alicdn.com/msui/sm/0.6.2/css/sm-extend.min.css">
+
+</head>
+<body>
+<div class="page-group">
+    <div class="page page-current">
+
+        <!--标题栏-->
+        <header class="bar bar-nav">
+            <!--<a class="icon icon-me pull-left open-panel"></a>-->
+            <h1 class="title">进货单管理系统</h1>
+        </header>
+
+        <!--内容区-->
+        <div class="content">
+            <a href="#" id="partner"><h1>合伙人</h1></a>
+            <a href="#" id="buyerAgent"><h1>买手</h1></a>
+            <a href="#" id="partnerAndBuyerAgent"><h1>合伙人和买手</h1></a>
+            <a href="#" id="ljx"><h1>刘俊肖</h1></a>
+        </div>
+    </div>
+</div>
+
+<script type='text/javascript' src='../js/zepto.min.js' charset='utf-8'></script>
+<script type="text/javascript">
+    $.config = {router: false}
+</script>
+<script type='text/javascript' src='../js/sm.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+
+<script type="text/javascript" src="../js/common.js"></script>
+
+<script type="text/javascript">
+    var url1=encodeURI("user_select_role.html?userName=谭汝成&wqAccount=13922349557");
+    var url2=encodeURI("user_select_role.html?userName=刘绪理&wqAccount=tanrucheng01");
+    var url3=encodeURI("user_select_role.html?userName=应万贵&wqAccount=15189834866");
+    var url4=encodeURI("user_select_role.html?userName=刘俊肖&wqAccount=13914718060");
+    $("#partner").attr("href",url1);
+    $("#buyerAgent").attr("href",url2);
+    $("#partnerAndBuyerAgent").attr("href",url3);
+    $("#ljx").attr("href",url4);
+</script>
+
+</body>
+</html>

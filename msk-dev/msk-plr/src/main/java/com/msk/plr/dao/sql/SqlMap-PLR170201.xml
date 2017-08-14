@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.plr.logic.PLR170201Logic">
+    <select id="findPageList" parameterType="com.msk.plr.bean.PLR170201Param"
+            resultType="com.msk.plr.bean.PLR170201Bean">
+        select
+        <include refid="selectSql"/>
+        from PL_INFO A
+        LEFT JOIN PL_BS_TASK G ON A.TASK_ID=G.TASK_ID
+        /*按合伙人查询*/
+        <if test="selectRule==0">
+            LEFT JOIN PL_TERMINAL_PARTNER D ON A.TERMINAL_ID=D.TERMINAL_ID AND A.PARTNER_ID=D.PARTNER_ID
+            <include refid="whereCondition"/>
+            <if test="partnerId!=null and partnerId!=0">
+                and A.PARTNER_ID=#{partnerId}
+            </if>
+            group by A.PARTNER_ID
+        </if>
+        /*按配送站查询*/
+        <if test="selectRule==1">
+            LEFT JOIN pl_terminal_partner C ON A.TERMINAL_ID=C.TERMINAL_ID AND A.PARTNER_ID=C.PARTNER_ID
+            <include refid="whereCondition"/>
+            <if test="terminalId!=null and terminalId!=0">
+                and A.TERMINAL_ID=#{terminalId}
+            </if>
+            <if test="partnerId!=null and partnerId!=0">
+                and A.PARTNER_ID=#{partnerId}
+            </if>
+            group by A.TERMINAL_ID
+        </if>
+        /*按买手查询*/
+        <if test="selectRule==2">
+            LEFT JOIN PL_DOMAIN_BS B ON A.BS_CODE=B.BS_CODE AND A.TERMINAL_ID=B.TERMINAL_ID
+            LEFT JOIN PL_TERMINAL_PARTNER F ON B.TERMINAL_ID=F.TERMINAL_ID AND A.PARTNER_ID=F.PARTNER_ID
+            <include refid="whereCondition"/>
+            <if test="terminalId!=null and terminalId!=0">
+                and A.TERMINAL_ID=#{terminalId}
+            </if>
+            <if test="partnerId!=null and partnerId!=0">
+                and A.PARTNER_ID=#{partnerId}
+            </if>
+            <if test="bsCode!=null and bsCode!=''">
+                and A.BS_CODE=#{bsCode}
+            </if>
+            group by A.BS_CODE
+        </if>
+        ORDER BY sum(case when (A.STATUS=1) then 1 else 0 end ) desc
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+    <select id="getPageCount" resultType="Integer"
+            parameterType="com.msk.core.bean.BasePageParam">
+        SELECT count(1) FROM
+        (select
+        <include refid="selectSql"/>
+        from PL_INFO A
+        LEFT JOIN PL_BS_TASK G ON A.TASK_ID=G.TASK_ID
+        /*按合伙人查询*/
+        <if test="selectRule==0">
+            LEFT JOIN PL_TERMINAL_PARTNER D ON A.TERMINAL_ID=D.TERMINAL_ID AND A.PARTNER_ID=D.PARTNER_ID
+            <include refid="whereCondition"/>
+            <if test="partnerId!=null and partnerId!=0">
+                and A.PARTNER_ID=#{partnerId}
+            </if>
+            group by A.PARTNER_ID
+        </if>
+        /*按配送站查询*/
+        <if test="selectRule==1">
+            LEFT JOIN pl_terminal_partner C ON A.TERMINAL_ID=C.TERMINAL_ID AND A.PARTNER_ID=C.PARTNER_ID
+            <include refid="whereCondition"/>
+            <if test="terminalId!=null and terminalId!=0">
+                and A.TERMINAL_ID=#{terminalId}
+            </if>
+            group by A.TERMINAL_ID
+        </if>
+        /*按买手查询*/
+        <if test="selectRule==2">
+            LEFT JOIN PL_DOMAIN_BS B ON A.BS_CODE=B.BS_CODE AND A.TERMINAL_ID=B.TERMINAL_ID
+            LEFT JOIN PL_TERMINAL_PARTNER F ON B.TERMINAL_ID=F.TERMINAL_ID AND A.PARTNER_ID=F.PARTNER_ID
+            <include refid="whereCondition"/>
+            <if test="bsCode!=null and bsCode!=''">
+                and A.BS_CODE=#{bsCode}
+            </if>
+            group by A.BS_CODE
+        </if>
+        ) E
+    </select>
+    <sql id="selectSql">
+        <if test="selectRule==0">
+            A.PARTNER_ID AS partnerId,
+            case when (D.PARTNER_NAME IS NULL) then '' else D.PARTNER_NAME END AS partnerName,
+            NULL as terminalId,
+            '' as terminalName,
+            '' as bsCode,
+            '' as bsName,
+        </if>
+        <if test="selectRule==1">
+            C.PARTNER_ID AS partnerId,
+            case when (C.PARTNER_NAME IS NULL) then '' else C.PARTNER_NAME END AS partnerName,
+            A.TERMINAL_ID as terminalId,
+            case when (A.TERMINAL_NAME IS NULL) then '' else A.TERMINAL_NAME END AS terminalName,
+            '' as bsCode,
+            '' as bsName,
+        </if>
+        <if test="selectRule==2">
+            F.PARTNER_ID AS partnerId,
+            case when (F.PARTNER_NAME IS NULL) then '' else F.PARTNER_NAME END AS partnerName,
+            A.TERMINAL_ID as terminalId,
+            case when (A.TERMINAL_NAME IS NULL) then '' else A.TERMINAL_NAME END AS terminalName,
+            A.BS_CODE as bsCode,
+            case when (B.BS_NAME IS NULL) then '' else B.BS_NAME END AS bsName,
+        </if>
+        #{crtDate} as crtDate,
+        /*合伙人计费查询需要查询激励费用*/
+        sum(case when (A.STATUS=1) then (CASE WHEN (A.INCENTIVE_FEE IS NULL) THEN 0 ELSE A.INCENTIVE_FEE END) else 0 end ) as allFee,
+        sum(case when (A.STATUS=1) then 1 else 0 end ) as validInfo ,
+        sum(case when (A.STATUS=0) then 1 else 0 end ) as invalidInfo
+    </sql>
+    <sql id="whereCondition">
+        WHERE DATE_FORMAT(G.REPORT_DATE,'%Y-%m')=#{crtDate}
+        AND (A.DEL_FLG=0 or A.DEL_FLG is NULL)
+    </sql>
+    <select id="findPartner" parameterType="com.msk.plr.bean.PLR170201Param"
+            resultType="com.msk.plr.bean.PLR170201Bean">
+        SELECT
+        PARTNER_ID AS partnerId,
+        PARTNER_NAME AS partnerName
+        FROM PL_TERMINAL_PARTNER
+        WHERE DEL_FLG=0 OR DEL_FLG IS NULL
+        GROUP BY PARTNER_ID
+    </select>
+    <select id="findTerminal" parameterType="com.msk.plr.bean.PLR170201Param"
+            resultType="com.msk.plr.bean.PLR170201Bean">
+        SELECT
+        TERMINAL_ID AS terminalId,
+        TERMINAL_NAME AS terminalName
+        FROM PL_TERMINAL_PARTNER
+        WHERE (DEL_FLG=0 OR DEL_FLG IS NULL)
+        <if test="partnerId!=null">
+            AND PARTNER_ID=#{partnerId}
+        </if>
+        GROUP BY TERMINAL_ID
+    </select>
+    <select id="findBs" parameterType="com.msk.plr.bean.PLR170201Param"
+            resultType="com.msk.plr.bean.PLR170201Bean">
+        select
+        A.BS_CODE as bsCode,
+        A.BS_NAME as bsName
+        from PL_DOMAIN_BS AS A
+        LEFT JOIN PL_TERMINAL_PARTNER B ON A.TERMINAL_ID=B.TERMINAL_ID
+        WHERE (A.DEL_FLG=0 or A.DEL_FLG is NULL) AND (B.DEL_FLG=0 or B.DEL_FLG is NULL)
+        <if test="partnerId!=null">
+            AND B.PARTNER_ID=#{partnerId}
+        </if>
+        <if test="partnerId!=null">
+            AND A.TERMINAL_ID=#{terminalId}
+        </if>
+        GROUP BY A.BS_CODE
+    </select>
+</mapper>

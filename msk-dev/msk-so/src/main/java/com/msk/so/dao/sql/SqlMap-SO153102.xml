@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.SO153102Logic">
+    <!-- 表字段 -->
+	<sql id="selectSql">
+        SELECT
+        DATE_FORMAT(sod.CRT_TIME,'%Y-%m-%d %T') as createTime,
+        sod.PD_NAME as name,
+        IFNULL(sod.WEIGHT,'') as weight,
+        sod.PD_PRICE as pdPrice,
+        sod.ORDER_QTY as orderQty,
+        cc.CONSTANT_NAME as state,
+        sod.RETURN_QTY as returnQty
+	</sql>
+    <sql id="selectFrom">
+        FROM so_order os
+            LEFT JOIN so_order_detail  sod ON sod.ORDER_CODE = os.ORDER_CODE
+            LEFT JOIN comm_constant cc ON cc.CONSTANT_VALUE = os.ORDER_STATUS
+    </sql>
+    <!--条件 -->
+	<sql id="whereCondition">
+        WHERE sod.order_code IN
+        <foreach collection="filterMap.orderCodeList" item="item" index="index" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+          AND cc.CONSTANT_TYPE = 'OrderStatus'
+
+	</sql>
+
+    <select id="findPageList" resultType="com.msk.so.bean.SO153102Bean"
+            parameterType="BasePageParam">
+        <include refid="selectSql"/>
+        <include refid="selectFrom" />
+        <include refid="whereCondition"/>
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+
+	<select id="getPageCount" resultType="Integer" parameterType="BasePageParam">
+		select count(1)
+        <include refid="selectFrom" />
+		<include refid="whereCondition"/>
+	</select>
+
+    <select id="findOne" resultType="com.msk.so.bean.SO153102Bean" parameterType="BasePageParam">
+        <![CDATA[
+            SELECT DISTINCT
+              sord.RECEIVER_ADDR AS receiverAddr,
+              sord.REMARK AS remark,
+              cc.CONSTANT_NAME AS state,
+              CASE
+                WHEN sctd.SELECT_TYPE = '0'
+                AND sctd.SETTLEMENT = '0'
+--                 AND sctd.AMOUNT_TYPE = '0'
+                THEN DATE_FORMAT(sctd.TRAN_TIME,'%Y-%m-%d %T')
+                ELSE ""
+              END AS paymentTime,
+              DATE_FORMAT(so.ORDER_SEND_TIME,'%Y-%m-%d %T') AS sendTime,
+              CASE
+                WHEN so.order_status = 13 or so.order_status = 99
+                THEN DATE_FORMAT(so.upd_time,'%Y-%m-%d %T')
+                ELSE ""
+              END AS overTime,
+              CASE
+                WHEN sctd.SELECT_TYPE = '0'
+                AND sctd.SETTLEMENT = '0'
+                THEN DATE_FORMAT(sctd.CRT_TIME,'%Y-%m-%d %T')
+                ELSE ""
+              END AS clossTime,
+              so.order_id AS orderId
+            FROM
+              so_order so
+              LEFT JOIN so_cp_transaction_detail sctd
+                ON sctd.SELECT_CODE = so.order_code
+              LEFT JOIN so_order_receive_demand sord
+                ON sord.order_code = so.order_code
+              LEFT JOIN comm_constant cc
+                ON cc.CONSTANT_VALUE = so.ORDER_STATUS
+            WHERE sctd.SELECT_TYPE = '0'
+            AND so.DEL_FLG = '0'
+            AND sctd.SELECT_CODE = #{filterMap.orderCode}
+            AND sord.DEL_FLG = '0'
+            AND cc.CONSTANT_TYPE = 'OrderStatus'
+            AND sctd.SETTLEMENT = 0
+        ]]>
+    </select>
+
+    <select id="getChildOrderCode" parameterType="com.msk.core.bean.BasePageParam" resultType="String">
+        SELECT
+          CHILD_ORDER_CODE
+        FROM
+          so_order_relation
+        WHERE MAIN_ORDER_CODE = #{filterMap.orderCode}
+    </select>
+</mapper>

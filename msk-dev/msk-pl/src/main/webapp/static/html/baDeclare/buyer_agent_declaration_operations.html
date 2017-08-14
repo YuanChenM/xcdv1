@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>买手功能面板</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link rel="stylesheet" href="../css/sm.min.css">
+    <link rel="stylesheet" href="../css/sm-extend.min.css">
+
+    <style type="text/css">
+    </style>
+
+</head>
+<body>
+<div class="page-group">
+    <div class="page page-current">
+
+        <!--标题栏-->
+        <header class="bar bar-nav">
+            <!--<a class="button button-link button-nav pull-left back" href="/docs-demos/router">-->
+                <!--<span class="icon icon-left"></span>-->
+                <!--返回-->
+            <!--</a>-->
+            <h1 class="title">申报单功能面板</h1>
+        </header>
+
+        <!--内容区-->
+        <div class="content">
+            <h2>欢迎您：买手 <span style="color:blue" id="name"></span></h2>
+            <div class="content-block">
+                <p><a href="#" class="button button-fill" id="menu1">填写申报单</a></p>
+                <p><a href="#" class="button button-fill" id="menu2">任务/完成情况&nbsp;&nbsp;&nbsp;</a></p>
+            </div>
+        </div>
+
+    </div>
+
+
+</div>
+
+<script type='text/javascript' src='../js/zepto.min.js' charset='utf-8'></script>
+<script type="text/javascript">
+    $.config = {router: false}
+</script>
+<script type='text/javascript' src='../js/touch.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type="text/javascript" src="../js/common.js"></script>
+<script type="text/javascript" src="../js/zepto.cookie.min.js"></script>
+
+<script type="text/javascript">
+    var name=getUrlParam("name");
+    if(!name||name=="null"){
+        name= $.fn.cookie('__name');
+    }
+
+    var id=getUrlParam("id");
+    if(!id){
+        id= $.fn.cookie('id');
+    }
+    $.fn.cookie('id',id);
+    $.fn.cookie('name',name);
+    $.fn.cookie('__name',name);
+
+    $(function() {
+       $("#name").text(name);
+//        $("#menu1").attr("href",encodeURI("buyer_agent_index.html?id="+id+"&name="+name));
+        $("#menu1").attr("href",encodeURI("buyer_agent_declaration_edit_list.html"));
+        $("#menu2").attr("href",encodeURI("buyer_agent_declaration_list.html"));
+    });
+</script>
+
+</body>
+</html>

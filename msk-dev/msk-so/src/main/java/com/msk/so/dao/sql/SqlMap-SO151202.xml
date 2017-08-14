@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="com.msk.so.logic.SO151202Logic">
+    <!--条件 -->
+    <sql id="whereCondition">
+        <where>
+            A.DEL_FLG = 0
+            <if test="filterMap.lgcsCode!=null and filterMap.lgcsCode!=''">
+            AND LGCS_CODE like #{filterMap.lgcsCode}
+            </if>
+            <if test="filterMap.warehouseCode!=null and filterMap.warehouseCode!=''">
+            AND WAREHOUSE_CODE like #{filterMap.warehouseCode}
+            </if>
+            <if test="filterMap.slCode!=null and filterMap.slCode!=''">
+            AND (A.SL_CODE like #{filterMap.slCode} or SL.SL_CODE_DIS like #{filterMap.slCode})
+            </if>
+            <if test="filterMap.pdCode!=null and filterMap.pdCode!=''">
+            AND PD_CODE like #{filterMap.pdCode}
+            </if>
+            <if test="filterMap.lgcsName!=null and filterMap.lgcsName!=''">
+                AND C.LGCS_AREA_NAME like #{filterMap.lgcsName}
+            </if>
+            <if test="filterMap.warehouseName!=null and filterMap.warehouseName!=''">
+                AND WAREHOUSE_NAME like #{filterMap.warehouseName}
+            </if>
+            <if test="filterMap.slName!=null and filterMap.slName!=''">
+                AND SL_NAME like #{filterMap.slName}
+            </if>
+
+            <if test="filterMap.salePlatform!=null and filterMap.salePlatform!=''">
+                AND CONSTANT_NAME like #{filterMap.salePlatform}
+            </if>
+        </where>
+    </sql>
+
+    <sql id="stockSl">
+        (SELECT
+        STOCK_ID AS stockId
+        , LGCS_CODE AS lgcsCode
+        ,IFNULL(C.LGCS_AREA_NAME,'未知区域') AS lgcsName
+        ,IFNULL(WAREHOUSE_CODE,'') AS warehouseCode
+        ,IFNULL(WAREHOUSE_NAME,'') AS warehouseName
+        ,IFNULL(A.SL_CODE,'') AS slCode
+        ,case(A.SL_CODE)
+        when ('0000000') then ('0000000')
+        else IFNULL(SL.SL_CODE_DIS,'') end  AS slCodeDis
+        ,IFNULL(SL_NAME,'') AS slName
+        ,IFNULL(PD_CODE,'') AS pdCode
+        , IFNULL(
+        CONCAT(
+        IFNULL(pc.CLASSES_NAME, ''),
+        "/",
+        IFNULL(pm.MACHINING_NAME, ''),
+        "/",
+        IFNULL(pb.BREED_NAME, ''),
+        "/",
+        IFNULL(pf.FEATURE_NAME, ''),
+        "/",
+        IFNULL(pw.WEIGHT_NAME, ''),
+        "/",
+        IFNULL(pg.GRADE_NAME, '')
+        ),
+        '未知产品'
+        ) AS pdName
+        ,IFNULL(B.CONSTANT_NAME,'') AS salePlatform
+        ,STOCK_QTY AS stockQty
+        ,(
+        A.STOCK_QTY - ifnull(
+        (
+        SELECT
+        SUM(b.order_qty) - SUM(IFNULL(b.cancel_qty, 0))
+        FROM
+        so_order_detail b
+        LEFT JOIN
+        so_order c
+        on c.ORDER_ID=b.ORDER_ID
+        WHERE
+        (c.SELLER_CODE = A.SL_CODE
+        OR (A.SL_CODE = '0000000' AND c.ORDER_TYPE in (5,6)))
+        AND c.ORDER_STATUS != '99'
+        AND c.ORDER_TYPE NOT IN (4,7)
+        AND b.PD_CODE = A.PD_CODE
+        ),
+        '0'
+        )
+        ) AS stockCnt
+        FROM
+        SO_STOCK_SL AS A
+        LEFT JOIN COMM_CONSTANT AS B
+        ON A.SALE_PLATFORM = B.CONSTANT_VALUE AND B.CONSTANT_TYPE='SupplyPlatform'
+        LEFT JOIN MD_LOGISTICS_AREA AS C
+        ON A.LGCS_CODE = C.LGCS_AREA_CODE
+        LEFT JOIN (
+        select SL_CODE,SL_CODE_DIS
+        from sl_seller
+        <!--Add for Bug#3740 at 2016/11/17 by sun_jiaju Start-->
+        where sl_main_class !=4
+        <!--Add for Bug#3740 at 2016/11/17 by sun_jiaju End-->
+        UNION
+        select SL_CODE,SL_CODE_DIS
+        from sl_bs_basic_info
+        ) SL
+        ON A.SL_CODE = SL.SL_CODE
+        LEFT JOIN PD_CLASSES PC
+        ON SUBSTRING(PD_CODE, 1, 2) = PC.CLASSES_CODE
+        LEFT JOIN PD_MACHINING PM
+        ON SUBSTRING(PD_CODE, 1, 3) = PM.CLASSESTREE_CODE
+        LEFT JOIN PD_BREED PB
+        ON SUBSTRING(PD_CODE, 1, 5) = PB.CLASSESTREE_CODE
+        LEFT JOIN PD_FEATURE PF
+        ON SUBSTRING(PD_CODE, 1, 7) = PF.CLASSESTREE_CODE
+        LEFT JOIN PD_WEIGHT PW
+        ON SUBSTRING(PD_CODE, 1, 9) = PW.CLASSESTREE_CODE
+        LEFT JOIN PD_GRADE PG
+        ON SUBSTRING(PD_CODE, 10, 1) = PG.GRADE_CODE
+        <include refid="whereCondition" />
+        ORDER BY
+        STOCK_ID)
+
+
+    </sql>
+
+    <select id="findPageList" parameterType="com.msk.core.bean.BasePageParam"
+            resultType="com.msk.so.bean.SO151202Bean">
+        SELECT stockPd.*  from  <include refid="stockSl" />AS stockPd
+
+        <if test="filterMap.pdName!=null and filterMap.pdName!=''">
+          WHERE  pdName like #{filterMap.pdName}
+        </if>
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+
+    <select id="getPageCount" resultType="Integer"
+            parameterType="com.msk.core.bean.BasePageParam">
+        SELECT
+        COUNT(1)
+        FROM  <include refid="stockSl" />AS stockPd
+        <if test="filterMap.pdName!=null and filterMap.pdName!=''">
+            WHERE  pdName like #{filterMap.pdName}
+        </if>
+    </select>
+
+    <update id="saveStockSL" parameterType="com.msk.core.bean.BasePageParam">
+        UPDATE SO_STOCK_SL
+        SET STOCK_QTY = #{filterMap.stockQty}
+        WHERE STOCK_ID = #{filterMap.stockId}
+    </update>
+
+
+</mapper>

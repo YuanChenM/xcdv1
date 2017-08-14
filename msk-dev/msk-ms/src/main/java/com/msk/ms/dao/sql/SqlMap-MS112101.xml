@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.ms.logic.MS112101Logic">
+<!--条件 -->
+    <sql id="whereCondition">
+        <where>
+            <if test="filterMap.startTime!=null and filterMap.startTime!=''">
+                <![CDATA[ AND msCardManager.PROVIDE_DATE >= #{filterMap.startTime}]]> 
+            </if>
+            <if test="filterMap.endTime!=null and filterMap.endTime!=''">
+                <![CDATA[ AND msCardManager.PROVIDE_DATE <= #{filterMap.endTime}]]> 
+            </if>
+            <if test="filterMap.msCardno!=null and filterMap.msCardno!=''">
+                AND msCardManager.MS_CARDNO like #{filterMap.msCardno}
+            </if>
+            <if test="filterMap.buyerCode!=null and filterMap.buyerCode!=''">
+                AND msCardManager.BUYER_CODE like #{filterMap.buyerCode}
+            </if>
+            <if test="filterMap.buyerName!=null and filterMap.buyerName!=''">
+                AND msCardManager.BUYER_NAME like #{filterMap.buyerName}
+            </if>
+            <if test="filterMap.isActivate!=null and filterMap.isActivate!=''">
+                AND msCardManager.IS_ACTIVATE = #{filterMap.isActivate}
+            </if>
+            <if test="filterMap.isProvide!=null and filterMap.isProvide!=''">
+                AND msCardManager.IS_PROVIDE = #{filterMap.isProvide}
+            </if>
+        </where>
+    </sql>
+    <select id="findPageList" parameterType="BasePageParam" resultType="com.msk.ms.bean.MS112101Bean">
+        SELECT
+        DISTINCT(msCardManager.MS_CARDNO) AS msCardno,
+        msCardManager.MS_ID AS msId,
+        CASE
+        WHEN msCardManager.BUYER_CODE IS NULL
+        THEN ''
+        ELSE msCardManager.BUYER_CODE  
+        END AS buyerCode,
+        CASE
+        WHEN msCardManager.BUYER_NAME IS NULL
+        THEN ''
+        ELSE msCardManager.BUYER_NAME
+        END AS buyerName,
+        CASE(msCardManager.IS_ACTIVATE)
+        WHEN 0
+        THEN '是'
+        WHEN 1
+        THEN '否'
+        ELSE ''
+        END AS isActivate,
+        CASE(msCardManager.IS_PROVIDE)
+        WHEN 0
+        THEN '未发放'
+        WHEN 1
+        THEN '发放锁定中'
+        WHEN 2
+        THEN '已发放'
+        WHEN 3
+        THEN '挂失'
+        WHEN 4
+        THEN '废止'
+        ELSE ''
+        END AS isProvide,
+        CASE
+        WHEN msCardManager.PROVIDE_DATE IS NULL
+        THEN ''
+        ELSE msCardManager.PROVIDE_DATE
+        END AS provideDate
+        FROM MS_CARDMANAGER AS msCardManager
+        <include refid="whereCondition" />
+        ORDER BY msCardManager.IS_PROVIDE DESC,msCardManager.MS_ID DESC
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+    
+    <select id="getPageCount" resultType="Integer" parameterType="BasePageParam">
+         SELECT
+              COUNT(1)
+         FROM MS_CARDMANAGER AS msCardManager
+         <include refid="whereCondition" />
+    </select>
+</mapper>

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170209Logic">
+
+    <insert id="savePdInfo" parameterType="com.msk.pl.bean.IPL20170209Param">
+      INSERT INTO PL_INFO_PD (
+        PL_PD_ID,
+        PL_ID,
+        PD_CODE,
+        PD_NAME,
+        PD_NAME_TYPE,
+        SMALL_PACK_FEATURE,
+        SMALL_PACK_NUMBER,
+        BIG_PACK_NUMBER,
+        NETWEIGHT,
+        GROSSWEIGHT,
+        CARTON_SIZE,
+        PD_GRADE,
+        PALLET_NUMBER,
+        SALE_TIME,
+        PRICE_PERIOD,
+        PRICE_CHANNEL,
+        UNIT_PRICE,
+        SALES_VOLUME,
+        CLIENT_OBJECT,
+        BRAND_OWNER,
+        PD_NEED_GRADE,
+        MANUFACTURER,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER
+        )
+        VALUES
+            (
+        #{plPdId},
+        #{plId},
+        #{pdCode},
+        #{pdName},
+        #{pdNameType},
+        #{smallPackFeature},
+        #{smallPackNumber},
+        #{bigPackNumber},
+        #{netweight},
+        #{grossweight},
+        #{cartonSize},
+        #{pdGrade},
+        #{palletNumber},
+        #{saleTime},
+        #{pricePeriod},
+        #{priceChannel},
+        #{unitPrice},
+        #{salesVolume},
+        #{clientObject},
+        #{brandOwner},
+        #{pdNeedGrade},
+        #{manufacturer},
+		'0',
+        #{crtId},
+        NOW(),
+        #{updId},
+        NOW(),
+        #{actId},
+        NOW(),
+        '1'
+            );
+    </insert>
+
+
+    <update id="modifyPdInfo" parameterType="BaseParam" >
+        UPDATE PL_INFO_PD
+        SET
+         PD_CODE = #{pdCode},
+         PD_NAME = #{pdName},
+         PD_NAME_TYPE = #{pdNameType},
+         SMALL_PACK_FEATURE = #{smallPackFeature},
+         SMALL_PACK_NUMBER = #{smallPackNumber},
+         BIG_PACK_NUMBER =  #{bigPackNumber},
+         NETWEIGHT = #{netweight},
+         GROSSWEIGHT = #{grossweight},
+         CARTON_SIZE = #{cartonSize},
+         PD_GRADE = #{pdGrade},
+         PALLET_NUMBER = #{palletNumber},
+         SALE_TIME =  #{saleTime},
+         PRICE_PERIOD = #{pricePeriod},
+         PRICE_CHANNEL =  #{priceChannel},
+         UNIT_PRICE = #{unitPrice},
+         SALES_VOLUME = #{salesVolume},
+         CLIENT_OBJECT = #{clientObject},
+         BRAND_OWNER = #{brandOwner},
+         PD_NEED_GRADE =  #{pdNeedGrade},
+         MANUFACTURER = #{manufacturer},
+         DEL_FLG = 0,
+         UPD_ID = #{updId},
+         UPD_TIME = NOW(),
+         ACT_ID =  #{actId},
+         ACT_TIME = NOW(),
+         VER = VER+1
+        WHERE
+            PL_PD_ID = #{plPdId} AND DEL_FLG = 0
+    </update>
+    <select id="findMaxPdId" parameterType="BaseParam" resultType="com.msk.pl.bean.PLInfoPd">
+        SELECT
+		CASE
+		WHEN MAX(PL_PD_ID) IS NULL THEN 1
+		ELSE MAX(PL_PD_ID)+1 END AS plPdId
+		FROM PL_INFO_PD
+    </select>
+
+    <update id="modifyPlInfo" parameterType="BaseParam" >
+        UPDATE PL_INFO
+            SET
+             STATUS = 1,
+             UPD_ID = #{updId},
+             UPD_TIME = NOW(),
+             ACT_ID = #{actId},
+             ACT_TIME = NOW(),
+             VER = VER+1
+            WHERE
+	          PL_ID = #{plId}
+    </update>
+
+    <select id="findPlInfoStatus" parameterType="BaseParam" resultType="com.msk.pl.bean.PLInfo">
+        SELECT
+        STATUS AS status,
+        TASK_ID AS taskId
+        FROM PL_INFO WHERE PL_ID = #{plId}
+    </select>
+
+    <update id="modifyPlTask" parameterType="BaseParam">
+        UPDATE PL_BS_TASK SET
+        ALREADY_RECORD_NUMBER = ALREADY_RECORD_NUMBER+1,
+		STATUS = CASE WHEN ALREADY_RECORD_NUMBER >= NEED_RECORD_NUMBER THEN 1 ELSE 0 END,
+		UPD_ID =  #{updId},
+        UPD_TIME = NOW(),
+		VER = VER+1
+		WHERE TASK_ID = #{filterMap.taskId} AND DEL_FLG = 0
+    </update>
+
+    <select id="findPdExist" parameterType="BaseParam" resultType="com.msk.pl.bean.PLInfoPd">
+    SELECT
+    CLASSESTREE_CODE AS pdCode
+    FROM PD_CLASSESTREE
+    WHERE
+        <if test="filterMap.featureName == null or filterMap.featureName == ''">
+            LEVEL_NAME = #{filterMap.pdName} AND DEL_FLG = 0 AND TREE_LEVEL = 3 LIMIT 1
+        </if>
+        <if test="filterMap.featureName != null and filterMap.featureName!= ''">
+            PARENT_NAME = #{filterMap.pdName} AND LEVEL_NAME = #{filterMap.featureName} AND DEL_FLG = 0 AND TREE_LEVEL = 4  LIMIT 1
+        </if>
+    </select>
+</mapper>

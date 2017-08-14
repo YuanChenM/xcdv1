@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO251413Logic">
+
+    <select id="findOneOrder" parameterType="com.msk.so.bean.ISO251413RsParam" resultType="com.msk.core.entity.SoOrder">
+        SELECT
+          so.ORDER_ID AS orderId,
+          so.ORDER_CODE AS orderCode,
+          so.SELLER_CODE AS sellerCode,
+          so.SELLER_NAME AS sellerName,
+          so.BUYERS_ID AS buyersId,
+          so.BUYERS_CODE AS buyersCode,
+          so.BUYERS_NAME AS buyersName,
+          so.BUYERS_TYPE AS buyersType,
+          so.NEED_INVOICE AS needInvoice,
+          so.DISTRICT_CODE AS districtCode,
+          so.PAYMENT_TYPE AS paymentType,
+          so.SELLERS AS sellers,
+          so.ORDER_STATUS as orderStatus,
+          so.VER  as ver
+        FROM
+          SO_ORDER so
+          LEFT JOIN so_order_ship soh
+            ON soh.order_id = so.order_id
+        WHERE soh.ship_id = #{shipId}
+
+    </select>
+
+
+    <select id="findOrderDetailAvailabilityList" parameterType="com.msk.so.bean.ISO251413RsParam"
+            resultType="com.msk.core.entity.SoOrderDetailAvailability">
+     SELECT
+	ava.SEND_QTY as sendQty,
+    ava.ORDER_DETAIL_AVAILABILITY_ID as orderDetailAvailabilityId
+    FROM
+	so_order_detail_availability ava
+    INNER JOIN so_order o ON ava.ORDER_ID = o.ORDER_ID
+     WHERE
+	ava.DEL_FLG = 0
+     AND ava.SHIP_ID=#{shipId}
+    </select>
+
+    <select id="findOrderDetailAvailabilityQty" parameterType="com.msk.so.bean.ISO251413OrderShipProductRsParam"
+            resultType="com.msk.core.entity.SoOrderDetailAvailability">
+   SELECT
+   ava.ORDER_DETAIL_AVAILABILITY_ID as orderDetailAvailabilityId,
+   ava.SEND_QTY as sendQty
+   FROM
+	so_order_detail_availability ava
+    LEFT JOIN so_order_ship ship ON ava.SHIP_ID = ship.SHIP_ID
+    WHERE
+	  ship.DEL_FLG = 0
+    AND ship.SHIP_STATUS != 99
+    AND ava.DEL_FLG=0
+    AND ava.STATUS !=99
+    AND ava.ORDER_DETAIL_AVAILABILITY_ID=#{shipDetailId}
+    </select>
+
+
+    <select id="findOtherAmount" resultType="BigDecimal" parameterType="com.msk.so.bean.ISO251413RsParam">
+        SELECT ifnull(SUM(soda.SUPP_QTY * sod.pd_price), 0)
+        FROM so_order so
+        LEFT JOIN so_order_relation sor
+        ON sor.main_order_id = so.order_id
+        LEFT JOIN so_order_detail_availability soda
+        ON (soda.order_id = so.order_id OR soda.order_id = sor.child_order_id)
+        LEFT JOIN so_order_detail sod
+        ON soda.ORDER_DETAIL_ID = sod.ORDER_DETAIL_ID
+        WHERE so.order_id = #{orderId}
+        AND soda.ship_id IS NULL
+    </select>
+
+
+    <update id="modifyPriceByOrderId" parameterType="BaseParam">
+        UPDATE
+        SO_ORDER_DETAIL sod
+        LEFT JOIN so_order_relation sor
+        ON sod.order_id = sor.child_order_id
+        INNER JOIN (
+        SELECT t1.pd_code, sodp.level_price
+        FROM (
+        SELECT SUM(sod.ORDER_QTY - ifnull(sod.CANCEL_QTY, 0) - ifnull(sod.REJECTION_QTY, 0)) AS orderQty,
+        so.order_id,sod.pd_code
+        FROM so_order so
+        LEFT JOIN so_order_relation sor
+        ON so.order_id = sor.main_order_id
+        LEFT JOIN so_order_detail sod
+        ON (sod.order_id = so.order_id OR sod.order_id = sor.child_order_id)
+        WHERE so.order_id = #{orderId}
+        GROUP BY sod.pd_code
+        ) t1
+        LEFT JOIN so_order_detail_price sodp
+        ON t1.order_id = sodp.order_id
+        AND t1.pd_code = sodp.pd_code
+        AND t1.orderQty <![CDATA[<=]]> sodp.level_end
+        AND t1.orderQty <![CDATA[>=]]> sodp.level_start
+        GROUP BY t1.pd_code
+        ) t2
+        ON t2.pd_code = sod.pd_code
+        SET sod.pd_price_old = sod.pd_price
+        ,sod.pd_price = t2.level_price
+        ,sod.UPD_ID = #{updId}
+        ,sod.UPD_TIME = #{updTime}
+        ,sod.VER = sod.VER + 1
+        WHERE
+        ifnull(sor.main_order_id, sod.order_id) = #{orderId}
+    </update>
+
+
+    <update id="modifyPriceByOrderIdAndSku" parameterType="BaseParam">
+        UPDATE
+        SO_ORDER_DETAIL sod
+        SET
+        sod.pd_price_old=sod.pd_price
+        ,sod.pd_price = #{receivePrice}
+        ,sod.UPD_ID = #{updId}
+        ,sod.UPD_TIME = #{updTime}
+        ,sod.VER = sod.VER + 1
+        WHERE
+        sod.PD_CODE=#{pdCode}
+        <if test="filterMap.childOrderId==null">
+        and sod.ORDER_ID=#{orderId}
+        </if>
+        <if test="filterMap.childOrderId!=null">
+            and (sod.ORDER_ID=#{orderId}   or sod.ORDER_ID=#{filterMap.childOrderId})
+        </if>
+    </update>
+
+    <update id="cancelOtherAvaDetail" parameterType="BaseParam">
+        UPDATE
+        so_order_detail_availability soda
+        LEFT JOIN so_order_relation sor
+        ON soda.order_id = sor.child_order_id
+        SET soda.CANCEL_QTY = soda.SUPP_QTY,
+        soda.UPD_ID = #{updId},
+        soda.UPD_TIME = #{updTime},
+        soda.STATUS = 99,
+        soda.VER = soda.VER + 1
+        WHERE
+        ifnull(sor.main_order_id, soda.order_id) = #{orderId}
+        AND soda.ship_id IS NULL
+    </update>
+
+
+    <update id="cancelOtherOrderDetail" parameterType="BaseParam">
+        UPDATE so_order_detail sod
+        LEFT JOIN so_order_relation sor
+        ON sod.order_id = sor.child_order_id
+        LEFT JOIN so_order_detail_availability soda
+        ON sod.ORDER_DETAIL_ID = soda.ORDER_DETAIL_ID
+        SET sod.CANCEL_QTY = sod.ORDER_QTY,
+        sod.UPD_ID = #{updId},
+        sod.UPD_TIME = #{updTime},
+        sod.DETAIL_STATUS = 99,
+        sod.VER = sod.VER + 1
+        WHERE ifnull(sor.main_order_id, sod.order_id) = #{orderId}
+        AND soda.ship_id IS NULL
+    </update>
+
+    <update id="modifyOrderSubsequent" parameterType="BaseParam">
+        UPDATE so_order so
+        SET
+        so.SHIP_SUBSEQUENT = #{filterMap.subsequent},
+        so.UPD_ID = #{updId},
+        so.UPD_TIME = #{updTime},
+        so.VER = so.VER + 1
+        WHERE so.order_id = #{orderId}
+    </update>
+
+    <select id="getShipCount" resultType="Integer" parameterType="BaseParam">
+        SELECT count(1)
+        FROM so_order_ship sos
+        WHERE sos.order_id = #{orderId}
+        AND sos.DEL_FLG = 0
+        AND sos.ship_status IN (5,6,7)
+    </select>
+
+    <select id="findAVAList" resultType="com.msk.core.entity.SoOrderDetailAvailability" parameterType="BaseParam">
+        SELECT
+	 IFNULL(ava.RECEIVE_QTY,0) as receiveQty,
+     IFNULL(ava.SEND_QTY,0) as sendQty,
+     IFNULL(ava.RETURN_QTY ,0)as returnQty,
+     IFNULL(ava.REJECTION_QTY,0)  as rejectionQty,
+     IFNULL(ava.CANCEL_QTY, 0) AS cancelQty,
+     ava.ORDER_DETAIL_AVAILABILITY_ID as orderDetailAvailabilityId
+    FROM
+	so_order_detail_availability ava
+   WHERE
+	ava.SHIP_ID =#{shipId}
+    </select>
+
+    <select id="findShipQty" resultType="com.msk.so.bean.ISO251413OrderShipInfoRsParam" parameterType="BaseParam">
+       SELECT
+	SUM(IFNULL(ava.RECEIVE_QTY, 0)) AS receiveQty,
+	SUM(IFNULL(ava.SEND_QTY, 0)) AS sendQty,
+	SUM(IFNULL(ava.RETURN_QTY, 0)) AS returnQty,
+	SUM(IFNULL(ava.REJECTION_QTY, 0)) AS rejectionQty,
+	SUM(IFNULL(ava.CANCEL_QTY, 0)) AS cancelQty
+    FROM
+	so_order_detail_availability ava
+     WHERE
+ ava.SHIP_ID=#{shipId}
+    </select>
+
+    <select id="findOrderDetailList" resultType="com.msk.core.entity.SoOrderDetail" parameterType="BaseParam">
+      SELECT
+	sod.ORDER_DETAIL_ID AS orderDetailId,
+	IFNULL(sod.SEND_QTY, 0) AS sendQty,
+	IFNULL(sod.RECEIVE_QTY, 0) AS receiveQty,
+	IFNULL(sod.RETURN_QTY, 0) AS returnQty,
+	IFNULL(sod.CANCEL_QTY, 0) AS cancelQty,
+	IFNULL(sod.REJECTION_QTY, 0) AS rejectionQty
+   FROM
+	so_order_detail sod
+    LEFT JOIN so_order_detail_availability ava ON sod.ORDER_DETAIL_ID = ava.ORDER_DETAIL_ID
+   WHERE
+	ava.SHIP_ID=#{shipId}
+   GROUP BY
+	sod.ORDER_DETAIL_ID
+    </select>
+
+    <select id="findOrderDetailListByOrderId" resultType="com.msk.core.entity.SoOrderDetail" parameterType="BaseParam">
+        SELECT
+	sod.ORDER_DETAIL_ID AS orderDetialId,
+	IFNULL(sod.SEND_QTY, 0) AS sendQty,
+	IFNULL(sod.RECEIVE_QTY, 0) AS receiveQty,
+	IFNULL(sod.RETURN_QTY, 0) AS returnQty,
+	IFNULL(sod.CANCEL_QTY, 0) AS cancelQty,
+	IFNULL(sod.REJECTION_QTY, 0) AS rejectionQty
+   FROM
+	so_order_detail sod
+	WHERE  sod.ORDER_ID=#{orderId}
+    </select>
+
+    <select id="findOrderRelation" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderRelation">
+        SELECT MAIN_ORDER_ID AS mainOrderId,
+        CHILD_ORDER_ID AS childOrderId
+        FROM SO_ORDER_RELATION
+        WHERE MAIN_ORDER_ID = #{orderId}
+    </select>
+
+
+    <update id="updateAvaStatus" parameterType="BaseParam">
+        UPDATE
+         so_order_detail_availability soda
+        SET
+        soda.UPD_ID = #{filterMap.updId},
+        soda.UPD_TIME = #{filterMap.updTime},
+        soda.STATUS = #{filterMap.avaStatus},
+        soda.VER = soda.VER + 1
+        WHERE
+       soda.ORDER_DETAIL_AVAILABILITY_ID=#{filterMap.avaId}
+    </update>
+
+    <update id="updateShipStatus" parameterType="BaseParam">
+        UPDATE
+        so_order_ship ship
+        SET
+        ship.UPD_ID = #{filterMap.updId},
+        ship.UPD_TIME = #{filterMap.updTime},
+        ship.SHIP_STATUS = #{filterMap.shipStatus},
+        ship.VER = ship.VER + 1
+        WHERE
+        ship.SHIP_ID=#{filterMap.shipId}
+    </update>
+
+    <update id="updateDetailStatus" parameterType="BaseParam">
+        UPDATE
+        so_order_detail detail
+        SET
+        detail.UPD_ID = #{filterMap.updId},
+        detail.UPD_TIME = #{filterMap.updTime},
+        detail.DETAIL_STATUS = #{filterMap.detailStatus},
+        detail.VER = detail.VER + 1
+        WHERE
+        detail.ORDER_DETAIL_ID=#{filterMap.detailId}
+    </update>
+
+
+    <update id="modifyChildOrderAmount" parameterType="BaseParam">
+        UPDATE so_order so
+        LEFT JOIN (
+        SELECT so.order_id,
+        ifnull(SUM(ifnull(soda1.RECEIVE_QTY, 0) * sod1.pd_price), 0) + ifnull(t1.orderAmount, 0) AS orderAmount,
+        so.order_amount
+        FROM so_order so
+        LEFT JOIN so_order_detail_availability soda1
+        ON soda1.order_id = so.order_id
+        AND soda1.ship_id = #{filterMap.shipId}
+        LEFT JOIN so_order_detail sod1
+        ON sod1.ORDER_DETAIL_ID = soda1.ORDER_DETAIL_ID
+        LEFT JOIN (
+        SELECT so.order_id,
+        ifnull(SUM(ifnull(soda2.SUPP_QTY, 0) * sod2.pd_price), 0) AS orderAmount
+        FROM so_order so
+        LEFT JOIN so_order_detail_availability soda2
+        ON soda2.order_id = so.order_id
+        AND soda2.ship_id IS NULL
+        AND soda2.STATUS != 99
+        LEFT JOIN so_order_detail sod2
+        ON sod2.ORDER_DETAIL_ID = soda2.ORDER_DETAIL_ID
+        WHERE so.order_id = #{filterMap.childOrderId}
+        ) t1
+        ON t1.order_id = so.order_id
+        WHERE so.order_id = #{filterMap.childOrderId}
+        ) t2
+        ON t2.order_id = so.order_id
+        SET
+        so.order_amount = CASE WHEN so.order_amount_old IS NULL THEN t2.orderAmount ELSE so.order_amount END,
+        so.order_amount_old = CASE WHEN so.order_amount_old IS NULL THEN t2.order_amount ELSE so.order_amount_old END
+        WHERE so.order_id = #{filterMap.childOrderId}
+    </update>
+
+
+    <update id="modifyMainOrderAmount" parameterType="BaseParam">
+        UPDATE so_order so
+        LEFT JOIN (
+        SELECT so.order_id,
+        ifnull(SUM(ifnull(soda1.RECEIVE_QTY, 0) * sod1.pd_price), 0) + ifnull(t1.orderAmount, 0) AS orderAmount,
+        so.order_amount
+        FROM so_order so
+        LEFT JOIN so_order_relation sor
+        ON so.order_id = sor.main_order_id
+        LEFT JOIN so_order_detail_availability soda1
+        ON (soda1.order_id = so.order_id OR soda1.order_id = sor.child_order_id)
+        AND soda1.ship_id = #{filterMap.shipId}
+        LEFT JOIN so_order_detail sod1
+        ON sod1.ORDER_DETAIL_ID = soda1.ORDER_DETAIL_ID
+        LEFT JOIN (
+        SELECT so.order_id,
+        ifnull(SUM(ifnull(soda2.SUPP_QTY, 0) * sod2.pd_price), 0) AS orderAmount
+        from so_order so
+        LEFT JOIN so_order_relation sor
+        ON so.order_id = sor.main_order_id
+        LEFT JOIN so_order_detail_availability soda2
+        ON (soda2.order_id = so.order_id OR soda2.order_id = sor.child_order_id)
+        AND soda2.ship_id IS NULL
+        AND soda2.STATUS != 99
+        LEFT JOIN so_order_detail sod2
+        ON sod2.ORDER_DETAIL_ID = soda2.ORDER_DETAIL_ID
+        WHERE so.order_id = #{filterMap.orderId}
+        ) t1
+        on t1.order_id = so.order_id
+        WHERE so.order_id = #{filterMap.orderId}
+        ) t2
+        ON t2.order_id = so.order_id
+        SET
+        so.order_amount = CASE WHEN so.order_amount_old IS NULL THEN t2.orderAmount ELSE so.order_amount END,
+        so.order_amount_old = CASE WHEN so.order_amount_old IS NULL THEN t2.order_amount ELSE so.order_amount_old END
+        WHERE so.order_id = #{filterMap.orderId}
+    </update>
+
+
+    <update id="modifyOrder" parameterType="BaseParam">
+        UPDATE so_order so
+        SET
+        so.order_status = #{filterMap.orderStatus},
+        so.UPD_ID = #{filterMap.updId},
+        so.UPD_TIME = #{filterMap.updTime},
+        so.VER = so.VER + 1
+        WHERE so.order_id = #{filterMap.orderId}
+    </update>
+
+    <insert id="save" parameterType="com.msk.core.entity.SoPayment">
+        INSERT INTO so_payment (
+        PAYMENT_ID
+        ,ORDER_ID
+        ,ORDER_CODE
+        ,PAY_MODE
+        ,PAY_AMOUNT
+        ,PAY_ORDER_CODE
+        ,PAY_TIME
+        ,DEL_FLG
+        ,CRT_ID
+        ,CRT_TIME
+        ,VER
+        )
+        VALUE
+        (
+        #{paymentId}
+        ,#{orderId}
+        ,#{orderCode}
+        ,#{payMode}
+        ,#{payAmount}
+        ,#{payOrderCode}
+        ,#{payTime}
+        ,0
+        ,#{crtId}
+        ,#{crtTime}
+        ,1
+        )
+    </insert>
+
+    <select id="getOrderShipInfoReceipt" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderShip">
+         SELECT
+    SHIP_ID AS shipId,
+    SHIP_CODE AS shipCode,
+    ORDER_ID AS orderId,
+    ORDER_CODE AS orderCode
+    FROM
+    so_order_ship
+    WHERE SHIP_ID = #{shipId}
+    AND SHIP_STATUS IN (2,3)
+     </select>
+
+    <select id="findOrderQty" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderDetail">
+   SELECT
+	SUM(IFNULL(sod.SEND_QTY, 0)) AS sendQty,
+	SUM(IFNULL(sod.CANCEL_QTY, 0)) AS cancelQty,
+	SUM(IFNULL(sod.RECEIVE_QTY, 0)) AS receiveQty,
+	SUM(
+		IFNULL(sod.REJECTION_QTY, 0)
+	) AS rejectionQty,
+	SUM(IFNULL(sod.ORDER_QTY, 0)) AS orderQty
+    FROM
+	so_order_detail sod
+   WHERE
+	sod.ORDER_ID = #{filterMap.orderId}
+    </select>
+
+    <select id="findMainOrderQty" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderDetail">
+      SELECT
+	SUM(IFNULL(sod.SEND_QTY, 0)) AS sendQty,
+	SUM(IFNULL(sod.CANCEL_QTY, 0)) AS cancelQty,
+	SUM(IFNULL(sod.RECEIVE_QTY, 0)) AS receiveQty,
+	SUM(
+		IFNULL(sod.REJECTION_QTY, 0)
+	) AS rejectionQty,
+	SUM(IFNULL(sod.ORDER_QTY, 0)) AS orderQty
+    FROM
+	so_order_detail sod
+    LEFT JOIN so_order_relation relation
+    on (sod.ORDER_ID=relation.MAIN_ORDER_ID
+					or sod.ORDER_ID=relation.CHILD_ORDER_ID)
+   WHERE
+	relation.MAIN_ORDER_ID = #{filterMap.orderId}
+    </select>
+
+
+    <select id="checkMainOrderWaitSend" parameterType="BaseParam" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM
+        so_order_detail sod
+         LEFT JOIN so_order_relation relation
+       on (sod.ORDER_ID=relation.MAIN_ORDER_ID
+					or sod.ORDER_ID=relation.CHILD_ORDER_ID)
+       WHERE
+	   relation.MAIN_ORDER_ID = #{filterMap.orderId}
+        AND (
+        sod.CANCEL_QTY IS NULL
+        OR sod.CANCEL_QTY = 0
+        )
+        AND sod.DETAIL_STATUS = 3
+    </select>
+
+
+    <select id="checkOrderWaitSend" parameterType="BaseParam" resultType="java.lang.Integer">
+        SELECT
+	COUNT(*)
+   FROM
+	so_order_detail sod
+     WHERE
+	sod.ORDER_ID = #{filterMap.orderId}
+    AND (
+	sod.CANCEL_QTY IS NULL
+	OR sod.CANCEL_QTY = 0
+     )
+    AND sod.DETAIL_STATUS = 3
+    </select>
+
+    <select id="checkOrderDetailPrice" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderDetail">
+        SELECT sod.ORDER_DETAIL_ID as orderDetailId,
+        t2.level_price as pdPrice,
+        sod.PD_PRICE_OLD as pdPriceOld
+        from SO_ORDER_DETAIL sod
+        LEFT JOIN so_order_relation sor ON sod.order_id= sor.child_order_id
+        LEFT JOIN(
+        SELECT t1.pd_code, sodp.level_price
+        FROM(
+        SELECT SUM(sod.ORDER_QTY - ifnull(sod.CANCEL_QTY, 0) - ifnull(sod.REJECTION_QTY, 0)) AS orderQty, so.order_id, sod.pd_code
+        FROM so_order so
+        LEFT JOIN so_order_relation sor ON so.order_id= sor.main_order_id
+        LEFT JOIN so_order_detail sod ON(sod.order_id= so.order_id
+        OR sod.order_id= sor.child_order_id)
+        WHERE so.order_id= #{orderId}
+        GROUP BY sod.pd_code) t1
+        LEFT JOIN so_order_detail_price sodp ON t1.order_id= sodp.order_id
+        AND t1.pd_code= sodp.pd_code
+        AND t1.orderQty <![CDATA[<=]]> sodp.level_end
+        AND t1.orderQty<![CDATA[>=]]> sodp.level_start
+        GROUP BY t1.pd_code) t2 ON t2.pd_code= sod.pd_code
+        WHERE IFNULL(sor.main_order_id, sod.order_id)= #{orderId}
+    </select>
+</mapper>

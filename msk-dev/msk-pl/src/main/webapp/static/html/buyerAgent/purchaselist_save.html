@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>填报进货单</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link rel="stylesheet" href="../css/sm.min.css">
+    <link rel="stylesheet" href="../css/sm-extend.min.css">
+
+    <style type="text/css">
+        div.pinch-zoom,
+        div.pinch-zoom img{
+            width: 100%;
+            -webkit-user-drag: none;
+        }
+
+        .rj-table{
+            /*padding:8px;*/
+            margin-bottom:0!important;
+            border-bottom:1px solid #ddd;
+            border-collapse:collapse!important;
+            border-radius:1px;
+            width:100%;
+            font-size:12px;
+        }
+        .rj-table td{
+            margin-bottom:0!important;
+            border-bottom:1px solid #ddd;
+            border-collapse:collapse!important;
+            border-radius:1px;
+        }
+        .rj-table thead td{
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .item-content{
+            height:15px;
+            font-size:14px;
+        }
+    </style>
+
+    <link rel="stylesheet" href="../plugin/pinchzoom/style.css" />
+
+</head>
+<body>
+<div class="page-group">
+    <div class="page page-current">
+
+        <!--标题栏-->
+        <header class="bar bar-nav">
+            <a class="button button-link button-nav pull-left back" id="back" href="#">
+                <span class="icon icon-left"></span>
+                <!--返回-->
+            </a>
+            <a class="button button-link button-nav pull-right back" href="buyer_agent_operations.html" id="home">
+                <span class="icon icon-home"></span>
+            </a>
+            <h1 class="title">填报进货单</h1>
+        </header>
+
+        <!--内容区-->
+        <div class="content">
+
+            <!--图片上传-->
+            <a href="javascript:void(0);">
+                <form method="post" enctype="multipart/form-data" action="" id="fileForm" method="post" target="id_iframe" >
+                    <!--capture="camera"-->
+                    <input type="file" id="file" name="file" accept="image/*" style="display: none!important;" onchange="choosePic(this)"/>
+                    <input type="hidden" name="bsName" id="fileName"/>
+                </form>
+                <iframe id="id_iframe" name="id_iframe" style="display:none;"></iframe>
+                <image src="../images/selectPic.jpg" alt="上传图片"  id="selectPic" style="width: 100%;max-height: 300px"></image>
+            </a>
+
+            <div style="background-color: white">
+
+                <!--买家信息隔断栏-->
+                <div class="row" style="border:solid 1px black;background-color: #D5D5D5">
+                    <div class="col-60" >
+                        <span style="margin-left: 5px">买家信息</span>
+                    </div>
+                    <div class="col-40 pull-right" >
+                        <a href="#" class="button button-dark pull-right" style="width:120px;border-radius: 0px;border-top:0px;border-bottom: 0px;" id="save">保存</a>
+                    </div>
+                </div>
+
+                <!--买家信息表单-->
+                <div class="list-block" style="margin:0px;">
+                    <input type="hidden" id="picPath"/>
+                    <input type="hidden" id="plId"/>
+
+
+                        <ul>
+                            <li>
+                                <div class="item-content">
+                                    <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                    <div class="item-inner">
+                                        <div class="searchbar row">
+                                            <div class="search-input col-80">
+                                                <input type="search" id='search' placeholder='请输入买家手机号查询'/>
+                                            </div>
+                                            <a class="button button-fill button-primary col-20"><span class="icon icon-search" id="searchButton"></span></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <!-- Text inputs -->
+                            <li>
+                                <div class="item-content">
+                                    <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                    <div class="item-inner">
+                                        <div class="item-title label">买家名称<span style="color: red">*</span></div>
+                                        <div class="item-input">
+                                            <input type="hidden" placeholder="" id="buyerId">
+                                            <input type="text" style="font-size:14px;" placeholder="" id="buyerName">
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="item-content">
+                                    <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                    <div class="item-inner">
+                                        <div class="item-title label">填报买手<span style="color: red">*</span></div>
+                                        <div class="item-input">
+                                            <input type="hidden" placeholder="" id="bsCode">
+                                            <input type="text" style="font-size:14px;" placeholder="" id="bsName">
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="item-content">
+                                    <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                    <div class="item-inner">
+                                        <div class="item-title label">配送站<span style="color: red">*</span></div>
+                                        <div class="item-input">
+                                            <input type="hidden" placeholder="" id="terminalId">
+                                            <input type="text"  style="font-size:14px;" placeholder="" id="terminalName">
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                <!--产品信息隔断栏-->
+                <div class="row" style="border:solid 1px black;background-color: #D5D5D5">
+                    <div class="col-60" >
+                        <span style="margin-left: 5px">产品信息</span>
+                    </div>
+                    <div class="col-40 pull-right" >
+                        <a href="#" class="button button-dark pull-right" style="width:120px;border-radius: 0px;border-top:0px;border-bottom: 0px;" id="addGoods">新增</a>
+                    </div>
+                </div>
+
+                <!--产品信息列表-->
+                <div style="background-color: white;padding: 5px;">
+                    <table class="rj-table">
+                        <thead>
+                        <tr>
+                            <td style='width:70%'>产品名称</td>
+                            <!--<td class="col-25">生产商</td>-->
+                            <!--<td class="col-25">产品等级</td>-->
+                            <td style='width:30%'>操作</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <!--<tr>-->
+                                <!--<td>产品品牌xxxxxxxxxxxxxxxxxxxxxxxxxx</td>-->
+                                <!--&lt;!&ndash;<td class="col-25">生产商xxxxxxxxxxxxxxxxxxxxxxxxxx</td>&ndash;&gt;-->
+                            <!--&lt;!&ndash;<td class="col-25">产品等级xxxxxxxxxxxxxxxxxxxxxxxxxxx</td>&ndash;&gt;-->
+                            <!--<td>-->
+                                <!--<a href="javascript:void(0);">编辑</a>-->
+                                <!--<a href="javascript:void(0);">删除</a>-->
+                            <!--</td>-->
+                        <!--</tr>-->
+                        </tbody>
+                    </table>
+                </div>
+                <br/>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="popup popup-about">
+        <div class="content-block">
+            <header class="bar bar-nav">
+                <a class="button button-link button-nav pull-left close-popup" href="#">
+                    <span class="icon icon-left"></span>
+                    返回
+                </a>
+            </header>
+                <div class="pinch-zoom">
+
+                    <img src="../plugin/pinchzoom/frog.jpg" id="selectPic2"/>
+
+                </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script type='text/javascript' src='../js/zepto.min.js' charset='utf-8'></script>
+<script type="text/javascript">
+    $.config = {router: false}
+</script>
+<script type='text/javascript' src='../js/touch.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type="text/javascript" src="../js/common.js"></script>
+<script type="text/javascript" src="../js/zepto.cookie.min.js"></script>
+<script type="text/javascript" src="../plugin/pinchzoom/pinchzoom.js"></script>
+<script type="text/javascript">
+
+    var isInitPage=false;//图片查看
+    var plId=getUrlParam("plId");
+    var partnerId=getUrlParam("partnerId");
+    var isSelf=getUrlParam("isSelf");
+    var taskTime=getUrlParam("taskTime");
+    if(!taskTime){
+        taskTime=Format(new Date(),"yyyy-MM-dd");
+    }
+    var p_name=getUrlParam("name");
+    var id=$.fn.cookie("id");
+    var name=$.fn.cookie("name")
+    $(function() {
+
+        if(plId){
+            loadPurchaseListInfoBy(plId);
+        }
+
+        $("#fileForm").attr("action","/"+_webroot+"/bs_task_img_upload");
+
+
+        $("#back").attr("href","buyer_agent_index.html");
+
+        if(isSelf=="false"){
+            $("#save").hide();
+            $("#addGoods").hide();
+            $("#back").attr("href","../platformPartner/partner_task_list.html?partnerId="+partnerId+"&name="+p_name);
+            $("#home").attr("href","../platformPartner/partner_operations.html?id="+partnerId+"&name="+p_name);
+        }
+
+        if(name){
+            $("#fileName").val(name);
+        }
+
+//        $("#selectPic").doubleTap(function () {
+//            $("#file").click();
+//        });
+
+//        $("#selectPic").click(function(){
+//            $("#file").click();
+//        });
+
+//        $("#selectPic").on("ondblclick",function(){
+//            $.alert("ondblclick");
+//            $("#file").click();
+//        });
+
+
+        $("#selectPic").doubleTap(function(){
+            $("#file").click();
+        });
+        $("#selectPic").singleTap(function () {
+            if ($("#file").val()) {
+                viewImage();
+            }
+        });
+
+        //表单数据保存
+        $("#save").click(function(){
+            saveEvent();
+        });
+
+        $("#searchButton").click(function(){
+            search();
+        });
+
+        $("#addGoods").click(function(){
+            addGoods();
+        });
+
+    });
+
+    function saveEvent(){
+        var bsCode=$("#bsCode").val();
+        if(!bsCode){
+            bsCode=id;
+        }
+
+        var bsName=$("#bsName").val();
+        var terminalId=$("#terminalId").val();
+        var terminalName=$("#terminalName").val();
+        var buyerId=$("#buyerId").val();
+        var buyerName=$("#buyerName").val();
+        var picPath=$("#picPath").val();
+
+        var plId=$("#plId").val();
+
+//        if(!bsCode||!bsName||!picPath||!terminalId||!terminalName||!buyerId||!buyerName){
+//            $.alert("请选择图片并填写完整买家信息");
+//            return ;
+//        }
+        if(!picPath){
+            $.alert("请选择图片");
+            return ;
+        }
+
+        $.showPreloader("玩命处理中....");
+
+        $.ajax({
+            url:"/"+_webroot+"/api/v1/pl/bs_task_save",
+            type:"post",
+            contentType:"application/json",
+            data:JSON.stringify({
+                "siteCode":"318",
+                "auth":"pl",
+                "loginId":id,
+                "param":{
+                    "plId":plId,
+                    "taskTime":taskTime,
+                    "bsCode":bsCode,
+                    "bsName":bsName,
+                    "terminalId":terminalId,
+                    "terminalName":terminalName,
+                    "buyerId":buyerId,
+                    "buyerName":buyerName,
+                    "ftpUrl":picPath,
+                },
+            }),
+            success:function(data){
+                $.hidePreloader();
+                if(data.status=="S"&&data.result){
+                   $("#plId").val(data.result.plId);
+                    $.alert("保存成功");
+                }else{
+                    $.alert(data.message);
+                }
+            }
+        });
+    }
+
+    function addGoods(){
+        var plId=$("#plId").val();
+        if(!plId){
+            $.alert("请先保存买家信息");
+            return;
+        }
+
+        if(isSelf=="false"){
+            location.href="purchaselist_goods_add.html?plId="+plId+"&ftpUrl="+$("#picPath").val()+"&isSelf=false";
+        }else{
+            location.href="purchaselist_goods_add.html?plId="+plId+"&ftpUrl="+$("#picPath").val();
+        }
+
+    }
+
+    //选择文件后触发事件：自动上传文件
+    function selectPictureEvent(){
+        $.showPreloader("图片上传中....");
+        $("#fileForm").submit();
+
+        var interval=setInterval(function(){
+            try {
+                var path = frames["id_iframe"].document.getElementsByTagName("fileUploadUrl")[0].textContent;
+                path = encodeURI(path);
+                $("#picPath").val(path);
+                document.getElementById('selectPic').src = path;
+                document.getElementById('selectPic2').src = path;
+                $.hidePreloader();
+                window.clearInterval(interval);
+            }catch (e){
+
+            }
+
+        },2000)
+
+//        while(1) {
+//
+//            var path = frames["id_iframe"].document.getElementsByTagName("fileUploadUrl")[0].textContent;
+//            path = encodeURI(path);
+//            $("#picPath").val(path);
+//            document.getElementById('selectPic').src = path;
+//            document.getElementById('selectPic2').src = path;
+//            $.hidePreloader();
+//        }
+
+//        setTimeout(function(){
+//
+//        var path=frames["id_iframe"].document.getElementsByTagName("fileUploadUrl")[0].textContent;
+//            path=encodeURI(path);
+//            $("#picPath").val(path);
+//            document.getElementById('selectPic').src=path;
+//            document.getElementById('selectPic2').src=path;
+//            $.hidePreloader();
+//        },3000);
+    }
+
+    function viewImage(){
+        $.popup('.popup-about');
+        $('div.pinch-zoom').each(function () {
+            isInitPage = true
+            new RTP.PinchZoom($(this), {});
+        });
+//        if(!isInitPage) {
+//            $('div.pinch-zoom').each(function () {
+//                isInitPage = true
+//                new RTP.PinchZoom($(this), {});
+//            });
+//        }
+    }
+
+    function choosePic(it){
+        if (it.files) {
+            var size=it.files.item(0).size;
+            if(size>13*1024*1024){
+                $.alert("请上传13M以内的图片！");
+                return;
+            }
+        }
+        document.getElementById('selectPic').src=getFullPath(it);
+        selectPictureEvent()
+    }
+
+    function getFullPath(obj) {
+        if (obj) {
+            if (obj.files) {
+                return window.URL.createObjectURL(obj.files.item(0));
+            }
+            return obj.value;
+        }
+    }
+
+    function search(){
+        var phone=$("#search").val();
+        if(!phone){
+            return;
+        }
+
+        $.ajax({
+            url:"/"+_webroot+"/api/v1/pl/buyer_search",
+            type:"post",
+            data:JSON.stringify({
+                "siteCode":"318",
+                "auth":"pl",
+                "loginId":id,
+                "param":{
+                    "phoneNumber":phone,
+                    "bsCode":id,
+                },
+            }),
+            contentType:"application/json",
+            success:function(data){
+                if(data.status=="S"&&data.result){
+                    $("#buyerId").val(data.result.buyerId);
+                    $("#buyerName").val(data.result.buyerName);
+                    $("#bsCode").val(data.result.bsCode);
+                    $("#bsName").val(data.result.bsName);
+                    $("#terminalId").val(data.result.terminalId);
+                    $("#terminalName").val(data.result.terminalName);
+                }
+
+                if(!data.result){
+                    $.alert(data.message);
+                }
+
+            }
+        });
+    }
+
+    function loadPurchaseListInfoBy(plId){
+        $.ajax({
+            url:"/"+_webroot+"/api/v1/pl/bs_task_query",
+            contentType:"application/json",
+            type:"post",
+            data:JSON.stringify({
+                "siteCode":"318",
+                "auth":"pl",
+                "loginId":id,
+                "param":{
+                    "plId":plId
+                },
+            }),
+            success:function(data){
+                if(data.status=="F"){
+                    $.alert(data.message);
+                    return;
+                }
+
+                if(!data.result){
+                    $.alert(data.message);
+                    return;
+                }
+
+
+                var param=data.result;
+                $("#plId").val(plId);
+
+                if(param.buyerId!=undefined){
+                    $("#buyerId").val(param.buyerId);
+                }
+                if(param.buyerName!=undefined){
+                    $("#buyerName").val(param.buyerName);
+                }
+                if(param.bsCode!=undefined){
+                    $("#bsCode").val(param.bsCode);
+                }
+                if(param.bsName!=undefined){
+                    $("#bsName").val(param.bsName);
+                }
+
+                if(param.terminalId!=undefined){
+                    $("#terminalId").val(param.terminalId);
+                }
+
+                if(param.terminalName!=undefined){
+                    $("#terminalName").val(param.terminalName);
+                }
+
+                if(param.ftpUrl!=undefined){
+                    $("#picPath").val(param.ftpUrl);
+                }
+
+                //todo:
+                $("#selectPic").attr("src",param.ftpUrl);
+                $("#selectPic2").attr("src",param.ftpUrl);
+
+                var pdList=param.pdList;
+                showPdList(pdList);
+            }
+        });
+    }
+
+    function showPdList(pdList){
+        if(isSelf=="false"){
+            $.each(pdList,function(index,element){
+                var tr="<tr><td style='width:70%'><input type='hidden' name='plPdId' value='"+element.plPdId+"'/>"+element.pdName+"</td><td style='width:30%'><a href='javascript:void(0);' onclick='editPd("+element.plPdId+")'>编辑</a></td></tr>";
+                $(".rj-table").find("tbody").append(tr);
+            });
+        }else{
+            $.each(pdList,function(index,element){
+                var tr="<tr><td style='width:70%'><input type='hidden' name='plPdId' value='"+element.plPdId+"'/>"+element.pdName+"</td><td style='width:30%'><a href='javascript:void(0);' onclick='editPd("+element.plPdId+")'>编辑</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='javascript:void(0);' onclick='deletePd(this,"+element.plPdId+")'>删除</a></td></tr>";
+                $(".rj-table").find("tbody").append(tr);
+            });
+        }
+
+    }
+
+    function editPd(plPdId){
+        var plid=plId;
+        if(!plid){
+            plid=$("#plId").val();
+        }
+
+
+        if(isSelf=="false"){
+            location.href="purchaselist_goods_add.html?plId="+plid+"&plPdId="+plPdId+"&ftpUrl="+$("#picPath").val()+"&isSelf=false&partnerId="+partnerId+"&p_name="+p_name;
+        }else{
+            location.href="purchaselist_goods_add.html?plId="+plid+"&plPdId="+plPdId+"&ftpUrl="+$("#picPath").val();
+        }
+
+    }
+
+    function deletePd(it,plPdId){
+        $.confirm("确定删除？",function(){
+            $.ajax({
+                url:"/"+_webroot+"/api/v1/pl/bs_task_pd_delete",
+                data:JSON.stringify({
+                    "siteCode":"318",
+                    "auth":"pl",
+                    "loginId":id,
+                    "param":{
+                        "plPdId":plPdId
+                    },
+                }),
+                type:"post",
+                contentType:"application/json",
+                success:function(data){
+                    if(data.status=="F") {
+                        $.alert(data.message);
+                        return;
+                    }
+                    $(it).parents("tr").remove();
+                    $.alert("删除成功");
+                }
+            });
+        },function(){
+
+        });
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>合伙人任务完成统计</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="stylesheet" href="../css/sm.min.css">
+    <link rel="stylesheet" href="../css/sm-extend.min.css">
+
+    <style type="text/css">
+        table {
+            border-collapse: collapse;
+            border: none;
+            font-size: 12px;
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 20px;
+            background-color: transparent;
+            border-spacing: 0;
+            border-collapse: collapse;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            display: table;
+            border-collapse: separate;
+            border-spacing: 2px;
+            border-color: grey;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="page-group">
+    <div class="page page-current">
+
+        <!--标题栏-->
+        <header class="bar bar-nav">
+            <a id="return_top" href="javascript:" class="icon icon-left pull-left" onclick="history.back(); "></a>
+            <a class="button button-link button-nav pull-right back"  id="home">
+                <span class="icon icon-home"></span>
+            </a>
+            <h1 class="title">合伙人任务完成统计</h1>
+        </header>
+
+        <!--内容区-->
+        <div class="content">
+            <div class="list-block" style="margin:0px;">
+                <ul>
+                    <!-- Text inputs -->
+                    <li id='picker-parentOrbuyer'>
+                        <div class="item-content">
+                            <div class="item-media"><i class="icon icon-form-name"></i></div>
+                            <div class="item-inner">
+                                <div class="item-title label">配送站\买手</div>
+                                <div class="item-input">
+                                    <input type="text" id='picker-parentOrbuyer-input' placeholder="请选择配送站\买手">
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <li id="select-time">
+                        <div class="item-content">
+                            <div class="item-media"><i class="icon icon-form-name"></i></div>
+                            <div class="item-inner">
+                                <div class="item-title label">选择时间</div>
+                                <div class="item-input">
+                                    <input type="text" id="select-time-input" placeholder="">
+
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="content-block">
+                <div class="tabs">
+                    <div id="tab1" class="tab active">
+                        <div class="content-block">
+                            <div id="container" style="min-width:100%;height:100%"></div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th data-field="">配送站/买手</th>
+                                        <th data-field="">计划完成数</th>
+                                        <th data-field="">实际完成数</th>
+                                        <th data-field="">无效完成数</th>
+                                        <th data-field="">完成百分比</th>
+                                    </tr>
+                                </thead>
+                                    <tbody>
+
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type='text/javascript' src='../js/zepto.min.js' charset='utf-8'></script>
+<script type="text/javascript">
+    $.config = {router: false}
+</script>
+<script type='text/javascript' src='../js/sm.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type="text/javascript" src="../js/common.js"></script>
+<script type="text/javascript">
+    $.config = {router: false}
+</script>
+<script type="text/javascript">
+    var id = getUrlParam("id");
+    var name = getUrlParam("name");
+    var date1 = new Date().Format("yyyy-MM");
+    $("#select-time-input").val(date1);
+    $(function () {
+
+        var crtDate = date1;
+        $("#picker-parentOrbuyer-input").picker({
+            toolbarTemplate: '<header class="bar bar-nav">\
+  <button class="button button-link pull-right close-picker">确定</button>\
+  <h1 class="title">请选择配送站\\买手</h1>\
+  </header>',
+            cols: [
+                {
+                    textAlign: 'center',
+                    values: ['配送站', '买手', '全部']
+                }
+            ],
+            onClose: function () {
+                var val = $("#picker-parentOrbuyer-input").val();
+                var selectRule = 0;
+                if (val == "配送站") {
+                    $("table tbody").empty();
+                    selectRule = 1;
+                    ajax(selectRule,crtDate);
+                    //查询所有配送站计费信息
+                    //查询所有买手计费信息
+                } else if (val == "买手") {
+                    $("table tbody").empty();
+                    selectRule = 2;
+                    ajax1(selectRule,crtDate);
+                    //查询买手和配送站计费信息
+                } else if (val == "全部") {
+                    $("table tbody").empty();
+                 //   selectRule = 0;
+                    ajax2(selectRule,crtDate);
+                }
+            }
+        });
+        //选择时间
+        var now = new Date();
+
+        // new method of get last month
+        var dObj = new Date();
+        dObj.setDate(0);
+        var y = String(dObj.getFullYear());
+        var m = String(100 + dObj.getMonth() + 1).substr(1,2);
+        var d = String(100 + dObj.getDate()).substr(1,2);
+        var strLastMonth= y+"-"+m;
+
+        //cannot use month -1 when date is 30 or 31
+       // var lastMonth = new Date(now.getFullYear(), now.getMonth()-1 , now.getDate()).Format("yyyy-MM");
+        var lastMonth = new Date(strLastMonth).Format("yyyy-MM");
+        var lastMonth1 = new Date(now.getFullYear(), now.getMonth() - 2, now.getDate()).Format("yyyy-MM");
+
+        var valueData = [date1, lastMonth, lastMonth1];
+        $("#select-time-input").picker({
+            toolbarTemplate: '<header class="bar bar-nav">\
+  <button class="button button-link pull-right close-picker">确定</button>\
+  <h1 class="title">请选择时间</h1>\
+  </header>',
+            cols: [
+                {
+                    textAlign: 'center',
+                    values: valueData
+                }
+            ], onClose: function () {
+                 crtDate = $("#select-time-input").val();
+                var picker_parentOrbuyer_input = $("#picker-parentOrbuyer-input").val();
+                if(picker_parentOrbuyer_input == "配送站"){
+                    $("table tbody").empty();
+                    var selectRule = 1;
+                    ajax(selectRule,crtDate);
+                }else if(picker_parentOrbuyer_input == "买手"){
+                    $("table tbody").empty();
+                    var selectRule = 2;
+                    ajax1(selectRule,crtDate);
+                }else {
+                    $("table tbody").empty();
+                    var selectRule = 0;
+                    ajax2(selectRule,crtDate);
+                }
+
+            }
+        });
+    });
+    function ajax(selectRule,crtDate) {
+        $.ajax({
+            type: "POST",
+            url: "/"+_webroot+"/api/v1/pl/partner_task_percent",
+            contentType: 'application/json',
+            dataType: "json",
+            async: false,
+            data: JSON.stringify({
+                "siteCode":"318",
+                "auth":"pl",
+                "loginId":id,
+                "param": {
+                    "paging": "",
+                    "pageCount": "",
+                    "pageNo": "",
+                    "partnerId": id,
+                    "selectRule": selectRule,
+                    "crtDate": crtDate
+                }
+            }),
+            success: function (data) {
+                var status = data.status;
+                if (status == "S") {
+                    var terminalNameData = [];
+                    var needRecordNumberData = [];
+                    var alreadyRecordNumberData = [];
+                    var invalidInfoData = [];
+                    var percentData = [];
+                    var bsNameData = [];
+                    for (var i = 0; i < data.result.bsTaskList.length; i++) {
+                        terminalNameData[i] = data.result.bsTaskList[i].bsName;
+                        terminalNameData[i] = data.result.bsTaskList[i].terminalName;
+                        needRecordNumberData[i] = data.result.bsTaskList[i].needRecordNumber;
+                        alreadyRecordNumberData[i] = data.result.bsTaskList[i].alreadyRecordNumber;
+                        invalidInfoData[i] = data.result.bsTaskList[i].invalidInfo;
+                        percentData[i] = data.result.bsTaskList[i].percent;
+                        $("table tbody").append("<tr>" + "<td>" + terminalNameData[i] + "</td>" + "<td>" + needRecordNumberData[i] + "</td>" + "<td>" + alreadyRecordNumberData[i] + "</td>" + "<td>" + invalidInfoData[i] + "</td>" + "<td>" + percentData[i] + "</td>" + "</tr>")
+                    }
+                } else {
+                    $.alert(data.message);
+                };
+            }
+        });
+    }
+
+    function ajax1(selectRule,crtDate) {
+        $.ajax({
+            type: "POST",
+            url: "/"+_webroot+"/api/v1/pl/partner_task_percent",
+            contentType: 'application/json',
+            dataType: "json",
+            async: false,
+            data: JSON.stringify({
+                "siteCode":"318",
+                "auth":"pl",
+                "loginId":id,
+                "param": {
+                    "paging": "",
+                    "pageCount": "",
+                    "pageNo": "",
+                    "partnerId": id,
+                    "selectRule": selectRule,
+                    "crtDate": crtDate
+                }
+            }),
+            success: function (data) {
+                var status = data.status;
+                if (status == "S") {
+                    var terminalNameData = [];
+                    var needRecordNumberData = [];
+                    var alreadyRecordNumberData = [];
+                    var invalidInfoData = [];
+                    var percentData = [];
+                    var bsNameData = [];
+                    for (var i = 0; i < data.result.bsTaskList.length; i++) {
+                        bsNameData[i] = data.result.bsTaskList[i].bsName;
+                        needRecordNumberData[i] = data.result.bsTaskList[i].needRecordNumber;
+                        alreadyRecordNumberData[i] = data.result.bsTaskList[i].alreadyRecordNumber;
+                        invalidInfoData[i] = data.result.bsTaskList[i].invalidInfo;
+                        percentData[i] = data.result.bsTaskList[i].percent;
+                        $("table tbody").append("<tr>" + "<td>" + bsNameData[i] + "</td>" + "<td>" + needRecordNumberData[i] + "</td>" + "<td>" + alreadyRecordNumberData[i] + "</td>" + "<td>" + invalidInfoData[i] + "</td>" + "<td>" + percentData[i] + "</td>" + "</tr>")
+                    }
+                } else {
+                    $.alert(data.message);
+                };
+            }
+        });
+    }
+
+    function ajax2(selectRule,crtDate) {
+        $.ajax({
+            type: "POST",
+            url: "/"+_webroot+"/api/v1/pl/partner_task_percent",
+            contentType: 'application/json',
+            dataType: "json",
+            async: false,
+            data: JSON.stringify({
+                "siteCode":"318",
+                "auth":"pl",
+                "loginId":id,
+                "param": {
+                    "paging": "",
+                    "pageCount": "",
+                    "pageNo": "",
+                    "partnerId": id,
+                    "selectRule": selectRule,
+                    "crtDate": crtDate
+                }
+            }),
+            success: function (data) {
+                var status = data.status;
+                if (status == "S") {
+                    var terminalNameData = [];
+                    var needRecordNumberData = [];
+                    var alreadyRecordNumberData = [];
+                    var invalidInfoData = [];
+                    var percentData = [];
+                   // var bsNameData = [];
+                    for (var i = 0; i < data.result.bsTaskList.length; i++) {
+                      //  bsNameData[i] = data.result.bsTaskList[i].bsName;
+                        needRecordNumberData[i] = data.result.bsTaskList[i].needRecordNumber;
+                        alreadyRecordNumberData[i] = data.result.bsTaskList[i].alreadyRecordNumber;
+                        invalidInfoData[i] = data.result.bsTaskList[i].invalidInfo;
+                        percentData[i] = data.result.bsTaskList[i].percent;
+                        $("table tbody").append("<tr>" + "<td>" + name + "</td>" + "<td>" + needRecordNumberData[i] + "</td>" + "<td>" + alreadyRecordNumberData[i] + "</td>" + "<td>" + invalidInfoData[i] + "</td>" + "<td>" + percentData[i] + "</td>" + "</tr>")
+                    }
+                } else {
+                    $.alert(data.message);
+                };
+            }
+        });
+    }
+    //top返回
+    $("#home").click(function () {
+        $(this).attr("href", "/"+_webroot+"/static/html/platformPartner/partner_operations.html?name=" + name + "&id=" + id)
+    })
+</script>
+</body>
+</html>
+

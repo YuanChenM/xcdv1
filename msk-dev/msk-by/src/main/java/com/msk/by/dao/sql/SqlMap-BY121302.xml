@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.by.logic.BY121302Logic">
+    <!-- 表字段 -->
+    <sql id="selectSql">
+        FOD_MARKET_ID AS fodMarketId,
+        MARKET_CODE AS marketCode,
+        MARKET_NAME AS marketName,
+        MARKET_ADDR AS marketAddr,
+        MARKET_TYPE AS marketType,
+        MARKET_TYPE_NAME AS marketTypeName,
+        SECTION_TYPE AS sectionType,
+        SECTION_TYPE_NAME AS sectionTypeName,
+        SIZE_TYPE AS sizeType,
+        SIZE_TYPE_NAME AS sizeTypeName,
+        LGCS_AREA_CODE AS lgcsAreaCode,
+        CITY_CODE AS cityCode,
+        DISTRICT_CODE AS districtCode
+    </sql>
+    <!--条件 -->
+    <sql id="whereCondition">
+        WHERE DEL_FLG = '0'
+        <if test="filterMap.marketCode!=null and filterMap.marketCode!=''">
+            AND MARKET_CODE like #{filterMap.marketCode}
+        </if>
+        <if test="filterMap.marketName!=null and filterMap.marketName!=''">
+            AND MARKET_NAME like #{filterMap.marketName}
+        </if>
+    </sql>
+
+    <select id="findPageList" resultType="com.msk.by.bean.BY121302Bean" parameterType="BaseParam">
+        select
+        <include refid="selectSql"/>
+        from by_market_food
+        <include refid="whereCondition"/>
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize}
+        </if>
+    </select>
+
+    <select id="getPageCount" resultType="Integer" parameterType="BaseParam">
+        select count(1)
+        from by_market_food
+        <include refid="whereCondition"/>
+    </select>
+
+    <select id="findOne" resultType="com.msk.core.entity.ByMarketFood" parameterType="BaseParam">
+        select
+        <include refid="selectSql"/>
+        from by_market_food
+        WHERE FOD_MARKET_ID = #{filterMap.marketId}
+    </select>
+
+    <update id="deleteMarkerFood" parameterType="BaseParam">
+        UPDATE by_market_food
+        SET DEL_FLG = '1'
+        WHERE FOD_MARKET_ID = #{filterMap.marketId}
+    </update>
+</mapper>

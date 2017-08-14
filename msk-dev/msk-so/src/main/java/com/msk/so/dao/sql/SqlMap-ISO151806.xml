@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151806Logic">
+
+    <select id="checkSpStockCnt" resultType="java.math.BigDecimal" parameterType="com.msk.core.bean.BaseParam">
+        SELECT
+        sp.STOCK_QTY
+        FROM
+        so_stock_sp sp
+        WHERE
+        sp.DEL_FLG = 0
+        AND sp.SL_CODE = #{filterMap.slCode}
+        AND sp.SUPPLIER_CODE = #{filterMap.supplierCode}
+        AND sp.PD_CODE = #{filterMap.pdCode}
+        AND sp.LGCS_CODE =  #{filterMap.lgcsCode}
+    </select>
+
+
+
+    <select id="checkSlStockCnt" resultType="java.math.BigDecimal" parameterType="com.msk.core.bean.BaseParam">
+        SELECT
+        sl.STOCK_QTY
+        FROM
+        so_stock_sl sl
+        WHERE
+        sl.DEL_FLG = 0
+        AND sl.SL_CODE = #{filterMap.slCode}
+        AND sl.PD_CODE = #{filterMap.pdCode}
+        AND sl.LGCS_CODE =  #{filterMap.lgcsCode}
+    </select>
+
+
+    <update id="updateSpStockCnt" parameterType="com.msk.core.bean.BaseParam">
+UPDATE so_stock_sp sp
+SET sp.STOCK_QTY =sp.STOCK_QTY+ #{filterMap.adjustQty},
+  sp.UNIT = #{filterMap.unit},
+ sp.UPD_ID = #{filterMap.updId},
+ sp.UPD_TIME = #{filterMap.updTime},
+ sp.VER = sp.VER + 1
+WHERE
+	sp.DEL_FLG = 0
+AND sp.SL_CODE = #{filterMap.slCode}
+AND sp.SUPPLIER_CODE = #{filterMap.supplierCode}
+AND sp.PD_CODE = #{filterMap.pdCode}
+AND sp.LGCS_CODE =  #{filterMap.lgcsCode}
+	</update>
+
+
+    <update id="updateSlStockCnt" parameterType="com.msk.core.bean.BaseParam">
+UPDATE so_stock_sl sl
+SET sl.STOCK_QTY = sl.STOCK_QTY+#{filterMap.adjustQty},
+ sl.UPD_ID =  #{filterMap.updId},
+ sl.UPD_TIME =  #{filterMap.updTime},
+ sl.UNIT = #{filterMap.unit},
+ sl.VER = sl.VER + 1
+WHERE
+	sl.DEL_FLG = 0
+AND sl.SL_CODE = #{filterMap.slCode}
+AND sl.LGCS_CODE = #{filterMap.lgcsCode}
+AND sl.PD_CODE =  #{filterMap.pdCode}
+    </update>
+
+
+    <insert id="saveStockRecord" parameterType="com.msk.core.bean.BaseParam">
+        INSERT INTO   so_stock_record(
+        so_stock_record.STOCK_ID,
+        so_stock_record.FLOW_ID,
+        so_stock_record.PD_CODE,
+        so_stock_record.SUPPLIER_CODE,
+        so_stock_record.SL_CODE,
+        so_stock_record.QTY,
+        so_stock_record.TYPE,
+        so_stock_record.ADJUST_DATE,
+        so_stock_record.ADJUST_PERSON,
+        so_stock_record.ADJUST_REASON,
+        so_stock_record.INBOUND_BATCH,
+        so_stock_record.DEL_FLG,
+        so_stock_record.CRT_ID,
+        so_stock_record.CRT_TIME,
+        so_stock_record.VER)
+        VALUES  (
+        #{filterMap.stockId},
+        #{filterMap.flowId},
+        #{filterMap.pdCode},
+        #{filterMap.supplierCode},
+        #{filterMap.slCode},
+        abs(#{filterMap.adjustQty}),
+        #{filterMap.type},
+        #{filterMap.adjustDate},
+        #{filterMap.adjustPerson},
+        #{filterMap.adjustReason},
+        #{filterMap.inboundBatch},
+        0,
+        #{filterMap.crtId},
+        #{filterMap.crtTime},
+        1)
+    </insert>
+</mapper>

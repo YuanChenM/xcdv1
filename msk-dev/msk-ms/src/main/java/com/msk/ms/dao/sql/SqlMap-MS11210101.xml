@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.ms.logic.MS11210101Logic">
+
+<sql id="msCardmanager">
+A.BUYER_NAME AS buyerName,
+A.BUYER_CODE AS buyerCode,
+A.MS_CARDNO AS msCardno,
+A.PROVIDE_DATE AS provideDate,
+A.PURCHASE_LOT AS purchaseLot,
+A.IS_PROVIDE AS isProvide
+</sql>
+
+<update id="modifyOne" parameterType="com.msk.core.entity.MsCardmanager">
+UPDATE MS_CARDMANAGER SET
+BUYER_CODE=#{buyerCode},
+PROVIDE_DATE=#{provideDate},
+BUYER_NAME=#{buyerName},
+PURCHASE_LOT=#{purchaseLot},
+IS_PROVIDE=#{isProvide}
+WHERE
+MS_CARDNO=#{msCardno}
+</update>
+
+<select id="findOne" resultType="com.msk.core.entity.MsCardmanager"
+parameterType="com.msk.core.bean.BaseParam">
+
+select
+<include refid="msCardmanager" />
+from MS_CARDMANAGER AS A
+WHERE
+MS_ID=#{filterMap.msId}
+
+</select>
+</mapper>

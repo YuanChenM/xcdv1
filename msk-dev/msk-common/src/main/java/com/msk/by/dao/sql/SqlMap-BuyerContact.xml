@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.msk.bs.logic.BuyerShopLogic">
+    <select id="findBuyerContactInfo" parameterType="BaseParam" resultType="com.msk.by.bean.BuyerContactInfo">
+        SELECT a.BUYER_ID AS companyId
+             , a.BUSI_TEL AS companyTel
+             , a.BUYER_NAME AS companyName
+             , a.SUPERIOR_NAME AS companyType
+             , a.BUYER_ADDR AS companyAddr
+             , a.CITY_CODE AS cityCode
+             , a.UPD_TIME AS updTime
+          FROM by_buyer_basic_info a
+         WHERE a.DEL_FLG = 0
+        <if test="filterMap.companyId!=null and filterMap.companyId!=''">
+            AND a.BUYER_ID = #{filterMap.companyId}
+        </if>
+    </select>
+    <select id="findBuyerContactTel" parameterType="BaseParam" resultType="com.msk.core.entity.ByBuyerEmployee">
+        SELECT ID AS id
+             , EMPLOYEE_NAME AS employeeName
+             , EMPLOYEE_TEL AS employeeTel
+             , UPD_TIME AS updTime
+          FROM by_buyer_employee
+         WHERE DEL_FLG = 0
+           AND (CONTACT_PERSON = 1 OR RECEIVE_PERSON = 1)
+           AND BUYER_ID = #{filterMap.companyId}
+
+    </select>
+    <select id="findBuyerContactAddr" parameterType="BaseParam" resultType="com.msk.core.entity.ByBuyerRecAddr">
+        SELECT ID AS id
+             , RECEIVE_ADDR AS receiveAddr
+             , UPD_TIME AS updTime
+          FROM by_buyer_rec_addr
+         WHERE DEL_FLG = 0
+           AND BUYER_ID = #{filterMap.companyId}
+    </select>
+    <select id="findBuyerContactTime" parameterType="BaseParam" resultType="com.msk.core.entity.ByBuyerRecAddr">
+        SELECT ID AS id
+             , REC_PER_TYPE AS recPerType
+             , TIME_DESCRIBE AS timeDescribe
+             , UPD_TIME AS updTime
+          FROM by_buyer_rec_time
+         WHERE DEL_FLG = 0
+           AND BUYER_ID = #{filterMap.companyId}
+    </select>
+</mapper>

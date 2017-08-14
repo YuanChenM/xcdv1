@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151433Logic">
+    <!-- 更新订单发货表 -->
+    <update id="modify" parameterType="BaseParam">
+        UPDATE
+        SO_ORDER_SHIP
+        SET
+        SHIP_STATUS = 99,
+        <if test="cancelManId!=null and cancelManId!=''">
+            CANCEL_MAN_ID = #{cancelManId},
+        </if>
+        <if test="cancelManName!=null and cancelManName!=''">
+            CANCEL_MAN_NAME = #{cancelManName},
+        </if>
+        <if test="cancelTime!=null and cancelTime!=''">
+            CANCEL_TIME = #{cancelTime},
+        </if>
+        <if test="cancelReason!=null and cancelReason!=''">
+            CANCEL_REASON = #{cancelReason},
+        </if>
+        <if test="remark!=null and remark!=''">
+            CANCEL_REMARK = #{remark},
+        </if>
+        UPD_ID = #{updId},
+        UPD_TIME = #{updTime},
+        VER = VER + 1
+        WHERE SHIP_ID = #{shipId}
+        AND SHIP_STATUS = 98
+    </update>
+
+    <!-- 更新订单供货明细信息表 -->
+    <update id="modifyAvailability" parameterType="BaseParam">
+        UPDATE
+        SO_ORDER_DETAIL_AVAILABILITY
+        SET
+        STATUS = 99,
+        UPD_ID = #{updId},
+        UPD_TIME = #{updTime},
+        VER = VER + 1
+        WHERE SHIP_ID = #{shipId}
+    </update>
+
+    <!-- 更新订单明细表 -->
+    <update id="modifyDetail" parameterType="BaseParam">
+        UPDATE
+        SO_ORDER_DETAIL sod
+        INNER JOIN SO_ORDER_DETAIL_AVAILABILITY soda
+        ON soda.ORDER_DETAIL_ID = sod.ORDER_DETAIL_ID
+        SET
+        sod.DETAIL_STATUS = 99,
+        sod.UPD_ID = #{updId},
+        sod.UPD_TIME = #{updTime},
+        sod.VER = sod.VER + 1
+        WHERE soda.SHIP_ID = #{shipId}
+    </update>
+
+
+    <!-- 查询订单发货主表 -->
+    <select id="findOne" parameterType="BaseParam" resultType="com.msk.so.bean.ISO151433RsResult">
+        SELECT ORDER_ID AS orderId,
+        SHIP_ID AS shipId,
+        VER AS ver
+        FROM SO_ORDER_SHIP
+        WHERE SHIP_ID = #{shipId}
+    </select>
+</mapper>

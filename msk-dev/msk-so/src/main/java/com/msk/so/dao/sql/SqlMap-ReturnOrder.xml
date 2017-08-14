@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.OMBaseReturnOrderLogic">
+	<!-- 查询单个退货单基本详情 -->
+	<select id="findOneReturnOrder" parameterType="BaseParam"
+		resultType="com.msk.so.bean.BaseReturnOrder">
+		SELECT
+		A.RETURN_CODE as returnCode
+		,B.ORDER_CODE as orderCode
+		,IFNULL(comSource.CONSTANT_NAME,'') as returnSource
+		,(case(A.RETURN_MODE/*RETURN_METHOD*/)
+		when
+		1 then '全退'
+		when 2 then '部分退'
+		end)
+		as returnMode
+		,(case(A.RETURN_MODE/*RETURN_METHOD*/)
+		when 1 then '全退'
+		when 2 then '部分退'
+		end)
+		as refundMode
+		,A.RETURN_AMOUNT AS
+		returnAmount
+		,(case(A.IS_INVOICE)
+		when 1 then '是'
+		when 2 then '否'
+		end)
+		as
+		isInvoice
+		,(case(A.IS_PAID)
+		when 1 then '是'
+		when 2 then '否'
+		end)
+		as isPaid
+		,A.RETURN_ACTOR AS returnActor
+		,A.RETURN_STATUS AS returnStatus
+		,IFNULL(coms.CONSTANT_NAME,'') as returnStatusName
+		,A.APPLY_TIME AS returnTime
+		,C.REASON_NAME AS returnReasonCode
+		,A.APPLY_REMARK AS returnGoodsAllMoney
+		FROM
+		so_return AS A INNER JOIN
+		SO_ORDER AS B ON (A.ORDER_ID = B.ORDER_ID) LEFT JOIN
+		so_return_reason C ON A.RETURN_REASON = C.REASON_ID
+		LEFT JOIN comm_constant as coms ON A.RETURN_STATUS = coms.CONSTANT_VALUE
+        AND coms.CONSTANT_TYPE = 'ReturnOrderStatus'
+        LEFT JOIN comm_constant as comSource ON A.RETURN_SOURCE = comSource.CONSTANT_VALUE
+        AND comSource.CONSTANT_TYPE = 'ReturnSource'
+		WHERE
+		RETURN_ID=
+		#{filterMap.returnId}
+	</select>
+
+</mapper>

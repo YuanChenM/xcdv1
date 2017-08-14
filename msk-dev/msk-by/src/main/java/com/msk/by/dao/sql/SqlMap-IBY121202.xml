@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.by.logic.IBY121202Logic">
+    <update id="buyerInfoModify" parameterType="BaseEntity">
+        UPDATE by_buyer_basic_info
+        SET
+        <if test="buyerCode!=null and buyerCode!=''">
+            BUYER_CODE=#{buyerCode},
+        </if>
+        <if test="buyerName!=null and buyerName!=''">
+            BUYER_NAME=#{buyerName},
+        </if>
+        <if test="buyerAddr!=null and buyerAddr!=''">
+            BUYER_ADDR=#{buyerAddr},
+        </if>
+        <if test="superiorId!=null and superiorId!=''">
+            SUPERIOR_ID=#{superiorId},
+        </if>
+        <if test="superiorType!=null and superiorType!=''">
+            SUPERIOR_TYPE=#{superiorType},
+        </if>
+        <if test="superiorName!=null and superiorName!=''">
+            SUPERIOR_NAME=#{superiorName},
+        </if>
+        <if test="superiorQua!=null and superiorQua!=''">
+            SUPERIOR_QUA=#{superiorQua},
+        </if>
+        <if test="provinceCode!=null and provinceCode!=''">
+            PROVINCE_CODE=#{provinceCode},
+        </if>
+        <if test="lgcsAreaCode!=null and lgcsAreaCode!=''">
+            LGCS_AREA_CODE=#{lgcsAreaCode},
+        </if>
+        <if test="cityCode!=null and cityCode!=''">
+            CITY_CODE=#{cityCode},
+        </if>
+        <if test="districtCode!=null and districtCode!=''">
+            DISTRICT_CODE=#{districtCode},
+        </if>
+        <if test="buyerWebsite!=null and buyerWebsite!=''">
+            BUYER_WEBSITE=#{buyerWebsite},
+        </if>
+        <if test="buyerWechat!=null and buyerWechat!=''">
+            BUYER_WECHAT=#{buyerWechat},
+        </if>
+        <if test="storeNo!=null and storeNo!=''">
+            STORE_NO=#{storeNo},
+        </if>
+        <if test="storeArea!=null and storeArea!=''">
+            STORE_AREA=#{storeArea},
+        </if>
+        <if test="busiTel!=null and busiTel!=''">
+            BUSI_TEL=#{busiTel},
+        </if>
+        <if test="employeesNum!=null and employeesNum!=''">
+            EMPLOYEES_NUM=#{employeesNum},
+        </if>
+        <if test="paymentType!=null and paymentType!=''">
+            PAYMENT_TYPE=#{paymentType},
+        </if>
+        <if test="planOrderGap!=null and planOrderGap!=''">
+            PLAN_ORDER_GAP=#{planOrderGap},
+        </if>
+        <if test="planOrderNum!=null and planOrderNum!=''">
+            PLAN_ORDER_NUM=#{planOrderNum},
+        </if>
+        <if test="actualOrderGap!=null and actualOrderGap!=''">
+            ACTUAL_ORDER_GAP=#{actualOrderGap},
+        </if>
+        <if test="actualOrderNum!=null and actualOrderNum!=''">
+            ACTUAL_ORDER_NUM=#{actualOrderNum},
+        </if>
+        <if test="marketingsStatus!=null and marketingsStatus!=''">
+            MARKETINGS_STATUS=#{marketingsStatus},
+        </if>
+        <if test="registerSource!=null and registerSource!=''">
+            REGISTER_SOURCE=#{registerSource},
+        </if>
+        <if test="superiorSubType!=null and superiorSubType!=''">
+            SUPERIOR_SUB_TYPE=#{superiorSubType},
+        </if>
+        <if test="superiorSubName!=null and superiorSubName!=''">
+            SUPERIOR_SUB_NAME=#{superiorSubName},
+        </if>
+        <if test="isMarketFlg!=null and isMarketFlg!=''">
+            IS_MARKET_FLG=#{isMarketFlg},
+        </if>
+            UPD_ID = #{updId},
+            UPD_TIME = #{updTime},
+            VER = VER + 1
+        WHERE
+            BUYER_ID = #{buyerId}
+        AND DEL_FLG = 0
+    </update>
+    <select id="buyerDetailInfoFind" parameterType="BaseParam" resultType="com.msk.by.bean.IBY121202RsParam">
+        SELECT
+        <if test="filterMap.districtCode != null and filterMap.districtCode != ''">
+        (SELECT count(BUYER_ID) FROM by_buyer_basic_info WHERE DISTRICT_CODE = #{filterMap.districtCode}) AS totalCount,
+        </if>
+           BUYER_ID AS buyerId
+          ,BUYER_CODE AS buyerCode
+          ,BUYER_NAME AS buyerName
+          ,BUYER_ADDR AS buyerAddr
+          ,SUPERIOR_ID AS superiorId
+          ,SUPERIOR_TYPE AS superiorType
+          ,SUPERIOR_NAME AS superiorName
+          ,SUPERIOR_QUA AS superiorQua
+          ,PROVINCE_CODE AS provinceCode
+          ,LGCS_AREA_CODE AS lgcsAreaCode
+          ,CITY_CODE AS cityCode
+          ,DISTRICT_CODE AS districtCode
+          ,BUYER_WEBSITE AS buyerWebsite
+          ,BUYER_WECHAT AS buyerWechat
+          ,STORE_NO AS storeNo
+          ,STORE_AREA AS storeArea
+          ,BUSI_TEL AS busiTel
+          ,EMPLOYEES_NUM AS employeesNum
+          ,PAYMENT_TYPE AS paymentType
+          ,comm2.CONSTANT_NAME AS paymentTypeName
+          ,PLAN_ORDER_GAP AS planOrderGap
+          ,PLAN_ORDER_NUM AS planOrderNum
+          ,ACTUAL_ORDER_GAP AS actualOrderGap
+          ,ACTUAL_ORDER_NUM AS actualOrderNum
+          ,MARKETINGS_STATUS AS marketingsStatus
+          ,comm1.CONSTANT_NAME AS marketingsStatusName
+          ,REGISTER_SOURCE AS registerSource
+          ,comm3.CONSTANT_NAME AS registerSourceName
+          ,SUPERIOR_SUB_TYPE AS superiorSubType
+          ,SUPERIOR_SUB_NAME AS superiorSubName
+          ,IS_MARKET_FLG AS isMarketFlg
+        FROM
+          by_buyer_basic_info basic
+        LEFT JOIN comm_constant comm1
+         ON basic.MARKETINGS_STATUS = comm1.CONSTANT_VALUE
+        AND comm1.CONSTANT_TYPE = 'MarketingSatus'
+        LEFT JOIN comm_constant comm2
+        ON basic.PAYMENT_TYPE = comm2.CONSTANT_VALUE
+        AND comm2.CONSTANT_TYPE = 'PaymentMethod'
+        LEFT JOIN comm_constant comm3
+        ON basic.REGISTER_SOURCE = comm3.CONSTANT_VALUE
+        AND comm3.CONSTANT_TYPE = 'BuyerRegisterWay'
+        WHERE basic.DEL_FLG = 0
+        <if test="filterMap.buyerId != null and filterMap.buyerId != ''">
+            AND BUYER_ID = #{filterMap.buyerId}
+        </if>
+        <if test="filterMap.provinceCode != null and filterMap.provinceCode != ''">
+            AND PROVINCE_CODE = #{filterMap.provinceCode}
+        </if>
+        <if test="filterMap.lgcsCode != null and filterMap.lgcsCode != ''">
+            AND LGCS_AREA_CODE = #{filterMap.lgcsAreaCode}
+        </if>
+        <if test="filterMap.cityCode != null and filterMap.cityCode != ''">
+            AND CITY_CODE = #{filterMap.cityCode}
+        </if>
+        <if test="filterMap.districtCode != null and filterMap.districtCode != ''">
+            AND DISTRICT_CODE = #{filterMap.districtCode}
+        </if>
+        <if test="paging == true">
+            LIMIT #{startPos},#{pageSize}
+        </if>
+    </select>
+
+    <select id="buyerConditionInfoFind" parameterType="BaseParam" resultType="com.msk.by.bean.IBY121202RsParam">
+        SELECT
+        DISTINCT A.BUYER_ID AS buyerId
+        ,A.BUYER_NAME AS buyerName
+        ,B.TEL_NO AS telNo
+        FROM
+        by_buyer_basic_info A
+        INNER JOIN by_buyer_account B
+        on A.BUYER_ID =B.BUYER_ID
+        LEFT JOIN  by_buyer_employee C
+        on A.BUYER_ID = C.BUYER_ID
+        WHERE
+        LGCS_AREA_CODE = #{filterMap.lgcsAreaCode}
+        AND CITY_CODE = #{filterMap.cityCode}
+        AND  DISTRICT_CODE = #{filterMap.districtCode}
+        AND A.DEL_FLG = 0
+        AND B.DEL_FLG = 0
+        AND C.DEL_FLG = 0
+        <if test="filterMap.buyerName != null and filterMap.buyerName != ''">
+           AND A.BUYER_NAME LIKE #{filterMap.buyerName}
+            OR A.STORE_NO LIKE #{filterMap.buyerName}
+            OR A.BUSI_TEL LIKE #{filterMap.buyerName}
+            OR C.EMPLOYEE_NAME LIKE #{filterMap.buyerName}
+            OR B.TEL_NO LIKE #{filterMap.buyerName}
+        </if>
+    </select>
+    <select id="terminalConditionInfoFind" parameterType="BaseParam" resultType="com.msk.core.entity.ByMarketTerminal">
+        SELECT
+            TER_MARKET_ID AS terMarketId,
+            MARKET_CODE AS marketCode,
+            MARKET_NAME AS marketName,
+            MARKET_ADDR AS marketAddr,
+            MARKET_LEVEL AS marketLevel,
+            MARKET_LEVEL_NAME AS marketLevelName,
+            LGCS_AREA_CODE AS lgcsAreaCode,
+            CITY_CODE AS cityCode,
+            DISTRICT_CODE AS districtCode
+        FROM
+            by_market_terminal
+        WHERE
+        <if test="filterMap.terMarketId != null and filterMap.terMarketId != ''">
+            TER_MARKET_ID = #{filterMap.terMarketId} AND
+        </if>
+        <if test="filterMap.marketName != null and filterMap.marketName != ''">
+            (MARKET_NAME LIKE #{filterMap.marketName}
+            OR MARKET_ADDR LIKE #{filterMap.marketName}
+            OR MARKET_LEVEL_NAME LIKE #{filterMap.marketName}
+            ) AND
+        </if>
+        <if test="filterMap.lgcsAreaCode != null and filterMap.lgcsAreaCode != ''">
+            LGCS_AREA_CODE = #{filterMap.lgcsAreaCode} AND
+        </if>
+        <if test="filterMap.cityCode != null and filterMap.cityCode != ''">
+            CITY_CODE = #{filterMap.cityCode} AND
+        </if>
+        <if test="filterMap.districtCode != null and filterMap.districtCode != ''">
+            DISTRICT_CODE = #{filterMap.districtCode} AND
+        </if>
+        DEL_FLG = 0
+    </select>
+    <select id="foodConditionInfoFind" parameterType="BaseParam" resultType="com.msk.core.entity.ByMarketFood">
+        SELECT
+            FOD_MARKET_ID AS fodMarketId,
+            MARKET_CODE AS marketCode,
+            MARKET_NAME AS marketName,
+            MARKET_ADDR AS marketAddr,
+            MARKET_TYPE AS marketType,
+            MARKET_TYPE_NAME AS marketTypeName,
+            SECTION_TYPE AS sectionType,
+            SECTION_TYPE_NAME AS sectionTypeName,
+            SIZE_TYPE AS sizeType,
+            SIZE_TYPE_NAME AS sizeTypeName,
+            LGCS_AREA_CODE AS lgcsAreaCode,
+            CITY_CODE AS cityCode,
+            DISTRICT_CODE AS districtCode
+        FROM by_market_food
+        WHERE
+        <if test="filterMap.fodMarketId != null and filterMap.fodMarketId != ''">
+            FOD_MARKET_ID = #{filterMap.fodMarketId} AND
+        </if>
+        <if test="filterMap.marketName != null and filterMap.marketName != ''">
+            (MARKET_NAME LIKE #{filterMap.marketName}
+            OR MARKET_ADDR LIKE #{filterMap.marketName}
+            OR SIZE_TYPE_NAME LIKE #{filterMap.marketName}
+            ) AND
+        </if>
+        <if test="filterMap.lgcsAreaCode != null and filterMap.lgcsAreaCode != ''">
+            LGCS_AREA_CODE = #{filterMap.lgcsAreaCode} AND
+        </if>
+        <if test="filterMap.cityCode != null and filterMap.cityCode != ''">
+            CITY_CODE = #{filterMap.cityCode} AND
+        </if>
+        <if test="filterMap.districtCode != null and filterMap.districtCode != ''">
+            DISTRICT_CODE = #{filterMap.districtCode} AND
+        </if>
+        DEL_FLG = 0
+    </select>
+    <select id="countBuyerByType" resultType="int" parameterType="com.msk.core.entity.ByBuyerBasicInfo">
+        SELECT count(1)
+          FROM by_buyer_basic_info
+         WHERE SUPERIOR_TYPE = #{superiorType}
+           AND LGCS_AREA_CODE = #{lgcsAreaCode}
+           AND CITY_CODE = #{cityCode}
+           AND DISTRICT_CODE = #{districtCode}
+    </select>
+    <select id="getBuyerById" parameterType="BaseEntity" resultType="com.msk.core.entity.ByBuyerBasicInfo">
+        SELECT
+        basic.BUYER_ID AS buyerId
+        ,basic.BUYER_CODE AS buyerCode
+        ,basic.BUYER_NAME AS buyerName
+        ,basic.BUYER_ADDR AS buyerAddr
+        ,basic.SUPERIOR_ID AS superiorId
+        ,basic.SUPERIOR_TYPE AS superiorType
+        ,basic.SUPERIOR_NAME AS superiorName
+        ,basic.SUPERIOR_QUA AS superiorQua
+        ,basic.PROVINCE_CODE AS provinceCode
+        ,basic.LGCS_AREA_CODE AS lgcsAreaCode
+        ,basic.CITY_CODE AS cityCode
+        ,basic.DISTRICT_CODE AS districtCode
+        ,basic.BUYER_WEBSITE AS buyerWebsite
+        ,basic.BUYER_WECHAT AS buyerWechat
+        ,basic.STORE_NO AS storeNo
+        ,basic.STORE_AREA AS storeArea
+        ,basic.BUSI_TEL AS busiTel
+        ,basic.EMPLOYEES_NUM AS employeesNum
+        ,basic.PAYMENT_TYPE AS paymentType
+        ,basic.PLAN_ORDER_GAP AS planOrderGap
+        ,basic.PLAN_ORDER_NUM AS planOrderNum
+        ,basic.ACTUAL_ORDER_GAP AS actualOrderGap
+        ,basic.ACTUAL_ORDER_NUM AS actualOrderNum
+        ,basic.MARKETINGS_STATUS AS marketingsStatus
+        ,basic.REGISTER_SOURCE AS registerSource
+        ,basic.IS_MARKET_FLG AS isMarketFlg
+        ,basic.SUPERIOR_SUB_TYPE AS superiorSubType
+        ,account.TEL_NO AS buyerTel
+        FROM by_buyer_basic_info basic
+        LEFT JOIN by_buyer_account account
+        ON basic.buyer_id = account.buyer_id
+        AND basic.DEL_FLG = account.DEL_FLG
+        WHERE basic.BUYER_ID = #{buyerId} AND basic.DEL_FLG = 0;
+    </select>
+    <select id="getBuyerByMarketId" parameterType="BaseParam" resultType="com.msk.by.bean.IBY121202RsParam">
+        SELECT
+        BUYER_ID AS buyerId
+        ,BUYER_CODE AS buyerCode
+        ,BUYER_NAME AS buyerName
+        ,BUYER_ADDR AS buyerAddr
+        ,SUPERIOR_ID AS superiorId
+        ,SUPERIOR_TYPE AS superiorType
+        ,SUPERIOR_NAME AS superiorName
+        ,SUPERIOR_QUA AS superiorQua
+        ,PROVINCE_CODE AS provinceCode
+        ,LGCS_AREA_CODE AS lgcsAreaCode
+        ,CITY_CODE AS cityCode
+        ,DISTRICT_CODE AS districtCode
+        ,BUYER_WEBSITE AS buyerWebsite
+        ,BUYER_WECHAT AS buyerWechat
+        ,STORE_NO AS storeNo
+        ,STORE_AREA AS storeArea
+        ,BUSI_TEL AS busiTel
+        ,EMPLOYEES_NUM AS employeesNum
+        ,PAYMENT_TYPE AS paymentType
+        ,PLAN_ORDER_GAP AS planOrderGap
+        ,PLAN_ORDER_NUM AS planOrderNum
+        ,ACTUAL_ORDER_GAP AS actualOrderGap
+        ,ACTUAL_ORDER_NUM AS actualOrderNum
+        ,MARKETINGS_STATUS AS marketingsStatus
+        ,comm1.CONSTANT_NAME AS marketingsStatusName
+        ,REGISTER_SOURCE AS registerSource
+        ,comm3.CONSTANT_NAME AS registerSourceName
+        FROM by_buyer_basic_info basic
+        LEFT JOIN comm_constant comm1
+         ON basic.MARKETINGS_STATUS = comm1.CONSTANT_VALUE
+        AND comm1.CONSTANT_TYPE = 'MarketingSatus'
+         LEFT JOIN comm_constant comm3
+        ON basic.REGISTER_SOURCE = comm3.CONSTANT_VALUE
+        AND comm3.CONSTANT_TYPE = 'BuyerRegisterWay'
+        WHERE SUPERIOR_ID = #{filterMap.marketId} AND basic.DEL_FLG = 0
+    </select>
+    <update id="byMarketTerModify" parameterType="BaseEntity">
+        UPDATE by_market_terminal
+        SET
+        MARKET_CODE = #{marketCode},
+        MARKET_NAME = #{marketName},
+        MARKET_ADDR = #{marketAddr},
+        MARKET_LEVEL = #{marketLevel},
+        MARKET_LEVEL_NAME = #{marketLevelName},
+        LGCS_AREA_CODE = #{lgcsAreaCode},
+        CITY_CODE = #{cityCode},
+        DISTRICT_CODE = #{districtCode},
+        UPD_TIME = #{updTime}
+        WHERE
+        TER_MARKET_ID = #{terMarketId}
+        AND DEL_FLG = 0
+    </update>
+
+    <update id="byMarketFoodModify" parameterType="BaseEntity">
+        UPDATE by_market_food
+        SET
+        MARKET_CODE = #{marketCode},
+        MARKET_NAME = #{marketName},
+        MARKET_ADDR = #{marketAddr},
+        MARKET_TYPE = #{marketType},
+        MARKET_TYPE_NAME = #{marketTypeName},
+        SECTION_TYPE = #{sectionType},
+        SECTION_TYPE_NAME = #{sectionTypeName},
+        SIZE_TYPE = #{sizeType},
+        SIZE_TYPE_NAME = #{sizeTypeName},
+        LGCS_AREA_CODE = #{lgcsAreaCode},
+        CITY_CODE = #{cityCode},
+        DISTRICT_CODE = #{districtCode},
+        UPD_TIME = #{updTime}
+        WHERE
+        FOD_MARKET_ID = #{fodMarketId}
+        AND DEL_FLG = 0
+    </update>
+
+    <select id="getMarketTerminalCount" resultType="com.msk.core.entity.ByMarketTerminal" parameterType="BaseParam">
+        select
+        CITY_MARKET_SEQ AS cityMarketSeq
+        from by_market_terminal
+        WHERE TER_MARKET_ID = #{filterMap.terminalId}
+        AND DEL_FLG = 0
+    </select>
+
+    <select id="getMarketFoodCount" resultType="com.msk.core.entity.ByMarketFood" parameterType="BaseParam">
+        select
+        DISTRICT_MARKET_SEQ AS districtMarketSeq
+        from by_market_food
+        WHERE  FOD_MARKET_ID = #{filterMap.fodMarketId}
+        AND DEL_FLG = 0
+    </select>
+
+    <select id="findPdClaCode" parameterType="BaseParam" resultType="com.msk.core.entity.ByBuyerPdCla">
+        SELECT
+        ID AS id,
+        BUYER_ID AS buyerId,
+        CLASS_CODE AS classCode,
+        CLASS_NAME AS className,
+        MACHINING_CODE_U AS machiningCode
+        FROM
+        by_buyer_pd_cla
+        WHERE
+        BUYER_ID = #{filterMap.buyerId}
+        AND DEL_FLG = 0
+    </select>
+
+    <select id="getcountBuyer" resultType="int" parameterType="BaseParam">
+        SELECT count(1)
+        FROM by_buyer_basic_info
+        WHERE SUPERIOR_TYPE = #{filterMap.superiorType}
+        <if test="filterMap.lgcsAreaCode != null and filterMap.lgcsAreaCode != ''">
+        AND    LGCS_AREA_CODE = #{filterMap.lgcsAreaCode}
+        </if>
+        <if test="filterMap.cityCode != null and filterMap.cityCode != ''">
+        AND    CITY_CODE = #{filterMap.cityCode}
+        </if>
+        <if test="filterMap.districtCode != null and filterMap.districtCode != ''">
+        AND    DISTRICT_CODE = #{filterMap.districtCode}
+        </if>
+        <if test="filterMap.superiorId != null and filterMap.superiorId != ''">
+        AND    SUPERIOR_ID = #{filterMap.superiorId}
+        </if>
+        AND DEL_FLG = 0
+    </select>
+
+</mapper>

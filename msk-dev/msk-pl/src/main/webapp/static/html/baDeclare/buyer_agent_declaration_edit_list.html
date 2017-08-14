@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>填写申报单</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link rel="stylesheet" href="../css/sm.min.css">
+    <link rel="stylesheet" href="../css/sm-extend.min.css">
+    <link rel="stylesheet" href="../css/laypage.css">
+
+    <style type="text/css">
+
+        .rj-table {
+            /*padding:8px;*/
+            margin-bottom: 0 !important;
+            border: 1px solid #ddd;
+            border-collapse: collapse !important;
+            border-radius: 1px;
+            width: 100%;
+            font-size: 12px;
+            margin-left: 2px;
+            margin-right: 2px;
+        }
+
+        .rj-table td {
+            margin-bottom: 0 !important;
+            border: 1px solid #d2dcf8;
+            border-collapse: collapse !important;
+            border-radius: 1px;
+        }
+
+        .rj-table thead td {
+            /*font-weight: bold;*/
+            text-align: center;
+            background: #DCDCDC;
+        }
+
+        .rj-table tbody td {
+            text-align: center;
+        }
+
+    </style>
+
+    <script src="../js/common.js"></script>
+</head>
+<body>
+<div class="page-group">
+    <div class="page page-current" id="page1">
+        <header class="bar bar-nav">
+            <a class="button button-link button-nav pull-left back" href="buyer_agent_declaration_operations.html"
+               id="back">
+                <span class="icon icon-left"></span>
+                <!--返回-->
+            </a>
+            <a class="button button-link button-nav pull-right back" href="buyer_agent_declaration_operations.html"
+               id="home">
+                <span class="icon icon-home"></span>
+            </a>
+            <h1 class="title">填写申报单</h1>
+        </header>
+
+
+        <div class="content" style="background: white">
+            <div class="row" style="margin-top:10px; ">
+                <div class="col-33">
+                    <select id="classesName">
+                        <option value="">--请选择--</option>
+                    </select>
+                </div>
+                <div class="col-33">
+                    <select id="states">
+                        <option value="-1">全部状态</option>
+                        <option value="0">未完成</option>
+                        <option value="1">已完成</option>
+                    </select>
+                </div>
+                <div class="col-33">
+                    <div style="font-size: 14px;">
+                        <a href="#" id="search" class="button button-light">搜索</a>
+                    </div>
+                </div>
+
+            </div>
+            <div class="row" style="margin-top:10px; ">
+                <div class="col-95">
+                    <div style="font-size: 16px;">
+                        <label id="pricePeriodAndDate"></label>
+                    </div>
+                </div>
+
+            </div>
+            <table class="rj-table" style="margin-top:10px;">
+                <thead>
+                <tr>
+                    <td>一级分类</td>
+                    <td>二级分类</td>
+                    <td>完成情况</td>
+                    <td>操作</td>
+                </tr>
+                </thead>
+                <tbody id="tBodyDate">
+                </tbody>
+            </table>
+
+            <div class="row" style="margin-top:10px;margin-left: 10px">
+                <div id="pageBar"></div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+</div>
+<script type='text/javascript' src='../js/zepto.min.js' charset='utf-8'></script>
+<script type="text/javascript">
+    $.config = {router: false}
+</script>
+<script type='text/javascript' src='../js/touch.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type="text/javascript" src="../js/common.js"></script>
+<script type="text/javascript" src="../js/zepto.cookie.min.js"></script>
+<script type="text/javascript" src="../js/laypage.js"></script>
+
+<script type="text/javascript">
+    var id = $.fn.cookie("id");
+    var name = $.fn.cookie("name");
+    var ppId = getUrlParam("ppId");
+    var pricePeriodAndDate = getUrlParam("pricePeriodAndDate");
+
+    var status;
+    var curPage = 1; //当前页码
+    var total, pageSize, totalPage;
+    var tBody = "";
+    var dataExist = "1";
+    $(function () {
+        //判断数据存在
+        isCheckedExist();
+
+        $("#pricePeriodAndDate").text("申报价盘期：" + pricePeriodAndDate);
+
+//        //填写申报单列表查询
+        loadDate(false);
+        //一级分类查询
+        classesNameSelect();
+        if(dataExist == "1"){
+            getPageBar();
+        }
+
+        $("#search").click(function () {
+            curPage = 1;
+            loadDate(false);
+
+            if(dataExist != "1"){
+                laypage({
+                    cont: 'pageBar',
+                    pages: 0,
+                    jump: function (obj) {
+                    }
+                })
+            }else {
+                getPageBar();
+            }
+        })
+    });
+
+    function loadDate(flag) {
+        var mySelect = document.getElementById("classesName");
+        var mySelectValue = mySelect.options[mySelect.selectedIndex].value;
+        var stateSelect = document.getElementById("states");
+        var stateValue = stateSelect.options[stateSelect.selectedIndex].value;
+        if (mySelectValue != "") {
+            classesCode = mySelectValue;
+        } else {
+            classesCode = "";
+        }
+
+
+        $.ajax({
+            type: "post",
+            url: "/" + _webroot + "/api/v1/pl/bs_declaration_period",
+            data: JSON.stringify({
+                "siteCode": "318",
+                "auth": "pl",
+                "loginId": id,
+                "param": {
+                    "bsCode": id,
+                    "ppId": ppId,
+                    "classesCode": classesCode,
+                    "status": stateValue,
+                    "paging": true,
+                    "pageCount": 10,
+                    "pageNo": curPage
+                }
+            }),
+            contentType: "application/json",
+            async: false,
+            success: function (data) {
+                if (data.status == "S" && data.result) {
+                    total = data.result.totalCount; //总记录数
+                    totalPage = data.result.totalPage; //总页数
+                    pageSize = 10; //每页显示条数
+                    curPage = data.result.pageNo; //当前页
+                    if (flag) {
+                        var dataList = data.result.dataList;
+                        var view;
+                        $("tbody").find("tr").remove();
+                        $.each(dataList, function (index, element) {
+                            var classesCodeAndMachiningCode = '"' + element.classesCode + "-" + element.machiningCode + "-" + element.dtId + '"';
+                            if (element.status == "1") {
+                                view = "<a href='javascript:void(0);' onclick='editPP(" + classesCodeAndMachiningCode + ")'>修改</a>";
+                            } else {
+                                view = "<a href='javascript:void(0);' onclick='editPP(" + classesCodeAndMachiningCode + ")'>填写</a>";
+                            }
+                            tBody += "<tr style='height: 40px'><td>" + element.classesName + "</td><td>" + element.machiningName + "</td><td>" + getStateName(element.status) + "</td><td>" + view + "</td></tr>";
+                        });
+                    }
+                    dataExist = "1";
+                } else {
+                    dataExist = "0";
+                    $("tbody").find("tr").remove();
+                    $("tbody").append("<tr ><td colspan='4'>未查询到数据 !</td></tr>");
+                    $.alert(data.message);
+                }
+            }
+
+        });
+    }
+    function isCheckedExist() {
+
+        var isChecked;
+        if(ppId != undefined && ppId != "" && ppId != null){
+            isChecked = "1";
+        }else{
+            isChecked = "0";
+        }
+        $.showIndicator();
+        $.ajax({
+            type: "post",
+            url: "/" + _webroot + "/api/v1/pl/bs_declaration_check",
+            data: JSON.stringify({
+                "siteCode": "318",
+                "auth": "pl",
+                "loginId": id,
+                "param": {
+                    "bsCode": id,
+                    "ppId": ppId,
+                    "isChecked": isChecked
+                }
+            }),
+            contentType: "application/json",
+            async: false,
+            success: function (data) {
+                if (data.status == "S") {
+                    if (data.result != null && data.result != undefined) {
+                        ppId = data.result.ppId;
+                        status = data.result.dtStatus;
+                        pricePeriodAndDate = data.result.pricePeriodDate;
+                        $.hideIndicator();
+                    }
+                } else {
+                    $.alert(data.message);
+                }
+            }
+        });
+    }
+    function classesNameSelect() {
+        $.ajax({
+            type: "post",
+            url: "/" + _webroot + "/api/v1/pl/pd_classes",
+            data: JSON.stringify({
+                "siteCode": "318",
+                "auth": "pl",
+                "loginId": id,
+                "param": {}
+            }),
+            contentType: "application/json",
+            async: false,
+            success: function (data) {
+                if (data.status == "S") {
+                    var classesList = data.result;
+                    $.each(classesList, function (i, value) {
+                        $("#classesName").append("<option value='" + value.classesCode + "'>" + value.classesName + "</option>");
+                    });
+                } else {
+                    $.alert(data.message);
+                }
+            }
+        });
+    }
+    function getStateName(state) {
+        if (state == undefined) {
+            return "未完成";
+        } else {
+            state = state.toString();
+            if (state == "") {
+                return "未完成";
+            } else if (state == "1") {
+                return "已完成";
+            } else if (state == "0") {
+                return "未完成";
+            }
+        }
+    }
+    function editPP(classesCodeAndMachiningCode) {
+        var classesCodeS = classesCodeAndMachiningCode.split("-")[0];
+        var machiningCodeS = classesCodeAndMachiningCode.split("-")[1];
+        var dtIdS = classesCodeAndMachiningCode.split("-")[2];
+        location.href = "buyer_agent_declaration_edit_price.html?ppId=" + ppId + "&bsCode=" + id + "&classesCode=" + classesCodeS + "&machiningCode=" + machiningCodeS + "&pricePeriodAndDate=" + pricePeriodAndDate + "&dtId=" + dtIdS;
+
+    }
+
+
+    function getPageBar() {
+        laypage({
+            cont: 'pageBar',
+            pages: totalPage,
+            jump: function (obj) {
+                curPage = obj.curr;
+                loadDate(true);
+                document.getElementById('tBodyDate').innerHTML = tBody;
+                tBody = "";
+            }
+        })
+    }
+</script>
+</body>
+</html>

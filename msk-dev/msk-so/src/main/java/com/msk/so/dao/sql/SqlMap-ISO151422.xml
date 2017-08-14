@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151422Logic">
+    <select id="checkSoReturnStatus" parameterType="com.msk.so.bean.rs.ISOReturnOrder" resultType="com.msk.core.entity.SoReturn">
+        select
+        sr.RETURN_ID AS returnId,
+        sr.RETURN_CODE as returnCode,
+        sr.ORDER_ID as orderId,
+        sr.ORDER_CODE as orderCode,
+        sr.BUYERS_CODE as buyersCode,
+        sr.BUYERS_NAME as buyersName,
+        sr.SELLER_CODE as sellerCode,
+        sr.SELLER_NAME as sellerName,
+        sr.DISTRICT_CODE as districtCode,
+        sr.RETURN_SOURCE as returnSource,
+        sr.RETURN_TYPE as returnType,
+        sr.RETURN_MODE as returnMode,
+        sr.RETURN_AMOUNT as returnAmount,
+        sr.RETURN_REASON as returnReason,
+        sr.APPLY_MAN as applyMan,
+        sr.APPLY_TIME as applyTime,
+        sr.APPLY_REMARK as applyRemark,
+        sr.RECEIVER_NAME as receiverName,
+        sr.RECEIVER_TEL as receiverTel,
+        sr.IS_PAID as isPaid,
+        sr.REFUND_MODE as refundMode,
+        sr.IS_INVOICE as isInvoice,
+        sr.RETURN_ACTOR as returnActor,
+        #{inboundManId} as inboundManId,
+        #{inboundManName} as inboundManName,
+        #{inboundTime} as inboundTime,
+        sr.RETURN_STATUS as returnStatus,
+        sr.SELLERS as sellers,
+        sr.ORDER_TAKER as orderTaker,
+        sr.CANCEL_REASON as cancelReason,
+        sr.IMAGE1 as image1,
+        sr.IMAGE2 as image2,
+        sr.IMAGE3 as image3,
+        sr.IMAGE4 as image4,
+        sr.IMAGE5 as image5,
+        #{updId} as crtId,
+        sr.CRT_TIME as crtTime,
+        sr.VER as ver
+        from so_return sr
+        where
+        sr.DEL_FLG=0
+        and sr.RETURN_ID=#{returnId}
+    </select>
+
+    <!-- 查询订单详细 -->
+    <select id="findSoReturnDetail" parameterType="com.msk.so.bean.rs.Product" resultType="com.msk.so.bean.ISO151422ReturnDetail">
+        SELECT
+        srd.SHIP_ID as shipId,
+        srd.SHIP_CODE as shipCode,
+        srd.ORDER_DETAIL_AVAILABILITY_ID as orderDetailAvailabilityId,
+        srd.DELIVER_ID as deliverId,
+        srd.SUPPLIER_CODE as supplierCode,
+        srd.SUPPLIER_NAME as supplierName,
+        srd.MANUFACTURE_CODE as manufactureCode,
+        srd.MANUFACTURE_NAME as manufactureName,
+        srd.CLASSES_CODE as classesCode,
+        srd.CLASSES_NAME as classesName,
+        srd.BREED_CODE as breedCode,
+        srd.BREED_NAME as breedName,
+        srd.FEATURE_CODE as featureCode,
+        srd.FEATURE_NAME as featureName,
+        srd.NORMS_CODE as normsCode,
+        srd.NORMS_NAME as normsName,
+        srd.PD_CODE as pdCode,
+        srd.PD_NAME as pdName,
+        srd.PD_LEVEL as pdLevel,
+        srd.PD_GRADE_CODE as pdGradeCode,
+        srd.PD_GRADE_NAME as pdGradeName,
+        srd.SKU_CODE as skuCode,
+        srd.UNIT as unit,
+        srd.PACKING_VOLUME as packingVolume,
+        srd.WEIGHT as weight,
+        srd.VOLUME as volume,
+        srd.INBOUND_BATCH as inboundBatch,
+        srd.RETURN_QTY as returnQty,
+        srd.DETAIL_REASON as detailReason,
+        srd.DETAIL_STATUS as detailStatus,
+        #{inboundQty} as inboundQty,
+        CASE WHEN so.order_type IN (5,6) THEN 0
+        ELSE 1 END as buyerFlg,
+        so.seller_code as sellerCode,
+        so.seller_name as sellerNmae,
+        sod.PD_PRICE * srd.RETURN_QTY as returnAmount
+        FROM
+        so_return_detail srd
+        LEFT JOIN so_order_detail_availability soda
+        ON srd.ORDER_DETAIL_AVAILABILITY_ID = soda.ORDER_DETAIL_AVAILABILITY_ID
+        LEFT JOIN so_order_detail sod
+        ON sod.ORDER_DETAIL_ID = soda.ORDER_DETAIL_ID
+        LEFT JOIN so_order so
+        ON sod.order_id = so.order_id
+        WHERE srd.DEL_FLG=0
+        and srd.RETURN_ID=#{returnId}
+        and srd.DETAIL_ID=#{detailId}
+        and srd.SKU_CODE=#{skuCode}
+    </select>
+
+    <update id="updateSoReturn" parameterType="com.msk.so.bean.rs.ISOReturnOrder">
+        UPDATE
+        so_return
+        SET
+        INBOUND_MAN_ID = #{inboundManId},
+        INBOUND_MAN_NAME = #{inboundManName},
+        INBOUND_TIME = #{inboundTime},
+        RETURN_STATUS = #{returnStatus},
+        UPD_TIME = #{updTime},
+        UPD_ID = #{updId},
+        VER=VER+1
+        WHERE
+        DEL_FLG=0 AND
+        RETURN_ID = #{returnId}
+    </update>
+
+    <update id="updateSoReturnDetail" parameterType="com.msk.so.bean.rs.Product">
+        UPDATE
+        so_return_detail
+        SET
+        INBOUND_QTY = #{inboundQty},
+        DETAIL_STATUS = #{detailStatus},
+        UPD_TIME = #{updTime},
+        UPD_ID = #{updId},
+         VER=VER+1
+        WHERE
+         DEL_FLG=0 AND
+        DETAIL_ID = #{detailId}
+    </update>
+
+    <insert id="insertSoReturnStatus" parameterType="com.msk.core.entity.SoReturnStatus">
+            INSERT INTO so_return_status(
+           STATUS_ID,
+           RETURN_ID,
+           RETURN_CODE,
+           RETURN_STATUS,
+           DEL_FLG,
+           CRT_ID,
+           CRT_TIME,
+           VER
+            )VALUES(
+            #{statusId},
+            #{returnId},
+            #{returnCode},
+            #{returnStatus},
+             0,
+            #{crtId},
+            #{crtTime},
+            1
+            )
+    </insert>
+
+    <insert id="save" parameterType="com.msk.core.entity.SoReturn">
+        INSERT INTO so_return (
+        RETURN_ID,
+        RETURN_CODE,
+        ORDER_ID,
+        ORDER_CODE,
+        BUYERS_CODE,
+        BUYERS_NAME,
+        SELLER_CODE,
+        SELLER_NAME,
+        DISTRICT_CODE,
+        RETURN_SOURCE,
+        RETURN_TYPE,
+        RETURN_MODE,
+        RETURN_AMOUNT,
+        RETURN_REASON,
+        APPLY_MAN,
+        APPLY_TIME,
+        APPLY_REMARK,
+        RECEIVER_NAME,
+        RECEIVER_TEL,
+        IS_PAID,
+        REFUND_MODE,
+        IS_INVOICE,
+        RETURN_ACTOR,
+        INBOUND_MAN_ID,
+        INBOUND_MAN_NAME,
+        INBOUND_TIME,
+        RETURN_STATUS,
+        SELLERS,
+        ORDER_TAKER,
+        CANCEL_REASON,
+        IMAGE1,
+        IMAGE2,
+        IMAGE3,
+        IMAGE4,
+        IMAGE5,
+        ROLE_TYPE,
+        BUYERS_ID,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        VER
+        )
+        VALUES(
+        #{returnId},
+        #{returnCode},
+        #{orderId},
+        #{orderCode},
+        #{buyersCode},
+        #{buyersName},
+        #{sellerCode},
+        #{sellerName},
+        #{districtCode},
+        #{returnSource},
+        #{returnType},
+        #{returnMode},
+        #{returnAmount},
+        #{returnReason},
+        #{applyMan},
+        #{applyTime},
+        #{applyRemark},
+        #{receiverName},
+        #{receiverTel},
+        #{isPaid},
+        #{refundMode},
+        #{isInvoice},
+        #{returnActor},
+        #{inboundManId},
+        #{inboundManName},
+        #{inboundTime},
+        #{returnStatus},
+        #{sellers},
+        #{orderTaker},
+        #{cancelReason},
+        #{image1},
+        #{image2},
+        #{image3},
+        #{image4},
+        #{image5},
+        #{roleType},
+        #{buyersId},
+        0,
+        #{crtId},
+        #{crtTime},
+        1
+        )
+    </insert>
+
+    <insert id="batchSave" parameterType="List">
+        INSERT INTO so_return_detail(
+        DETAIL_ID,
+        RETURN_ID,
+        SHIP_ID,
+        SHIP_CODE,
+        ORDER_DETAIL_AVAILABILITY_ID,
+        DELIVER_ID,
+        SUPPLIER_CODE,
+        SUPPLIER_NAME,
+        MANUFACTURE_CODE,
+        MANUFACTURE_NAME,
+        CLASSES_CODE,
+        CLASSES_NAME,
+        BREED_CODE,
+        BREED_NAME,
+        FEATURE_CODE,
+        FEATURE_NAME,
+        NORMS_CODE,
+        NORMS_NAME,
+        PD_CODE,
+        PD_NAME,
+        PD_LEVEL,
+        PD_GRADE_CODE,
+        PD_GRADE_NAME,
+        SKU_CODE,
+        UNIT,
+        PACKING_VOLUME,
+        WEIGHT,
+        VOLUME,
+        INBOUND_BATCH,
+        RETURN_QTY,
+        DETAIL_REASON,
+        DETAIL_STATUS,
+        INBOUND_QTY,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        VER
+        )
+        VALUES
+        <foreach collection ="list" item ="item" index ="index" separator =",">
+            (
+            #{item.detailId},
+            #{item.returnId},
+            #{item.shipId},
+            #{item.shipCode},
+            #{item.orderDetailAvailabilityId},
+            #{item.deliverId},
+            #{item.supplierCode},
+            #{item.supplierName},
+            #{item.manufactureCode},
+            #{item.manufactureName},
+            #{item.classesCode},
+            #{item.classesName},
+            #{item.breedCode},
+            #{item.breedName},
+            #{item.featureCode},
+            #{item.featureName},
+            #{item.normsCode},
+            #{item.normsName},
+            #{item.pdCode},
+            #{item.pdName},
+            #{item.pdLevel},
+            #{item.pdGradeCode},
+            #{item.pdGradeName},
+            #{item.skuCode},
+            #{item.unit},
+            #{item.packingVolume},
+            #{item.weight},
+            #{item.volume},
+            #{item.inboundBatch},
+            #{item.returnQty},
+            #{item.detailReason},
+            #{item.detailStatus},
+            #{item.inboundQty},
+            0,
+            #{item.crtId},
+            #{item.crtTime},
+            1
+            )
+        </foreach>
+    </insert>
+
+    <select id="getSellerCodeDisAnShowName" parameterType="BaseParam" resultType="com.msk.core.entity.SoReturn">
+        SELECT
+          sbbi.SL_CODE_DIS AS buyersCode
+          , sba.SL_SHOW_NAME AS buyersName
+          FROM
+          SL_BS_BASIC_INFO sbbi
+          LEFT JOIN sl_bs_account sba
+            ON sbbi.SL_ACCOUNT = sba.SL_ACCOUNT
+            AND sba.DEL_FLG = 0
+        WHERE
+          sbbi.SL_CODE = #{filterMap.slCode}
+          AND sbbi.DEL_FLG = 0
+    </select>
+
+</mapper>

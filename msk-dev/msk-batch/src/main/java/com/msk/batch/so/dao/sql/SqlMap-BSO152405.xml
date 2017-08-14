@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.batch.so.logic.BSO152405Logic">
+
+    <select id="findReturnList" parameterType="BaseParam" resultType="com.msk.batch.so.bean.BSO152405Result">
+        SELECT
+        sr.RETURN_ID as returnId,
+        sr.RETURN_CODE as returnCode,
+        sr.ORDER_ID as orderId,
+        IFNULL(sr.BUYERS_CODE,'') as buyersCode,
+        IFNULL(sr.BUYERS_NAME,'') as buyersName,
+        so.BUYERS_ID as buyersId,
+        so.BUYERS_TYPE as buyersType,
+        IFNULL(sr.SELLER_CODE,'') as sellerCode,
+        sr.VER as ver,
+        IFNULL(sr.RETURN_TYPE,'') as returnType,
+        date_format(sr.APPLY_TIME,'%Y-%m-%d %H:%i:%s') as returnTime
+        FROM
+        so_return sr
+        INNER JOIN so_order so
+        ON sr.ORDER_ID = so.ORDER_ID
+        WHERE
+        sr.RETURN_STATUS = #{filterMap.waitProcessStatus}
+        OR sr.RETURN_STATUS = #{filterMap.lateReceiptStatus}
+    </select>
+
+    <select id="findReturnDetailList"  parameterType="BaseParam" resultType="com.msk.batch.so.bean.BSO152405DetailResult">
+       SELECT
+        srd.DETAIL_ID AS detailId,
+	    IFNULL(srd.UNIT,'') AS unit,
+        IFNULL(srd.SKU_CODE,'') AS skuCode,
+	    srd.RETURN_QTY AS returnQty,
+	    <!--由于美迪福联调是说这个值不对所以传空就行了-->
+	    '' as inboundBatch,
+        <!--由于美迪福联调是说这个值不对所以传空就行了-->
+	    sod.PD_PRICE AS pdPrice,
+	    sod.ORDER_QTY AS orderQty,
+	    'RETURNED' AS inventoryStatus,
+        IFNULL(srd.SUPPLIER_CODE,'') AS suppCode,
+        IFNULL(sr.DISTRICT_CODE,'') as districtCode,
+        IFNULL(
+        CONCAT(
+        IFNULL(pc.CLASSES_NAME, ''),
+        "-",
+        IFNULL(pm.MACHINING_NAME, ''),
+        "-",
+        IFNULL(pb.BREED_NAME, ''),
+        "-",
+        IFNULL(pf.FEATURE_NAME, ''),
+        "-",
+        IFNULL(pw.WEIGHT_NAME, ''),
+        "-",
+        IFNULL(pg.GRADE_NAME, '')
+        ),
+        ''
+        ) AS skuDesc
+       FROM  so_return_detail srd
+       INNER JOIN SO_RETURN sr
+       ON srd.RETURN_ID = sr.RETURN_ID
+       INNER JOIN SO_ORDER_DETAIL_AVAILABILITY soda
+       ON soda.ORDER_DETAIL_AVAILABILITY_ID = srd.ORDER_DETAIL_AVAILABILITY_ID
+       INNER JOIN SO_ORDER_DETAIL sod
+       ON sod.ORDER_DETAIL_ID = soda.ORDER_DETAIL_ID
+       LEFT JOIN PD_CLASSES PC
+        ON SUBSTRING(srd.PD_CODE, 1, 2) = PC.CLASSES_CODE
+        LEFT JOIN PD_MACHINING PM
+        ON SUBSTRING(srd.PD_CODE, 1, 3) = PM.CLASSESTREE_CODE
+        LEFT JOIN PD_BREED PB
+        ON SUBSTRING(srd.PD_CODE, 1, 5) = PB.CLASSESTREE_CODE
+        LEFT JOIN PD_FEATURE PF
+        ON SUBSTRING(srd.PD_CODE, 1, 7) = PF.CLASSESTREE_CODE
+        LEFT JOIN PD_WEIGHT PW
+        ON SUBSTRING(srd.PD_CODE, 1, 9) = PW.CLASSESTREE_CODE
+        LEFT JOIN PD_GRADE PG
+        ON SUBSTRING(srd.PD_CODE, 10, 1) = PG.GRADE_CODE
+       WHERE srd.RETURN_ID = #{returnId}
+    </select>
+
+    <update id="updateReturnStatus" parameterType="BaseParam">
+        UPDATE SO_RETURN
+        SET RETURN_STATUS = #{returnStatus},
+        UPD_ID = #{updId} ,
+        UPD_TIME = #{updTime} ,
+        VER = VER + 1
+        WHERE RETURN_ID = #{returnId}
+    </update>
+
+    <update id="updateReturnDetailStatus" parameterType="BaseParam">
+        UPDATE SO_RETURN_DETAIL
+        SET DETAIL_STATUS = #{returnStatus},
+        UPD_ID = #{updId} ,
+        UPD_TIME = #{updTime} ,
+        VER = VER + 1
+        WHERE RETURN_ID = #{returnId}
+    </update>
+
+    <insert id="saveSoReturnStatus" parameterType="com.msk.core.entity.SoReturnStatus">
+        INSERT INTO SO_RETURN_STATUS (
+        STATUS_ID,
+        RETURN_ID,
+        RETURN_CODE,
+        RETURN_STATUS,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        VER
+        )
+        VALUES
+        (
+        #{statusId},
+        #{returnId},
+        #{returnCode},
+        #{returnStatus},
+        0,
+        #{crtId},
+        #{crtTime},
+        1
+        )
+    </insert>
+
+    <!-- Add by wang_jianzhou for bug#3809 at 2016/11/28 Start.-->
+    <select id="findShipIds" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderShip">
+            SELECT
+            srd.SHIP_ID AS shipId
+            FROM
+            SO_RETURN sr
+            INNER JOIN SO_RETURN_DETAIL srd
+            ON sr.RETURN_ID = srd.RETURN_ID
+            WHERE
+            sr.RETURN_ID = #{filterMap.returnId}
+            GROUP BY srd.SHIP_ID
+            ORDER BY srd.SHIP_ID
+    </select>
+
+    <select id="findShipId" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderShip">
+        SELECT
+        srd.SHIP_ID AS shipId
+        FROM
+        SO_RETURN sr
+        INNER JOIN SO_RETURN_DETAIL srd
+        ON sr.RETURN_ID = srd.RETURN_ID
+        WHERE
+        sr.RETURN_ID = #{filterMap.returnId}
+        GROUP BY srd.SHIP_ID
+    </select>
+    <!-- Add by wang_jianzhou for bug#3809 at 2016/11/28 end.-->
+</mapper>

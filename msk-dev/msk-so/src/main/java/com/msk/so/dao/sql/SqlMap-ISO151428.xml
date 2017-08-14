@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151428Logic">
+
+    <select id="findPageList" resultType="com.msk.so.bean.ISO151428BuyRecord" parameterType="BaseParam">
+            SELECT
+            so.BUYERS_ID AS buyerId,
+            so.BUYERS_CODE AS buyerCode,
+            so.BUYERS_NAME AS buyerName,
+            sod.FEATURE_CODE AS featureCode,
+            sod.FEATURE_NAME AS featureName,
+            sod.ORDER_QTY AS orderQty,
+            DATE_FORMAT(sod.CRT_TIME,"%Y-%m-%d %T") AS dealTime
+            FROM
+            so_order_detail sod
+            LEFT JOIN so_order so ON sod.ORDER_ID = so.ORDER_ID
+            WHERE
+            so.DEL_FLG = 0
+            AND sod.DEL_FLG = 0
+            AND sod.PD_CODE = #{pdCode}
+        <if test="paging == true">
+            LIMIT #{startPos},#{pageCount}
+        </if>
+    </select>
+
+    <select id="getPageCount" resultType="Integer" parameterType="com.msk.so.bean.ISO151428RsParam">
+            SELECT COUNT(1)
+            FROM
+            so_order_detail sod
+            LEFT JOIN so_order so ON sod.ORDER_ID = so.ORDER_ID
+            WHERE
+            so.DEL_FLG = 0
+            AND sod.DEL_FLG = 0
+            AND sod.PD_CODE = #{pdCode}
+    </select>
+</mapper>

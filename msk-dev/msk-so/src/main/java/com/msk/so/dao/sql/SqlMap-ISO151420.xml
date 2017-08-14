@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151420Logic">
+	<select id="findOne" resultType="com.msk.core.entity.SoComplain" parameterType="BaseParam">
+        SELECT
+		order_code AS complainCode
+		,order_id AS orderId
+		,#{userId} AS userId
+		,#{complainReasonCode} AS complainReasonCode
+		,#{complainDescription} AS complainDesc
+		,#{complainImg} AS complainImg
+		,#{crtId} AS crtId
+        FROM so_order
+        WHERE order_id = #{orderId}
+        AND DEL_FLG = 0
+    </select>
+
+	<insert id="save" parameterType="com.msk.core.entity.SoComplain">
+		INSERT INTO so_complain (
+		COMPLAIN_ID,
+		COMPLAIN_CODE,
+		ORDER_ID,
+		USER_ID,
+		COMPLAIN_DATE,
+		COMPLAIN_REASON_CODE,
+		COMPLAIN_DESC,
+		COMPLAIN_IMG,
+		COMPLAIN_STATUS,
+		DEL_FLG,
+		CRT_ID,
+		CRT_TIME,
+		VER
+		)
+		VALUES
+		(
+		#{complainId},
+		#{complainCode},
+		#{orderId},
+		#{userId},
+		#{complainDate},
+		#{complainReasonCode},
+		#{complainDesc},
+		#{complainImg},
+		#{complainStatus},
+		0,
+		#{crtId},
+		#{crtTime},
+		1
+		)
+	</insert>
+</mapper>

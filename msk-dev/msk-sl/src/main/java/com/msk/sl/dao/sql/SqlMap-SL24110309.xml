@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL241103Logic">
+
+	<select id="findPageList" parameterType="com.msk.core.bean.BasePageParam"
+		resultType="com.msk.sl.bean.SlEpAgentAuth">
+		SELECT
+		IFNULL(C.SL_CODE, '') AS slCode,
+		IFNULL(A.PRODUCER_EP_ID, '') AS producerEpId,
+		IFNULL(C.SL_CODE_MANUFACTURE, '') AS slCodeManufacture,
+		IFNULL(B.LIC_ADDR,'') AS licAddr,
+		IFNULL(A.AUTH_TERM_BEGIN, '') AS authTermBeginString,
+		IFNULL(A.AUTH_TERM_END, '') AS authTermEndString,
+		IFNULL(B.EP_NAME, '') AS epName,
+		IFNULL(
+		CONCAT(
+		D.PROVINCE_NAME,' ',
+		E.CITY_NAME,' ',
+		F.DISTRICT_NAME
+		),
+		''
+		) AS slAreaCode
+		FROM
+		sl_ep_agent_auth A
+		INNER JOIN SL_ENTERPRISE B ON (A.PRODUCER_EP_ID = B.EP_ID)
+		INNER JOIN SL_SELLER C ON (A.PRODUCER_EP_ID=C.EP_ID)
+		INNER JOIN md_province D on C.PROVINCE_CODE=D.PROVINCE_CODE
+		INNER JOIN md_city E on C.CITY_CODE=E.CITY_CODE AND D.PROVINCE_ID=E.PROVINCE_ID
+		INNER JOIN md_district F on C.DISTRICT_CODE=F.DISTRICT_CODE AND F.CITY_ID=E.CITY_ID
+		WHERE A.SL_CODE =
+		#{filterMap.slCode}
+		AND (A.DEL_FLG=0 or A.DEL_FLG IS NULL)
+		ORDER BY A.PRODUCER_EP_ID
+		<if test="paging==true">
+			LIMIT #{startPos},#{pageSize};
+		</if>
+	</select>
+	<select id="getPageCount" resultType="Integer"
+		parameterType="com.msk.core.bean.BasePageParam">
+		select COUNT(1)
+		FROM
+		sl_ep_agent_auth A
+		INNER JOIN SL_ENTERPRISE B ON (A.PRODUCER_EP_ID = B.EP_ID)
+		INNER JOIN SL_SELLER C ON (A.PRODUCER_EP_ID=C.EP_ID)
+		INNER JOIN md_province D on C.PROVINCE_CODE=D.PROVINCE_CODE
+		INNER JOIN md_city E on C.CITY_CODE=E.CITY_CODE AND D.PROVINCE_ID=E.PROVINCE_ID
+		INNER JOIN md_district F on C.DISTRICT_CODE=F.DISTRICT_CODE AND F.CITY_ID=E.CITY_ID
+		WHERE A.SL_CODE = #{filterMap.slCode}
+		AND (A.DEL_FLG=0 or A.DEL_FLG IS NULL)
+	</select>
+</mapper>

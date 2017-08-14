@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SlProductLogic">
+    <!--卖家产品表-->
+    <sql id="slProductSql">
+        A.SL_CODE AS slCode,
+        A.SL_PD_ID AS slPdId,
+        A.PROD_EP_ID AS prodEpId,
+        A.BRAND_EP_ID AS brandEpId,
+        A.BRAND_ID AS brandId,
+        A.PD_CLASSES_CODE AS pdClassesCode,
+        A.PD_BREED_CODE AS pdBreedCode,
+        A.WEIGHT_CODE AS weightCode,
+        A.PD_FEATURE_CODE AS pdFeatureCode,
+        (CASE(A.DIST_FLG)
+        WHEN '1' THEN '是'
+        WHEN '0' THEN '否' END)AS distFlg,
+        A.SL_TNC_STD AS slTncStd,
+        (CASE WHEN A.SL_TNC_GRADE_CODE IS NULL THEN ''
+        ELSE A.SL_TNC_GRADE_CODE END)AS slTncGradeCode,
+        (CASE A.SL_TNC_GRADE_CODE WHEN '1' THEN 'A1'
+        WHEN '2' THEN 'A2'
+        WHEN '3' THEN 'A3'
+        WHEN '4' THEN '不通过'
+        WHEN '5' THEN '论证中'
+        ELSE '' END)AS slTncGradeName,
+        (CASE WHEN A.TNC_NG_REASON IS NULL THEN ''
+        ELSE A.TNC_NG_REASON END)AS tncNgReason,
+        A.TNC_AUDIT_STATUS AS tncAuditStatus,
+        A.TNC_AUDITOR AS tncAuditor,
+        A.TNC_AUDIT_DATE AS tncAuditDate,
+        (CASE
+        WHEN A.TNC_MONITOR_RESULT IS NULL THEN ''
+        ELSE A.TNC_MONITOR_RESULT END)AS tncMonitorResult,
+        A.TNC_MONITOR_AUDITOR AS tncMonitorAuditor,
+        A.TNC_MONITOR_DATE AS tncMonitorDate,
+        A.SL_QLT_STD AS slQltStd,
+        (CASE WHEN A.SL_QLT_GRADE_CODE IS NULL THEN ''
+        ELSE A.SL_QLT_GRADE_CODE END)AS slQltGradeCode,
+        (CASE A.SL_QLT_GRADE_CODE WHEN '1' THEN '优良'
+        WHEN '2' THEN '合格'
+        WHEN '3' THEN '不合格'
+        WHEN '5' THEN '论证中'
+        ELSE '' END)AS slQltGradeName,
+        (CASE WHEN A.QLT_NG_REASON IS NULL THEN ''
+        ELSE A.QLT_NG_REASON END)AS qltNgReason,
+        A.QLT_AUDIT_STATUS AS qltAuditStatus,
+        A.QLT_AUDITOR AS qltAuditor,
+        A.QLT_AUDIT_DATE AS qltAuditDate,
+        (CASE
+        WHEN A.QLT_MONITOR_RESULT IS NULL THEN ''
+        ELSE A.QLT_MONITOR_RESULT END )AS qltMonitorResult,
+        A.QLT_MONITOR_AUDITOR AS qltMonitorAuditor,
+        A.QLT_MONITOR_DATE AS qltMonitorDate,
+        B.EP_NAME AS prodEpName,
+        IFNULL(C.BRAND_NAME,A.BRAND_ID) AS brandName,
+        IFNULL(D.CLASSES_NAME,A.PD_CLASSES_CODE) AS classesName,
+        IFNULL(E.BREED_NAME,A.PD_BREED_CODE) AS breedName,
+        F.FEATURE_NAME AS featureName,
+        CONCAT(A.PD_CLASSES_CODE,A.PD_BREED_CODE) AS productCode,
+        A.STATUS AS status,
+        IFNULL(G.MACHINING_NAME,'') AS machiningName,
+        IFNULL(A.MACHINING_CODE,'')AS machiningCode
+    </sql>
+
+    <sql id="slProductWhere">
+        <where>
+            <if test="slCode!=null and slCode!=''">
+                AND A.SL_CODE = #{slCode}
+            </if>
+            <!--<if test="slPdId!=null and slPdId!=''">
+                AND A.SL_PD_ID = #{slPdId}
+            </if>-->
+            <if test="classesCode!=null and classesCode!=''">
+                AND A.PD_CLASSES_CODE = #{classesCode}
+            </if>
+            <if test="machiningCode!=null and machiningCode!=''">
+                AND A.MACHINING_CODE = #{machiningCode}
+            </if>
+            <if test="breedCode!=null and breedCode!=''">
+                AND A.PD_BREED_CODE=#{breedCode}
+            </if>
+            <if test="featureCode!=null and featureCode!=''">
+                AND A.PD_FEATURE_CODE=#{featureCode}
+            </if>
+            <if test="weightCode!=null and weightCode!=''">
+                AND A.WEIGHT_CODE=#{weightCode}
+            </if>
+        </where>
+    </sql>
+
+    <!-- Modify for bug#1189 at 2016/07/13 by wanng_jianzhou Start.-->
+    <select id="findPdForDh" parameterType="java.util.HashMap" resultType="com.msk.sl.bean.SlProductBean">
+        SELECT
+        <include refid="slProductSql" />
+        FROM SL_PRODUCT AS A
+        LEFT JOIN sl_enterprise B ON A.PROD_EP_ID=B.EP_ID
+        LEFT JOIN sl_ep_brand C ON C.BRAND_ID=A.BRAND_ID AND A.BRAND_EP_ID=C.EP_ID
+        LEFT JOIN PD_CLASSES D ON A.PD_CLASSES_CODE=D.CLASSES_CODE
+        LEFT JOIN PD_BREED E ON A.PD_BREED_CODE=E.BREED_CODE AND A.PD_CLASSES_CODE=E.CLASSES_CODE AND E.MACHINING_CODE=A.MACHINING_CODE
+        LEFT JOIN PD_FEATURE F ON A.PD_BREED_CODE=F.BREED_CODE AND A.PD_CLASSES_CODE=F.CLASSES_CODE AND F.MACHINING_CODE=A.MACHINING_CODE
+        AND A.PD_FEATURE_CODE=F.FEATURE_CODE
+        LEFT JOIN PD_MACHINING G ON G.CLASSES_CODE=A.PD_CLASSES_CODE AND G.MACHINING_CODE=A.MACHINING_CODE
+        <include refid="slProductWhere"/>
+        <!--A.PD_CLASSES_CODE,A.PD_BREED_CODE,A.PD_FEATURE_CODE,-->
+        <!-- Modify for bug#1189 at 2016/07/13 by wanng_jianzhou end.-->
+        ORDER BY (A.SL_PD_ID+0)
+    </select>
+
+    <insert id="saveSlProductHis" parameterType="com.msk.sl.bean.SlProductBean">
+        INSERT INTO sl_product_status_his(
+        HIS_ID,
+        SL_CODE,
+        SL_PD_ID,
+        PROD_EP_ID,
+        BRAND_EP_ID,
+        BRAND_ID,
+        PD_CLASSES_CODE,
+        MACHINING_CODE,
+        PD_BREED_CODE,
+        PD_FEATURE_CODE,
+        WEIGHT_CODE,
+        DIST_FLG,
+        DISTMSK_FLG,
+        DISTMSK_RATE,
+        SL_TNC_STD,
+        SL_TNC_GRADE_CODE,
+        TNC_NG_REASON,
+        TNC_AUDIT_STATUS,
+        TNC_AUDITOR,
+        TNC_AUDIT_DATE,
+        TNC_MONITOR_RESULT,
+        TNC_MONITOR_AUDITOR,
+        TNC_MONITOR_DATE,
+        SL_QLT_STD,
+        SL_QLT_GRADE_CODE,
+        QLT_NG_REASON,
+        QLT_AUDIT_STATUS,
+        QLT_AUDITOR,
+        QLT_AUDIT_DATE,
+        QLT_MONITOR_RESULT,
+        QLT_MONITOR_AUDITOR,
+        QLT_MONITOR_DATE,
+        STATUS,
+        STATUS_MONITOR_RESULT,
+        STATUS_MONITOR_AUDITOR,
+        STATUS_MONITOR_DATE,
+        CRT_TIME
+        )VALUES(#{hisId},#{slCode},#{slPdId},#{prodEpId},#{brandEpId},#{brandId},#{pdClassesCode},#{machiningCode},#{pdBreedCode},#{pdFeatureCode},#{weightCode},#{distFlg},#{distmskFlg},#{distmskRate},#{slTncStd},#{slTncGradeCode},#{tncNgReason},#{tncAuditStatus},#{tncAuditor},#{tncAuditDate},#{tncMonitorResult},#{tncMonitorAuditor},#{tncMonitorDate},#{slQltStd},#{slQltGradeCode},#{qltNgReason},#{qltAuditStatus},#{qltAuditor},#{qltAuditDate},#{qltMonitorResult},#{qltMonitorAuditor},#{qltMonitorDate},#{status},#{statusMonitorResult},#{statusMonitorAuditor},#{statusMonitorDate},now())
+    </insert>
+
+    <select id="findProductInfo" parameterType="com.msk.so.bean.StockParam" resultType="com.msk.core.entity.PdNormsStd">
+        select
+          a.NORMS_OUT AS normsOut
+          , a.NORMS_VOLUME AS normsVolume
+          , a.NETWEIGHT_OUT AS netweightOut
+        from
+          pd_norms_std a
+          left join pd_standard b
+            on a.STANDARD_ID = b.STANDARD_ID
+        where
+          b.CLASSESTREE_CODE = SUBSTRING(#{pdCode},1,9)
+    </select>
+</mapper>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.ds.logic.DistSuppChainLogic">
+    <select id="findDistMonthList" parameterType="BaseParam" resultType="com.msk.ds.bean.DistSuppChain">
+        SELECT
+              DISTINCT DIST_MONTH AS distMonth
+        FROM
+              ds_supp_dist_num
+        WHERE
+              DEL_FLG = 0
+         AND DIST_MONTH LIKE #{filterMap.distYear} OR #{filterMap.distBeforeYear}
+         ORDER BY
+             DIST_MONTH
+    </select>
+    <select id="findLogisAreaList" parameterType="BaseParam" resultType="com.msk.ds.bean.DistSuppChain">
+        SELECT DISTINCT
+            distSupp.LGCS_CODE AS areaCode,
+            logcsArea.LGCS_AREA_NAME AS areaName
+        FROM
+            ds_supp_dist_num distSupp,
+            md_logistics_area logcsArea
+        WHERE
+            distSupp.LGCS_CODE = logcsArea.LGCS_AREA_CODE
+            AND distSupp.DEL_FLG = 0
+            <if test="filterMap.distMonth!=null and filterMap.distMonth!=''">
+                AND distSupp.DIST_MONTH = #{filterMap.distMonth}
+            </if>
+    </select>
+    <select id="findSuppInfoList" parameterType="BaseParam" resultType="com.msk.ds.bean.DistSuppChain">
+        SELECT DISTINCT
+        distSupp.SUPP_CODE AS supplierCode,
+        slEn.EP_NAME AS supplierName,
+        slacct.SL_ACCOUNT AS crtId
+        FROM
+        ds_supp_dist_num distSupp,
+        sl_enterprise slEn,
+        sl_seller slseller,
+        sl_account slacct
+        WHERE
+        distSupp.SUPP_CODE = slseller.SL_CODE
+        AND slseller.EP_ID = slEn.EP_ID
+        AND slacct.SL_ACCOUNT = slseller.SL_ACCOUNT
+        AND slacct.DEL_FLG = 0
+        AND slacct.AUTH_STATUS = 2
+        AND distSupp.DEL_FLG = 0
+        <if test="filterMap.distMonth!=null and filterMap.distMonth!=''">
+            AND distSupp.DIST_MONTH = #{filterMap.distMonth}
+        </if>
+        <if test="filterMap.logisAreaCode!=null and filterMap.logisAreaCode!=''">
+            AND distSupp.LGCS_CODE = #{filterMap.logisAreaCode}
+        </if>
+    </select>
+</mapper>

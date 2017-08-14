@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.OMReturnBuyersLogic">
+	<sql id="selectSql">
+		A.BUYERS_CODE AS buyersCode
+		,A.BUYERS_NAME AS buyersName
+		,A.CONSIGNEE AS consignee
+		,A.CONSIGNEE_MOBILE AS consigneeMobile
+		,A.CONSIGNEE_QQ AS consigneeQq
+		,A.CONSIGNEE_WEIXIN AS consigneeWeixin
+		,A.CONSIGNEE_ADDR_PROVINCE AS consigneeAddrProvince
+		,A.CONSIGNEE_ADDR_CITY AS consigneeAddrCity
+		,A.CONSIGNEE_ADDR_AREA AS
+		consigneeAddrArea
+		,A.CONSIGNEE_ADDR AS consigneeAddr
+	</sql>
+	<!-- 查询语句 -->
+	<select id="findOneReturnBuyers" resultType="com.msk.so.bean.ReturnOrderBuyersBean"
+		parameterType="BaseParam">
+		SELECT
+		<include refid="selectSql" />
+		FROM
+		SO_RETURN_BUYERS AS A
+		WHERE
+		RETURN_ID= #{filterMap.returnId}
+	</select>
+
+</mapper>

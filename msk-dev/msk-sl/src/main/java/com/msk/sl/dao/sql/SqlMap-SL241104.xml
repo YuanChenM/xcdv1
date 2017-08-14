@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL241104Logic">
+    <sql id="PdTncStdSql">
+        A.STANDARD_ID AS standardId,
+        A.TNC_STD_ITEM_ID AS tncStdItemId,
+        A.TNC_STD_VAL1 AS tncStdVal1,
+        A.TNC_STD_VAL2 AS tncStdVal2,
+        A.TNC_STD_VAL3 AS tncStdVal3,
+        IFNULL(A.REMARK,'') AS remark
+    </sql>
+    <sql id="PdTncStdItemSql">
+        B.TNC_STD_ITEM_ID AS tncStdItemId,
+        B.TNC_STD_ITEM_NAME AS tncStdItemName,
+        B.LEVEL_ID AS levelId,
+        B.PARENT_ID AS parentId,
+        B.IS_CATALOG AS isCatalog,
+        IFNULL(C.STD_VAL,'') AS stdVal,
+        IFNULL(C.AGREE_FLG,'') AS agreeFlg,
+        C.SL_CODE AS slCode,
+        C.SL_PD_ID AS slPdId
+    </sql>
+    <select id="findSlPdTncStd" resultType="com.msk.sl.bean.SL241117Bean" parameterType="BaseParam">
+      SELECT
+        <include refid="PdTncStdItemSql"/>
+        ,
+        <include refid="PdTncStdSql"/>
+        FROM
+        sl_pd_tnc_std_new AS C
+        INNER JOIN pd_tnc_std_item AS B ON C.STD_ITEM_ID = B.TNC_STD_ITEM_ID
+        INNER JOIN pd_tnc_std AS A ON A.TNC_STD_ITEM_ID = B.TNC_STD_ITEM_ID AND A.STANDARD_ID = C.STANDARD_ID
+        WHERE
+        C.SL_CODE = #{filterMap.slCode} AND
+        C.SL_PD_ID = #{filterMap.slPdId}
+    </select>
+</mapper>

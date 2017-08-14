@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:jpa="http://www.springframework.org/schema/data/jpa" xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+            http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+            http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+            http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool.xsd
+               http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo-1.8.xsd
+        ">
+    <!-- properties file -->
+    <bean id="configProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="locations">
+            <list>
+                <value>classpath:config/*.properties</value>
+            </list>
+        </property>
+    </bean>
+    <bean name="rsClientUtil" class="com.msk.common.utils.RsClientUtil"/>
+    <context:component-scan base-package="com.msk" use-default-filters="false">
+        <context:include-filter type="regex" expression="com.msk.*.logic.*Logic" />
+        <context:include-filter type="regex" expression="com.msk.batch.LockBatch" />
+        <context:include-filter type="regex" expression="com.msk.batch.*Batch" />
+        <context:include-filter type="regex" expression="com.msk.batch.*.*Batch" />
+        <context:include-filter type="regex" expression="com.msk.batch.base.*" />
+        <context:include-filter type="regex" expression="com.msk.batch.base.logic.BatchRecordLogic" />
+        <context:include-filter type="regex" expression="com.msk.so.Order" />
+        <context:include-filter type="regex" expression="com.msk.so.orderstatus.OrderStatusContext" />
+        <context:include-filter type="regex" expression="com.msk.so.returnorderstatus.ReturnOrderStatusContext" />
+        <context:include-filter type="regex" expression="com.msk.core.utils.ConfigInfo"/>
+        <context:include-filter type="regex" expression="com.msk.core.utils.ConfigManager"/>
+        <context:include-filter type="regex" expression="com.msk.core.utils.SpringContextUtil"/>
+        <context:include-filter type="regex" expression="com.msk.batch.wq.util.WqConfigInfo"/>
+        <context:include-filter type="regex" expression="com.msk.batch.wq.util.WqHttpClient"/>
+    </context:component-scan>
+</beans>

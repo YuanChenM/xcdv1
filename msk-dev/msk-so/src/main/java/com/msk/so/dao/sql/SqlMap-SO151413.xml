@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.SO151413Logic">
+    <select id="findList" parameterType="com.msk.core.bean.BasePageParam" resultType="com.msk.so.bean.SO151413Bean">
+        SELECT
+        IFNULL(SL.SL_CODE_DIS,'') AS slCodeDis,
+        IFNULL(SL_NAME,'') AS slShowName,
+        IFNULL(PD_CODE,'') AS pdCode,
+        IFNULL(pc.CLASSES_NAME,'') AS classesName,
+        IFNULL(pb.BREED_NAME,'') AS breedName,
+        IFNULL(pf.FEATURE_NAME,'') AS featureName,
+        IFNULL(
+        CONCAT(
+        IFNULL(pc.CLASSES_NAME, ''),
+        "/",
+        IFNULL(pm.MACHINING_NAME, ''),
+        "/",
+        IFNULL(pb.BREED_NAME, ''),
+        "/",
+        IFNULL(pf.FEATURE_NAME, ''),
+        "/",
+        IFNULL(pw.WEIGHT_NAME, ''),
+        "/",
+        IFNULL(pg.GRADE_NAME, '')
+        ),
+        '未知产品'
+        ) AS pdName,
+        IFNULL(pg.GRADE_NAME,'') AS pdGradeName,
+        IFNULL(STOCK_QTY,0) AS orderQty,
+        IFNULL(A.STOCK_QTY,0) - ifnull(
+        (
+        SELECT
+        SUM(b.order_qty) - SUM(IFNULL(b.cancel_qty, 0))
+        FROM
+        so_order_detail b
+        LEFT JOIN
+        so_order c
+        on c.ORDER_ID=b.ORDER_ID
+        WHERE
+        c.SELLER_CODE = A.SL_CODE
+        AND c.ORDER_STATUS != '99'
+        AND c.ORDER_TYPE NOT IN (4,7)
+        AND b.PD_CODE = A.PD_CODE
+        ),
+        '0'
+        ) AS leftQty
+        FROM
+        SO_STOCK_SL AS A
+        INNER JOIN sl_bs_basic_info SL
+        ON A.SL_CODE = SL.SL_CODE
+        LEFT JOIN PD_CLASSES PC
+        ON SUBSTRING(PD_CODE, 1, 2) = PC.CLASSES_CODE
+        LEFT JOIN PD_MACHINING PM
+        ON SUBSTRING(PD_CODE, 1, 3) = PM.CLASSESTREE_CODE
+        LEFT JOIN PD_BREED PB
+        ON SUBSTRING(PD_CODE, 1, 5) = PB.CLASSESTREE_CODE
+        LEFT JOIN PD_FEATURE PF
+        ON SUBSTRING(PD_CODE, 1, 7) = PF.CLASSESTREE_CODE
+        LEFT JOIN PD_WEIGHT PW
+        ON SUBSTRING(PD_CODE, 1, 9) = PW.CLASSESTREE_CODE
+        LEFT JOIN PD_GRADE PG
+        ON SUBSTRING(PD_CODE, 10, 1) = PG.GRADE_CODE
+        WHERE 1=1
+        <if test="filterMap.slShowName != null and filterMap.slShowName != ''">
+            AND SL_NAME = #{filterMap.slShowName}
+        </if>
+        <if test="filterMap.pdCode != null and filterMap.pdCode != ''">
+            AND PD_CODE =#{filterMap.pdCode}
+        </if>
+    </select>
+</mapper>

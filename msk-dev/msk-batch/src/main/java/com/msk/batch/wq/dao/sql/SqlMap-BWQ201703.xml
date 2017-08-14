@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.batch.wq.logic.BWQ201703Logic">
+    <!--添加员工数据-->
+    <insert id="saveEmployee" parameterType="com.msk.core.bean.BaseParam">
+    insert into wq_employee(
+    TBL_ID,
+    EMP_ID,
+    EMP_CODE,
+    EMP_NAME,
+    EMP_SEX,
+    EMP_MOBILE,
+    EMP_TEL,
+    EMP_IDCARD,
+    EMP_ORG_ID,
+    EMP_ORG_CODE,
+    EMP_IS_ORG_LEADER,
+    EMP_PARENT_ID,
+    PARENT_CODE,
+    WAIQIN365_PARENT_ID,
+    EMP_POSITION,
+    ID,
+    EMP_STATUS,
+    DEL_FLG,
+    CRT_ID,
+    CRT_TIME,
+    UPD_ID,
+    UPD_TIME,
+    ACT_ID,
+    ACT_TIME,
+    VER
+    ) values
+    <foreach collection="filterMap.list" item="li" separator=",">
+        (
+        #{li.tblId},
+        #{li.empId},
+        #{li.empCode},
+        #{li.empName},
+        #{li.empSex},
+        #{li.empMobile},
+        #{li.empTel},
+        #{li.empIdcard},
+        #{li.empOrgId},
+        #{li.empOrgCode},
+        #{li.empIsOrgLearder},
+        #{li.empParentId},
+        #{li.parentCode},
+        #{li.waiqin365ParentId},
+        #{li.empPosition},
+        #{li.id},
+        #{li.empStatus},
+        #{li.delFlg},
+        #{li.crtId},
+        SYSDATE(),
+        #{li.updId},
+        #{li.updTime},
+        #{li.actId},
+        #{li.actTime},
+        #{li.ver})
+    </foreach>
+    </insert>
+    <!--查询365外勤员工数据-->
+    <select id="queryHouseAccountId" parameterType="com.msk.core.bean.BaseParam" resultType="com.msk.batch.wq.bean.BWQ201702Result">
+        select ID as id from wq_employee as a where a.EMP_NAME=#{filterMap.empName} and a.EMP_STATUS='1'
+    </select>
+
+    <!--查询管家数据-->
+    <select id="querySlHouseAccount" resultType="com.msk.batch.wq.bean.BWQ201703Result">
+        SELECT
+	    a.HOUSE_ACCOUNT AS empCode,
+	    a.HOUSE_SHOW_NAME AS empName,
+	    a.HOUSE_CODE as houseCode,
+	    a.HOUSE_TEL AS empMobile,
+        a.SL_IDCARD AS empIdcard,
+        a.EMAIL AS empEmail,
+        a.R_HOUSE_ADDRESS AS empAddr,
+        a.QQ AS empQq,
+        a.WECHAT AS empWeixin,
+        a.HOUSE_CATEGORY as houseCateGory,
+        a.V_LGCS_AREA_CODE as vlgcsAreaCode,
+        a.V_PROVINCE_CODE as vprovinceCode,
+        a.V_CITY_CODE as vcityCode,
+        a.V_DISTRICT_CODE as vdistrictCode,
+        a.FAX as fax
+        FROM
+        sl_house_account AS a
+        where a.DEL_FLG='0'
+    </select>
+
+    <!--查询管家类型-->
+    <select id="querySlBsType" resultType="com.msk.batch.wq.entity.SlHouseAccount" parameterType="com.msk.core.bean.BaseParam">
+        SELECT
+	    DISTINCT(c.TYPE_NAME) AS houseCategory
+        FROM
+	    sl_house_account AS a
+        LEFT JOIN sl_house_manage AS b ON (a.HOUSE_CODE = b.HOUSE_CODE)
+        LEFT JOIN sl_bs_house_type AS c ON (
+        b.HOUSE_CATEGORY_CODE = c.TYPE_CODE
+        )
+        WHERE
+        c.ROLE_TYPE = '1'
+        AND c.TYPE_LEVER = '0'
+        AND b.HOUSE_CATEGORY_CODE=#{filterMap.byType}
+        AND a.HOUSE_ACCOUNT=#{filterMap.account}
+    </select>
+
+    <!--删除员工信息-->
+    <delete id="removeEmployee">
+        delete from wq_employee
+    </delete>
+
+    <!--查询管家的买手-->
+    <select id="queryHouseById" resultType="com.msk.batch.wq.entity.WqEmployee" parameterType="com.msk.core.bean.BaseParam">
+        select c.EMP_ID as empId,c.EMP_NAME as empName from wq_employee as c where c.EMP_NAME=(select d.SL_SHOW_NAME from sl_bs_account as d where d.SL_ACCOUNT=( select b.SL_ACCOUNT from sl_bs_basic_info as b where b.SL_CODE=(select DISTINCT(a.SL_CODE) from sl_house_account as a where a.HOUSE_CODE=#{filterMap.houseCode})))
+    </select>
+
+    <!--查询物流区-->
+    <select id="queryLgcsAreaName" resultType="com.msk.batch.wq.bean.BWQ201703Result" parameterType="com.msk.core.bean.BaseParam">
+        select a.LGCS_AREA_ID as vlgcsAreaId,a.LGCS_AREA_NAME as vlgcsAreaName from md_logistics_area as a where a.LGCS_AREA_CODE=#{filterMap.vlgcsAreaCode}
+    </select>
+
+    <!--查询省-->
+    <select id="queryProvinceName" resultType="com.msk.batch.wq.bean.BWQ201703Result" parameterType="com.msk.core.bean.BaseParam">
+        select a.PROVINCE_ID as vprovinceId,a.PROVINCE_NAME as vprovinceName from md_province as a where a.PROVINCE_CODE=#{filterMap.vprovinceCode}
+    </select>
+
+    <!--查询市-->
+    <select id="queryCityName" resultType="com.msk.batch.wq.bean.BWQ201703Result" parameterType="com.msk.core.bean.BaseParam">
+        select a.CITY_NAME as vcityName,CITY_ID as vcityId from md_city as a
+        <where>
+            <if test="filterMap.vcityCode!=null and filterMap.vcityCode!=''">
+                and a.CITY_CODE=#{filterMap.vcityCode}
+            </if>
+            <if test="filterMap.vlgcsAreaId!=null and filterMap.vlgcsAreaId!=''">
+                and a.LGCS_AREA_ID=#{filterMap.vlgcsAreaId}
+            </if>
+            <if test="filterMap.vprovinceId!=null and filterMap.vprovinceId!=''">
+               and a.PROVINCE_ID=#{filterMap.vprovinceId}
+            </if>
+        </where>
+    </select>
+
+    <!--查询地区-->
+    <select id="queryDistrictName" resultType="com.msk.batch.wq.bean.BWQ201703Result" parameterType="com.msk.core.bean.BaseParam">
+    select a.DISTRICT_NAME as vdistrictName from md_district as a
+    <where>
+        <if test="filterMap.vcityId!=null and filterMap.vcityId!=''">
+          and a.CITY_ID=#{filterMap.vcityId}
+        </if>
+        <if test="filterMap.vdistrictCode!=null and filterMap.vdistrictCode!=''">
+          and a.DISTRICT_CODE=#{filterMap.vdistrictCode}
+        </if>
+    </where>
+    </select>
+
+    <!--查询管家手机号是否存在-->
+    <select id="queryHouseTel" resultType="java.lang.Integer" parameterType="com.msk.core.bean.BaseParam">
+        select count(1) from wq_employee as a where a.EMP_MOBILE=#{filterMap.empMobile} and a.EMP_STATUS!='0'
+    </select>
+
+    <!--查询管家表管家手机号是否存在-->
+    <select id="queryHouseTelNo" resultType="java.lang.Integer" parameterType="com.msk.core.bean.BaseParam">
+        select count(1) from sl_house_account as a where a.HOUSE_TEL=#{filterMap.empMobile}
+    </select>
+
+    <!--查询管家和买手是否一样-->
+    <select id="queryHouseSlBs" resultType="com.msk.batch.wq.entity.WqEmployee" parameterType="com.msk.core.bean.BaseParam">
+        select a.EMP_ID as empId,a.EMP_NAME as empName from wq_employee as a where a.EMP_NAME=#{filterMap.empName}
+    </select>
+
+    <!--判断已停用的员工-->
+    <select id="queryEmployeeStopTwo" resultType="java.lang.Integer" parameterType="com.msk.core.bean.BaseParam">
+        select count(1) from wq_employee as a
+        <where>
+            <if test="filterMap.empName!=null and filterMap.empName!=''">
+                and a.EMP_NAME=#{filterMap.empName}
+            </if>
+            and a.EMP_STATUS='2'
+        </where>
+    </select>
+
+    <!--查询管家类型-->
+    <select id="queryHouseType" resultType="com.msk.batch.wq.bean.BWQ201703Result" parameterType="com.msk.core.bean.BaseParam">
+        select b.HOUSE_CATEGORY_CODE as houseType from sl_house_account as a LEFT JOIN sl_house_manage as b on(a.HOUSE_CODE=b.HOUSE_CODE) where a.HOUSE_CODE=#{filterMap.houseCode} LIMIT 0,1
+    </select>
+
+    <!--查询员工是否删除-->
+    <select id="queryEmployeeDelete" resultType="java.lang.Integer" parameterType="com.msk.core.bean.BaseParam">
+        select count(1) from wq_employee as a
+        <where>
+            <if test="filterMap.empName!=null and filterMap.empName!=''">
+                and a.EMP_NAME=#{filterMap.empName}
+            </if>
+            and a.EMP_STATUS='0'
+        </where>
+    </select>
+</mapper>

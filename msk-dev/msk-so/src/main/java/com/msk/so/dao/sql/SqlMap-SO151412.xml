@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.SO151412Logic">
+    <select id="findList" parameterType="com.msk.core.bean.BasePageParam" resultType="com.msk.so.bean.SO151412Bean">
+        SELECT
+        ifnull(b.DEMESNE,'') as demesne,
+        ifnull(b.SL_CODE_DIS,'') as slCodeDis,
+        ifnull(a.SL_SHOW_NAME,'') as slShowName,
+        ifnull(d.CLASSES_NAME,'') as classesName,
+        ifnull(d.BREED_NAME,'') AS breedName,
+        ifnull(d.FEATURE_NAME,'') as featureName,
+        ifnull(d.NORMS_NAME,'') as normsName,
+        ifnull(d.PD_CODE,'') as pdCode,
+        ifnull(d.PD_GRADE_NAME,'') as pdGradeName,
+        IFNULL(
+        CONCAT(
+        IFNULL(pc.CLASSES_NAME, ''),
+        "/",
+        IFNULL(pm.MACHINING_NAME, ''),
+        "/",
+        IFNULL(pb.BREED_NAME, ''),
+        "/",
+        IFNULL(pf.FEATURE_NAME, ''),
+        "/",
+        IFNULL(pw.WEIGHT_NAME, ''),
+        "/",
+        IFNULL(pg.GRADE_NAME, '')
+        ),
+        '未知产品'
+        ) AS pdName,
+        sum(d.ORDER_QTY - IFNULL(d.RETURN_QTY,0) - IFNULL(d.REJECTION_QTY,0)) as totalQty,
+        sum((d.ORDER_QTY - IFNULL(d.RETURN_QTY,0) - IFNULL(d.REJECTION_QTY,0))* IFNULL(d.PD_PRICE, 0))  as totalAmount
+        FROM so_order o
+        INNER JOIN so_order_detail d
+        on o.ORDER_ID = d.ORDER_ID
+        LEFT JOIN sl_bs_basic_info b
+        on o.SELLER_CODE = b.SL_CODE
+        LEFT JOIN sl_bs_account a
+        on b.SL_ACCOUNT = a.SL_ACCOUNT
+        LEFT JOIN PD_CLASSES PC
+        ON SUBSTRING(d.PD_CODE, 1, 2) = PC.CLASSES_CODE
+        LEFT JOIN PD_MACHINING PM
+        ON SUBSTRING(d.PD_CODE, 1, 3) = PM.CLASSESTREE_CODE
+        LEFT JOIN PD_BREED PB
+        ON SUBSTRING(d.PD_CODE, 1, 5) = PB.CLASSESTREE_CODE
+        LEFT JOIN PD_FEATURE PF
+        ON SUBSTRING(d.PD_CODE, 1, 7) = PF.CLASSESTREE_CODE
+        LEFT JOIN PD_WEIGHT PW
+        ON SUBSTRING(d.PD_CODE, 1, 9) = PW.CLASSESTREE_CODE
+        LEFT JOIN PD_GRADE PG
+        ON SUBSTRING(d.PD_CODE, 10, 1) = PG.GRADE_CODE
+        WHERE o.ORDER_TYPE = '5'
+        and o.ORDER_STATUS!='99'
+        <if test="filterMap.demesne != null and filterMap.demesne != ''">
+            AND b.DEMESNE like #{filterMap.demesne}
+        </if>
+        <if test="filterMap.slShowName != null and filterMap.slShowName != ''">
+            AND a.SL_SHOW_NAME = #{filterMap.slShowName}
+        </if>
+        <if test="filterMap.pdCode != null and filterMap.pdCode != ''">
+            AND d.PD_CODE =#{filterMap.pdCode}
+        </if>
+        <if test="filterMap.startTime!=null and filterMap.startTime!=''">
+            <![CDATA[AND o.ORDER_TIME >= #{filterMap.startTime}]]>
+        </if>
+        <if test="filterMap.endTime!=null and filterMap.endTime!=''">
+            <![CDATA[AND o.ORDER_Time<='${filterMap.endTime} 23:59:59']]>
+        </if>
+        GROUP BY b.DEMESNE, b.SL_CODE_DIS, a.SL_SHOW_NAME,
+        d.CLASSES_NAME, d.BREED_NAME, d.FEATURE_NAME, d.NORMS_NAME,
+        d.PD_CODE, d.PD_GRADE_NAME, d.PD_NAME
+    </select>
+</mapper>

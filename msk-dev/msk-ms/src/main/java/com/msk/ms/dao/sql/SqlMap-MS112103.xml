@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.ms.logic.MS112103Logic">
+    <select id="msId" parameterType="BaseParam" resultType="com.msk.ms.bean.MS112103Bean">
+        SELECT 
+        MS_ID AS msId,
+        MS_CARDNO AS msCardno,
+        BUYER_CODE AS buyerCode,
+        BUYER_NAME AS buyerName,
+        CASE(msCardmanager.IS_ACTIVATE)
+        WHEN  0
+        THEN  '是'
+        WHEN  1
+        THEN  '否'
+        ELSE  ''
+        END
+        AS isActivate,
+        CASE(msCardmanager.IS_PROVIDE)
+        WHEN  0
+        THEN  '未发放'
+        WHEN  1
+        THEN  '发放锁定中'
+        WHEN  2
+        THEN  '已发放'
+        WHEN  3
+        THEN  '挂失'
+        WHEN  4
+        THEN  '废止'
+        ELSE  ''
+        END
+        AS isProvide,
+        PROVIDE_DATE AS provideDate,
+        PURCHASE_LOT AS purchaseLot
+        FROM MS_CARDMANAGER msCardmanager WHERE MS_ID=#{filterMap.msId}
+    </select>
+</mapper>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Sample</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link rel="stylesheet" href="../css/sm.min.css">
+    <link rel="stylesheet" href="../css/sm-extend.min.css">
+
+</head>
+<body>
+<div class="page-group">
+    <div class="page page-current">
+
+        <!--标题栏-->
+        <header class="bar bar-nav">
+            <!--<a class="icon icon-me pull-left open-panel"></a>-->
+            <h1 class="title">进货单管理系统</h1>
+        </header>
+
+        <!--工具栏-->
+        <nav class="bar bar-tab">
+            <a class="tab-item external active" href="#">
+                <span class="icon icon-home"></span>
+                <span class="tab-label">首页</span>
+            </a>
+            <a class="tab-item external" href="#">
+                <span class="icon icon-me"></span>
+                <span class="tab-label">审核进货单</span>
+                <!--<span class="badge">2</span>-->
+            </a>
+            <a class="tab-item external" href="#">
+                <span class="icon icon-app"></span>
+                <span class="tab-label">更多操作</span>
+                <!--<span class="badge">3</span>-->
+            </a>
+
+        </nav>
+        <!--内容区-->
+        <div class="content">
+            <div class="page-index">
+                <div id="calendar"  />
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type='text/javascript' src='../js/zepto.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type="text/javascript">
+    var currentDate=new Date();
+    var maxDateStr=currentDate.toLocaleDateString();
+
+    $("#calendar").calendar({
+        "maxDate":maxDateStr,
+        "dateFormat":"yyyy-mm-dd",
+        "onChange":function(p, values, displayValues){
+            //p:日历控件对象
+            //values:毫秒值
+            //displayValues:日期字符串
+
+
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL241103007Logic">
+    <insert id="savehonor" parameterType="com.msk.sl.bean.SL241103082Bean">
+        INSERT INTO sl_ep_brand_honor
+        (EP_ID,BRAND_ID,HONOR_ID,HONOR_NO,CERT_DATE,CERT_ISSUER)
+        VALUES (#{epId},#{brandId},#{honorId},#{honorNo},#{certDate},#{certIssuer})
+    </insert>
+    <insert id="savebrand" parameterType="com.msk.sl.bean.SL241103081Bean">
+        INSERT INTO sl_ep_brand
+        (EP_ID,BRAND_ID,BRAND_NAME,BRAND_NO)
+        VALUES (#{epId},#{brandId},#{brandName},#{brandNo})
+    </insert>
+
+
+    <insert id="savehonor2" parameterType="com.msk.sl.bean.SL241103082Bean">
+        INSERT INTO sl_ep_brand_honor
+        (EP_ID,BRAND_ID,HONOR_ID,HONOR_NO,CERT_DATE,CERT_ISSUER)
+        VALUES (#{epId},#{brandId2},#{honorId2},#{honorNo2},#{certDate2},#{certIssuer2})
+    </insert>
+    <insert id="savebrand2" parameterType="com.msk.sl.bean.SL241103081Bean">
+        INSERT INTO sl_ep_brand
+        (EP_ID,BRAND_ID,BRAND_NAME,BRAND_NO)
+        VALUES (#{epId},#{brandId2},#{brandName2},#{brandNo2})
+    </insert>
+
+
+    <insert id="savehonor3" parameterType="com.msk.sl.bean.SL241103082Bean">
+        INSERT INTO sl_ep_brand_honor
+        (EP_ID,BRAND_ID,HONOR_ID,HONOR_NO,CERT_DATE,CERT_ISSUER)
+        VALUES (#{epId},#{brandId3},#{honorId3},#{honorNo3},#{certDate3},#{certIssuer3})
+    </insert>
+    <insert id="savebrand3" parameterType="com.msk.sl.bean.SL241103081Bean">
+        INSERT INTO sl_ep_brand
+        (EP_ID,BRAND_ID,BRAND_NAME,BRAND_NO)
+        VALUES (#{epId},#{brandId3},#{brandName3},#{brandNo3})
+    </insert>
+
+</mapper>

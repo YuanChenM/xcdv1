@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.rs.ISO1514161Logic">
+    <!-- List接口-->
+    <sql id="whereCondition">
+        <where>
+            <![CDATA[soOrder.ORDER_TYPE <> 5 ]]>
+            AND <![CDATA[soOrder.ORDER_TYPE <> 6 ]]>
+            AND orderDetailAva.SUPPLIER_CODE = #{sellerCode}
+            AND soOrder.DEL_FLG = 0
+            AND orderDetail.DEL_FLG = 0
+            AND orderDetailAva.DEL_FLG = 0
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(inputParam)">
+                AND (orderDetailAva.PD_NAME LIKE "%${inputParam}%" OR orderDetailAva.ORDER_CODE LIKE "%${inputParam}%")
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderStartTime)">
+                <![CDATA[AND soOrder.ORDER_TIME >= '${orderStartTime}']]>
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderEndTime)">
+                <![CDATA[AND soOrder.ORDER_TIME <= '${orderEndTime}']]>
+            </if>
+            <if test="@com.msk.core.utils.MybatisTag@notEmpty(orderStatus)">
+                <if test="orderStatus == 1">
+                    AND (soOrder.ORDER_STATUS = 2 OR soOrder.ORDER_STATUS = 1)
+                </if>
+                <if test="orderStatus == 2">
+                    AND (soOrder.ORDER_STATUS = 3 OR soOrder.ORDER_STATUS = 4 OR soOrder.ORDER_STATUS = 5 OR soOrder.ORDER_STATUS = 6 OR soOrder.ORDER_STATUS = 7 OR soOrder.ORDER_STATUS = 8 OR soOrder.ORDER_STATUS = 9 OR soOrder.ORDER_STATUS = 14 )
+                </if>
+                <if test="orderStatus == 3">
+                    AND (soOrder.ORDER_STATUS = 10 OR soOrder.ORDER_STATUS = 12)
+                </if>
+                <if test="orderStatus == 4">
+                    AND  (soOrder.ORDER_STATUS = 1 OR soOrder.ORDER_STATUS = 13)
+                </if>
+                <if test="orderStatus == 5">
+                    AND soOrder.ORDER_STATUS = 99
+                </if>
+            </if>
+        </where>
+    </sql>
+    <select id="findPageList" resultType="com.msk.so.bean.SellerProductResult" parameterType="BaseParam">
+        SELECT
+            soOrder.ORDER_ID AS orderId,
+            soOrder.ORDER_CODE AS orderCode,
+            soOrder.PAYMENT_TYPE AS paymentType,
+            DATE_FORMAT(soOrder.ORDER_TIME,'%Y-%m-%d %H:%i:%s') AS orderTime,
+            CASE WHEN (soOrder.ORDER_STATUS = 2 OR soOrder.ORDER_STATUS = 1) THEN 1
+            WHEN (soOrder.ORDER_STATUS = 3 OR soOrder.ORDER_STATUS = 4 OR soOrder.ORDER_STATUS = 5 OR soOrder.ORDER_STATUS = 6 OR soOrder.ORDER_STATUS = 7 OR soOrder.ORDER_STATUS = 8 OR soOrder.ORDER_STATUS = 9 OR soOrder.ORDER_STATUS = 14 ) THEN 2
+            WHEN (soOrder.ORDER_STATUS = 10 OR soOrder.ORDER_STATUS = 12) THEN 3
+            WHEN (soOrder.ORDER_STATUS = 11 OR soOrder.ORDER_STATUS = 13) THEN 4
+            WHEN soOrder.ORDER_STATUS = 99 THEN 5
+            END AS orderStatus,
+            orderDetailAva.PD_CODE AS pdCode,
+            ifnull(orderDetailAva.PD_NAME,'') AS pdName,
+            orderDetail.PD_PRICE AS pdPrice,
+            orderDetailAva.SUPP_QTY AS suppQty
+        FROM
+            SO_ORDER soOrder LEFT JOIN so_order_detail orderDetail ON soOrder.ORDER_ID = orderDetail.ORDER_ID
+            LEFT JOIN so_order_detail_availability orderDetailAva ON orderDetail.ORDER_DETAIL_ID = orderDetailAva.ORDER_DETAIL_ID
+        <include refid="whereCondition"/>
+        ORDER  BY  soOrder.ORDER_ID DESC
+        <if test="paging == true">
+        LIMIT #{startPos},#{pageCount}
+        </if>
+    </select>
+    <select id="getPageCount" resultType="Integer" parameterType="com.msk.core.bean.BasePageParam">
+        SELECT
+          COUNT(1)
+        FROM
+        SO_ORDER soOrder LEFT JOIN so_order_detail orderDetail ON soOrder.ORDER_ID = orderDetail.ORDER_ID
+        LEFT JOIN so_order_detail_availability orderDetailAva ON orderDetail.ORDER_DETAIL_ID = orderDetailAva.ORDER_DETAIL_ID
+        <include refid="whereCondition"/>
+    </select>
+</mapper>

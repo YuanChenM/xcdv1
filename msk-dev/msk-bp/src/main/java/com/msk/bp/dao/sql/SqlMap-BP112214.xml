@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.bp.logic.BP112214Logic">
+	<!--sql 字段-->
+	<sql id="selectSql">
+        BP.PRICECYCLE_ID  AS  pricecycleId,
+        BP.PRICECYCLE_PERIOD AS pricecyclePeriod,
+        BP.PD_CODE AS pdCode,
+        BP.LOGIAREA_CODE AS logiareaCode,
+        BP.LOGIAREA_NAME AS logiareaName,
+        BP.SL_CODE AS slCode,
+        BP.SL_NAME AS slName,
+        BP.ORDERLEVEL_CODE AS orderlevelCode,
+        BP.ORDERLEVEL_NAME AS orderlevelName,
+        BP.NETWEIGHT AS netweight,
+        BP.PRICEOFKG AS priceofkg,
+        BP.PRICEOFBOX AS priceofbox,
+        IFNULL(BP.DISCOUNT,0)  AS discount,
+        IFNULL(BP.BOX_NUMS,0) AS stockNum
+
+	</sql>
+
+	<sql id="selectFrom">
+		 FROM bp_priceprd_logiarea AS BP
+	</sql>
+
+	<!--条件 -->
+	<sql id="whereCondition">
+		WHERE  BP.DEL_FLG = 0
+		<if test="filterMap.pricecycleId!=null and filterMap.pricecycleId!=''">
+			AND BP.PRICECYCLE_ID=#{filterMap.pricecycleId}
+		</if>
+		<if test="filterMap.pricecyclePeriod!=null and filterMap.pricecyclePeriod!=''">
+			AND BP.PRICECYCLE_PERIOD=#{filterMap.pricecyclePeriod}
+		</if>
+		<if test="filterMap.pdCodeList!=null ">
+			AND
+			<foreach collection ="filterMap.pdCodeList" item ="item" index ="index" separator ="or">
+				BP.PD_CODE like '${item.pdCode}%'
+			</foreach>
+
+		</if>
+		<if test="filterMap.logiareaCode!=null and filterMap.logiareaCode!=''">
+			AND BP.LOGIAREA_CODE=#{filterMap.logiareaCode}
+		</if>
+		<if test="filterMap.logiareaName!=null and filterMap.logiareaName!=''">
+			AND BP.LOGIAREA_NAME like #{filterMap.logiareaName}
+		</if>
+		<if test="filterMap.slCode!=null and filterMap.slCode!=''">
+			AND BP.SL_CODE=#{filterMap.slCode}
+		</if>
+		<if test="filterMap.slName!=null and filterMap.slName!=''">
+			AND BP.SL_NAME like #{filterMap.slName}
+		</if>
+		<if test="filterMap.orderlevelCode!=null and filterMap.orderlevelCode!=''">
+			AND ORDERLEVEL_CODE=#{filterMap.orderlevelCode}
+		</if>
+		<if test="filterMap.orderlevelName!=null and filterMap.orderlevelName!=''">
+			AND ORDERLEVEL_NAME=#{filterMap.orderlevelName}
+		</if>
+		<if test="filterMap.netweight!=null and filterMap.netweight!=''">
+			AND NETWEIGHT=#{filterMap.netweight}
+		</if>
+		<if test="filterMap.priceofkg!=null and filterMap.priceofkg!=''">
+			AND PRICEOFKG=#{filterMap.priceofkg}
+		</if>
+		<if test="filterMap.priceofbox!=null and filterMap.priceofbox!=''">
+			AND PRICEOFBOX=#{filterMap.priceofbox}
+		</if>
+		<if test="filterMap.discount!=null and filterMap.discount!=''">
+			AND BP.DISCOUNT=#{filterMap.discount}
+		</if>
+		<if test="filterMap.stockNum!=null and filterMap.stockNum!=''">
+			AND BP.BOX_NUMS=#{filterMap.stockNum}
+		</if>
+
+	</sql>
+
+	<select id="findPageList" resultType="com.msk.bp.bean.BP112214Bean" parameterType="BasePageParam">
+		SELECT
+		<include refid="selectSql" />
+		<include refid="selectFrom" />
+		<include refid="whereCondition" />
+		group by BP.PRICECYCLE_PERIOD,BP.PD_CODE,BP.LOGIAREA_CODE
+		order by BP.PRICECYCLE_PERIOD desc
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+	</select>
+
+	<select id="getPageCount" resultType="Integer" parameterType="BasePageParam">
+		SELECT  count(1) from
+		(SELECT
+		count(1)
+		<include refid="selectFrom" />
+		<include refid="whereCondition" />
+		group by BP.PRICECYCLE_PERIOD,BP.PD_CODE,BP.LOGIAREA_CODE
+		order by BP.PRICECYCLE_PERIOD desc)
+		 as tmp
+	</select>
+
+
+	<select id="getOrderLevelList" resultType="com.msk.bp.bean.BP112214Bean"
+			parameterType="BasePageParam">
+		SELECT
+		<include refid="selectSql" />
+		from bp_priceprd_logiarea BP
+		where BP.DEL_FLG = 0 and BP.PD_CODE=#{filterMap.pdCode} and BP.LOGIAREA_CODE=#{filterMap.logiareaCode} and BP.SL_CODE=#{filterMap.slCode} and BP.PRICECYCLE_PERIOD=#{filterMap.pricecyclePeriod}
+		order by BP.ORDERLEVEL_CODE asc
+	</select>
+
+    <select id="getSlCode"   resultType="com.msk.bp.bean.BP112214Bean"         parameterType="BasePageParam" >
+        select SL_CODE as slCode
+        from sl_seller
+        where  DEL_FLG = 0   AND SL_ACCOUNT=#{filterMap.SL_ACCOUNT}
+    </select>
+
+
+	<select id="getBreedParam"   resultType="com.msk.core.entity.PdBreed"         parameterType="BasePageParam" >
+		select  CLASSES_CODE  as  classesCode ,
+		MACHINING_CODE as  machiningCode   ,
+		BREED_CODE  as breedCode
+		from  pd_breed
+		where  DEL_FLG = 0   AND BREED_NAME=#{filterMap.breedName}
+	</select>
+
+	<select id="getBreeds"   resultType="com.msk.bp.bean.BP112214Bean"         parameterType="map" >
+		select  concat(t.CLASSES_CODE,t.MACHINING_CODE,t.BREED_CODE) as pdCode
+		from  pd_breed t
+		where  t.DEL_FLG = 0   AND   t.BREED_NAME  like '%${breedName}%'
+	</select>
+
+</mapper>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.bp.logic.BP112211Logic">
+
+    <select id="findPageList" parameterType="BasePageParam" resultType="com.msk.bp.bean.BP112211Bean">
+        SELECT
+         IFNULL(sl.LGCS_CODE,'') AS lgcsCode,
+         IFNULL(sl.LGCS_NAME,'') AS lgcsName,
+         IFNULL(sl.PD_CODE,'') AS pdCode,
+         IFNULL(sl.PD_NAME,'') AS pdName,
+         SUM(IFNULL(sl.STOCK_QTY,0)) AS stockWeight,
+         IFNULL(sl.SL_CODE,'') AS slCode,
+         IFNULL(sl.SL_NAME,'') as slName
+         from SO_STOCK_SL sl
+         WHERE
+         sl.DEL_FLG = 0
+        AND
+        sl.SALE_PLATFORM = 2
+        AND
+        sl.STOCK_TYPE =1
+        <if test="filterMap.loginId != null and filterMap.loginId != ''">
+            AND
+            sl.sl_CODE in
+            (
+            SELECT
+            sel.sl_CODE
+            FROM
+            sl_seller sel
+            WHERE
+            sel.SL_ACCOUNT = #{filterMap.loginId})
+        </if>
+        <if test="filterMap.lgcsName != null and filterMap.lgcsName != ''">
+            AND sl.LGCS_NAME like #{filterMap.lgcsName}
+        </if>
+        GROUP BY
+            sl.LGCS_CODE,
+            sl.PD_CODE,
+            sl.SL_CODE
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+
+    <select id="findQuotationCountByPDCode" parameterType="java.util.HashMap" resultType="com.msk.bp.bean.BP112211Bean">
+        SELECT
+          PRICECYCLE_ID AS pricecycleId,
+        PRICECYCLE_PERIOD AS cycleCode,
+          COUNT(1) AS ncount
+        FROM
+          BP_SELLER_QUOTATION
+          WHERE DEL_FLG = 0
+          <if test="period != null and period != ''">
+              AND  PRICECYCLE_PERIOD = #{period}
+          </if>
+          <if test="pdCode != null and pdCode != ''">
+              AND PD_CODE = #{pdCode}
+          </if>
+            <if test="slCode != null and slCode != ''">
+                AND SL_CODE = #{slCode}
+            </if>
+            <if test="lgcsCode != null and lgcsCode != ''">
+                AND LOGIAREA_CODE = #{lgcsCode}
+            </if>
+    </select>
+
+    <select id="getPageCount" parameterType="BasePageParam" resultType="java.lang.Integer">
+        SELECT
+        COUNT(1) FROM
+        (SELECT sl.STOCK_ID
+        FROM SO_STOCK_SL AS sl
+        WHERE  sl.DEL_FLG = 0 AND
+        sl.SALE_PLATFORM = 2
+        AND
+        sl.STOCK_TYPE =1
+        <if test="filterMap.loginId != null and filterMap.loginId != ''">
+            and sl.sl_CODE in (select sel.sl_CODE FROM sl_seller sel where sel.SL_ACCOUNT = #{filterMap.loginId})
+        </if>
+        <if test="filterMap.lgcsName != null and filterMap.lgcsName != ''">
+            AND sl.LGCS_NAME like #{filterMap.lgcsName}
+        </if>
+        GROUP BY
+        sl.LGCS_CODE,
+        sl.PD_CODE,
+        sl.SL_CODE
+       )a
+
+    </select>
+
+    <select id="findDistrictNameList" resultType="com.msk.bp.bean.BP112211Bean">
+        SELECT
+        D.LGCS_AREA_NAME AS lgcsName
+        FROM
+        MD_LOGISTICS_AREA D
+        WHERE D.DEL_FLG = 0
+    </select>
+
+</mapper>

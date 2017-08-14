@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170217Logic">
+    <select id="findList" parameterType="com.msk.core.bean.BasePageParam"
+            resultType="com.msk.pl.bean.IPL20170217RsResultBean">
+        select
+        <include refid="selectSql"/>
+        from PL_INFO AS A
+        LEFT JOIN PL_BS_TASK G ON A.TASK_ID=G.TASK_ID
+        <include refid="whereCondition"/>
+        ORDER BY A.STATUS,G.REPORT_DATE DESC
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+    <select id="getPageCount" resultType="Integer"
+            parameterType="com.msk.core.bean.BasePageParam">
+        select COUNT(1)
+        from PL_INFO AS A
+        LEFT JOIN PL_BS_TASK G ON A.TASK_ID=G.TASK_ID
+        <include refid="whereCondition"/>
+    </select>
+    <sql id="selectSql">
+        A.PL_ID as plId,
+        A.STATUS as status,
+        G.REPORT_DATE as reportDate
+    </sql>
+    <sql id="whereCondition">
+        <where>
+            <if test="selectRule!=null and selectRule==1">
+                <if test="ruleDetail!=null and ruleDetail!=''">
+                    AND A.TERMINAL_ID=#{ruleDetail}
+                </if>
+            </if>
+            <if test="selectRule!=null and selectRule==2">
+                <if test="ruleDetail!=null and ruleDetail!=''">
+                    AND A.BS_CODE=#{ruleDetail}
+                </if>
+            </if>
+            <if test="crtDate!=null and crtDate!=''">
+                AND DATE_FORMAT(G.REPORT_DATE,'%Y-%m')=#{crtDate}
+            </if>
+            <if test="status!=null">
+                AND A.STATUS=#{status}
+            </if>
+            AND A.PARTNER_ID=#{partnerId}
+            AND (A.DEL_FLG=0 or A.DEL_FLG is NULL) AND (G.DEL_FLG=0 or G.DEL_FLG is NULL)
+        </where>
+    </sql>
+    <update id="modify" parameterType="com.msk.pl.bean.PLInfo">
+      UPDATE PL_INFO
+      SET STATUS=#{status},
+        UPD_ID=#{updId},
+        UPD_TIME=now(),
+        VER=VER+1
+      WHERE PL_ID=#{plId}
+    </update>
+    <select id="findOne" resultType="com.msk.pl.bean.PlBsTask"
+            parameterType="com.msk.core.bean.BaseParam">
+        SELECT
+        A.TASK_ID AS taskId,
+        A.NEED_RECORD_NUMBER AS needRecordNumber
+        FROM PL_BS_TASK A
+        INNER JOIN PL_INFO B ON A.TASK_ID=B.TASK_ID
+        WHERE B.PL_ID=#{filterMap.plId}
+    </select>
+    <select id="findValid" parameterType="com.msk.core.bean.BaseParam"
+            resultType="com.msk.pl.bean.IPL20170221RsResultBean">
+        select sum(case when(STATUS=1) then 1 else 0 end) as validInfo
+        FROM PL_INFO
+        WHERE TASK_ID=#{filterMap.taskId}
+    </select>
+    <update id="modifyTask" parameterType="com.msk.pl.bean.PlBsTask">
+        UPDATE PL_BS_TASK
+        SET STATUS=#{status},
+        UPD_ID=#{updId},
+        UPD_TIME=now(),
+        ALREADY_RECORD_NUMBER=#{alreadyRecordNumber},
+        VER=VER+1
+        WHERE TASK_ID=#{taskId}
+    </update>
+</mapper>

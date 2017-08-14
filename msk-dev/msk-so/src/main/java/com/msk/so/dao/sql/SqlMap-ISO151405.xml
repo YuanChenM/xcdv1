@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151405Logic">
+    <select id = "findPdList" resultType = "com.msk.so.bean.PdSalesResult" parameterType = "BaseParam">
+        SELECT
+        SUM(a.salesVolumnLong) AS salesVolumnLong
+        ,a.pdCode as pdCode
+        FROM
+        (
+        SELECT
+        #{pdCode} AS pdCode,
+        IFNULL(SUM(IFNULL(ORDER_QTY, 0)),0) AS salesVolumnLong
+        FROM SO_ORDER_DETAIL
+        WHERE LEFT(PD_CODE,5) = LEFT(#{pdCode},5)
+        UNION
+        SELECT
+        #{pdCode} AS pdCode
+        ,IFNULL(SALES_VOLUMN, 0) AS salesVolumnLong
+        FROM
+        SO_SALES_VOLUMN_HISTORY
+        WHERE
+        LEFT (PD_CODE, 5) = LEFT (#{pdCode}, 5)
+        )a
+    </select>
+</mapper>

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.SO151406Logic">
+    <!--条件 -->
+    <sql id="whereCondition">
+        <where>
+            <if test="filterMap.startTime!=null and filterMap.startTime!=''">
+                <![CDATA[ AND soReturn.APPLY_TIME >= #{filterMap.startTime}]]>
+            </if>
+            <if test="filterMap.endTime!=null and filterMap.endTime!=''">
+                <![CDATA[AND soReturn.APPLY_TIME<='${filterMap.endTime} 23:59:59']]>
+            </if>
+             <if test="filterMap.orderCode!= null and filterMap.orderCode!=''">
+                AND A.ORDER_CODE like #{filterMap.orderCode}
+            </if>
+
+            <if test="filterMap.buyersCodeQuery!=null and filterMap.buyersCodeQuery!=''">
+                AND soReturn.BUYERS_CODE like #{filterMap.buyersCodeQuery}
+            </if>
+            <if test="filterMap.buyersNameQuery!=null and filterMap.buyersNameQuery!=''">
+                AND soReturn.BUYERS_NAME like #{filterMap.buyersNameQuery}
+            </if>
+            <if test="filterMap.returnCodeQuery!=null and filterMap.returnCodeQuery!=''">
+                AND soReturn.RETURN_CODE like #{filterMap.returnCodeQuery}
+            </if>
+            <if test="filterMap.isPaid!=null and filterMap.isPaid!=''">
+                AND soReturn.IS_PAID = #{filterMap.isPaid}
+            </if>
+            <if test="filterMap.returnMode!=null and filterMap.returnMode!=''">
+                AND soReturn.RETURN_MODE = #{filterMap.returnMode}
+            </if>
+            <if test="filterMap.isInvoice!=null and filterMap.isInvoice!=''">
+                AND soReturn.IS_INVOICE = #{filterMap.isInvoice}
+            </if>
+            <if test="filterMap.returnStatus!=null and filterMap.returnStatus!=''">
+                AND soReturn.RETURN_STATUS = #{filterMap.returnStatus}
+            </if>
+
+            <!--<if test="filterMap.returnSource!=null and filterMap.returnSource!=''">
+                AND COMMORS.CONSTANT_NAME  #{filterMap.returnSource}
+            </if>-->
+            <if test="filterMap.returnSource!=null and filterMap.returnSource!=''">
+                <!--AND soReturn.RETURN_SOURCE = #{filterMap.orderSource}-->
+                AND soReturn.RETURN_SOURCE = #{filterMap.returnSource}
+            </if>
+            <if test="filterMap.returnType!=null and filterMap.returnType!=''">
+                <!--AND soReturn.RETURN_SOURCE = #{filterMap.orderSource}-->
+                AND soReturn.RETURN_TYPE = #{filterMap.returnType}
+            </if>
+
+        </where>
+    </sql>
+
+    <select id="findPageList" parameterType="BasePageParam" resultType="com.msk.so.bean.SO151406Bean">
+        SELECT
+        soReturn.RETURN_ID AS returnId,
+        soReturn.ORDER_ID AS orderId,
+        IFNULL(soReturn.RETURN_CODE,'') AS returnCode,
+        IFNULL(soReturn.ORDER_CODE,'') AS orderCode,
+        IFNULL(soReturn.BUYERS_CODE,'') AS buyersCode,
+        IFNULL(soReturn.BUYERS_NAME,'') AS buyersName,
+        <!-- 退货单来源死数据-->
+        <!--CASE(soReturn.RETURN_SOURCE)
+        WHEN 1 THEN
+        '云冻品平台'
+        WHEN 2 THEN
+        '云冻品B2B平台'
+        WHEN 3 THEN
+        '微商城平台'
+         WHEN 4 THEN
+        'Call Center'
+        WHEN 5 THEN
+        '神农客APP'
+        WHEN 6 THEN
+        '美侍客APP'
+        WHEN 7 THEN
+        '大促会APP'
+        ELSE  ''
+        END-->
+        IFNULL(com.CONSTANT_NAME,'') AS returnSource,
+        <!-- 退货单来源-->
+        <!--IFNULL(COMMORS.CONSTANT_NAME,'') AS returnSource, -->
+        CASE(soReturn.IS_PAID)
+        WHEN '1' 
+        THEN '已付款'
+        WHEN '2'
+        THEN '未付款'
+        ELSE ''
+        END
+        AS isPaid,
+        CASE(soReturn.RETURN_MODE)
+        WHEN '1'
+        THEN '全退'
+        WHEN '2'
+        THEN '部分退'
+        ELSE ''
+        END
+        AS returnMode,
+        soReturn.RETURN_AMOUNT AS returnAmount,
+        <!-- Modify for bug#638 at 2016/05/31 by wangjianzhou-->
+        IFNULL(DATE_FORMAT(soReturn.APPLY_TIME,'%Y-%m-%d %T'),'') AS returnTime,
+        <!-- Modify for bug#638 at 2016/05/31 by wangjianzhou-->
+        soReturn.RETURN_STATUS AS returnStatus,
+        IFNULL(coms.CONSTANT_NAME,'') as returnStatusName,
+        IFNULL(A.REQUIRE_ORDER_CODE,'') AS requireOrderCode
+        FROM  SO_RETURN AS soReturn
+        LEFT JOIN  SO_ORDER AS A ON  A.ORDER_ID=soReturn.ORDER_ID
+        LEFT JOIN COMM_CONSTANT AS com
+        ON soReturn.RETURN_SOURCE = com.CONSTANT_VALUE
+        AND com.CONSTANT_TYPE = 'ReturnSource'
+        LEFT JOIN comm_constant as coms ON soReturn.RETURN_STATUS = coms.CONSTANT_VALUE
+        AND coms.CONSTANT_TYPE = 'ReturnOrderStatus'
+
+
+        <!--LEFT JOIN COMM_CONSTANT AS COMMORS&lt;!&ndash;订单来源 &ndash;&gt;
+        ON soReturn.RETURN_SOURCE = COMMORS.CONSTANT_VALUE AND COMMORS.CONSTANT_TYPE='OrderSource'-->
+
+        <include refid="whereCondition" />
+        ORDER BY soReturn.RETURN_CODE DESC
+        <if test="paging==true">
+        LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+    
+    <select id="getPageCount" resultType="Integer" parameterType="BasePageParam">
+         SELECT
+              COUNT(1)
+         FROM so_return AS soReturn
+         LEFT JOIN  SO_ORDER AS A ON  A.ORDER_ID=soReturn.ORDER_ID
+        LEFT JOIN COMM_CONSTANT AS COMMORS<!--订单来源 -->
+        ON soReturn.RETURN_SOURCE = COMMORS.CONSTANT_VALUE AND COMMORS.CONSTANT_TYPE='OrderSource'
+        <!-- INNER JOIN  SO_RETURN_BUYERS AS soReturnBuyers ON soReturn.RETURN_ID=soReturnBuyers.RETURN_ID-->
+         <include refid="whereCondition" />
+    </select>
+</mapper>

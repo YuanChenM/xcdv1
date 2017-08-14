@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pd.logic.IPD141149Logic">
+    <select id="queryScrollImg" parameterType="BaseParam" resultType="com.msk.core.entity.PdAppScrollImg">
+      select
+        SCROLL_IMG as scrollImg,
+        TYPE AS type
+      from PD_APP_SCROLL_IMG WHERE DEL_FLG='0'
+      ORDER BY SORT+0;
+    </select>
+
+    <select id="queryModelHeight" parameterType="BaseParam" resultType="com.msk.core.entity.PdAppScrollImgSetting">
+        select MODEL_HEIGHT AS modelHeight from PD_APP_SCROLL_IMG_SETTING WHERE DEL_FLG='0';
+    </select>
+</mapper>

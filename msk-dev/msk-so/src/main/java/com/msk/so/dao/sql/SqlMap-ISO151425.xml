@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151425Logic">
+	<select id="findOne" resultType="com.msk.so.bean.ISO151425RsResult" parameterType="BaseParam">
+        SELECT
+		count(1) AS complainCount
+        FROM so_complain
+        WHERE order_id = #{orderId}
+        AND DEL_FLG = 0
+    </select>
+</mapper>

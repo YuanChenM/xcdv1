@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL241103012Logic">
+    <!--添加OEM-->
+    <insert parameterType="com.msk.sl.bean.SlEpDdBean" id="saveSlEpDd">
+        insert into sl_ep_dd(
+        EP_ID,
+        DD_ID,
+        DD_NAME,
+        DD_EQUIPMENT,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        VER
+        )values(
+        #{epId},
+        #{ddId},
+        #{ddName},
+        #{ddEquipment},
+        #{delFlg},
+        #{crtId},
+        SYSDATE(),
+        #{ver}
+        )
+    </insert>
+</mapper>

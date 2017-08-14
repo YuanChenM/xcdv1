@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL2411030071Logic">
+    <select id="selectbrandname" parameterType="BaseParam" resultType="com.msk.core.entity.SlEpBrand">
+        SELECT
+        A.BRAND_NAME AS brandName,
+        A.EP_ID AS epId
+        FROM
+        sl_ep_brand AS A
+        WHERE A.BRAND_NO=#{filterMap.brandNo}
+    </select>
+    <select id="findSlEpAgentAuth" parameterType="BaseParam" resultType="com.msk.sl.bean.SL2411030073Bean">
+       SELECT DISTINCT A.EP_NAME AS authEpName,B.PRODUCER_EP_ID AS producerEpId
+        FROM SL_ENTERPRISE AS A,SL_EP_AGENT_AUTH AS B
+        WHERE A.EP_ID=B.PRODUCER_EP_ID
+    </select>
+    <insert id="saveslbrand" parameterType="com.msk.sl.bean.SL2411030073Bean">
+        INSERT INTO sl_pd_brand
+        (CONTRACT_NO,BRAND_EP_ID,BRAND_ID,BRAND_NAME,BRAND_CLASS,BRAND_TYPE,SL_CODE,TERM_BEGIN,TERM_END,CRT_ID,CRT_TIME,VER)
+        VALUES (#{contractNo},#{brandEpId},#{brandId},#{brandName},#{brandClass},#{brandType},#{slCode},#{authTermBegin},#{authTermEnd},#{crtId},SYSDATE(),#{ver})
+    </insert>
+    <insert id="saveagent" parameterType="com.msk.sl.bean.SL2411030073Bean">
+        INSERT INTO sl_ep_agent_auth
+        (SL_CODE,PRODUCER_EP_ID,CONTRACT_NO,AUTH_EP_NAME,AUTH_TERM_BEGIN,AUTH_TERM_END,AUTH_TERM_UNLIIMITED,CRT_ID,CRT_TIME,VER)
+        VALUES (#{slCode},#{producerEpId},#{contractNo},#{authEpName},#{authTermBegin},#{authTermEnd},#{authTermUnliimited},#{crtId},SYSDATE(),#{ver})
+    </insert>
+
+
+    <insert id="savehonor" parameterType="com.msk.sl.bean.SL2411030033Bean">
+        INSERT INTO sl_ep_brand_honor
+        (EP_ID,BRAND_ID,HONOR_ID,HONOR_DES,HONOR_NO,CERT_DATE,CERT_ISSUER,CRT_ID,CRT_TIME,VER,DEL_FLG)
+        VALUES (#{epId},#{brandId},#{honorId},#{honorDes},#{honorNo},#{certDate},#{certIssuer},#{crtId},SYSDATE(),#{ver},#{delFlg})
+    </insert>
+    <insert id="savebrand" parameterType="com.msk.sl.bean.SL2411030073Bean">
+        INSERT INTO sl_ep_brand
+        (EP_ID,BRAND_ID,BRAND_NAME,BRAND_NO,BRAND_TERM_BEGIN,BRAND_TERM_END,BRAND_CLASS,CRT_ID,CRT_TIME,VER,DEL_FLG)
+        VALUES (#{epId},#{brandId},#{brandName},#{brandNo},#{termBegin},#{termEnd},#{brandClass},#{crtId},SYSDATE(),#{ver},#{delFlg})
+    </insert>
+    <select id="maxBrand" resultType="com.msk.core.entity.SlEpBrand"
+            parameterType="com.msk.core.bean.BaseParam">
+        SELECT MAX(BRAND_ID+0) AS brandId
+        FROM sl_ep_brand
+        WHERE EP_ID = #{filterMap.epId}
+    </select>
+    <insert id="savepdbrand" parameterType="com.msk.sl.bean.SL2411030073Bean">
+        INSERT INTO sl_pd_brand
+        (BRAND_EP_ID,BRAND_ID,BRAND_NAME,BRAND_TYPE,SL_CODE,CONTRACT_NO,TERM_BEGIN,TERM_END,BRAND_CLASS,CRT_ID,CRT_TIME,VER,DEL_FLG)
+        VALUES (#{brandEpId},#{brandId},#{brandName},#{brandType},#{slCode},#{contractNo},#{termBegin},#{termEnd},#{brandClass},#{crtId},SYSDATE(),#{ver},#{delFlg})
+    </insert>
+    <select id="selectProxyList" parameterType="java.util.HashMap" resultType="com.msk.sl.bean.SL2411030073Bean">
+        SELECT DISTINCT A.EP_NAME AS epName,B.PRODUCER_EP_ID AS producerEpId
+        FROM sl_enterprise AS A,sl_ep_agent_auth AS B
+        WHERE A.EP_ID=B.PRODUCER_EP_ID
+        <if test="slCode!=null">
+            AND B.SL_CODE = #{slCode}
+        </if>
+    </select>
+
+    <select id="selectBrand" parameterType="BaseParam" resultType="com.msk.sl.bean.SL2411030073Bean">
+        SELECT DISTINCT
+        A.BRAND_NAME AS brandName,
+        A.BRAND_ID AS brandId
+        FROM
+        SL_PD_BRAND AS A
+        WHERE A.BRAND_EP_ID=#{filterMap.producerEpId}
+    </select>
+    <select id="selectbrandid" parameterType="BaseParam" resultType="com.msk.core.entity.SlPdBrand">
+        SELECT DISTINCT
+        A.BRAND_ID AS brandId
+        FROM
+        SL_EP_BRAND AS A
+        WHERE A.EP_ID=#{filterMap.epId} AND A.BRAND_NAME=#{filterMap.brandName}
+    </select>
+<select id="selectPdBrand" parameterType="BaseParam" resultType="com.msk.core.entity.SlPdBrand">
+    SELECT SL_CODE AS slCode FROM SL_PD_BRAND WHERE SL_CODE=#{filterMap.slCode} AND BRAND_EP_ID=#{filterMap.brandEpId} AND BRAND_ID=#{filterMap.brandId}
+</select>
+
+</mapper>

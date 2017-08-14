@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pd.logic.PD14112401Logic">
+    <select id="findOne" parameterType="BaseParam" resultType="com.msk.core.entity.PdClassestree">
+		SELECT
+		LEVEL_NAME AS levelName
+		FROM PD_CLASSESTREE A
+		WHERE A.CLASSESTREE_CODE = #{filterMap.parentCode}
+	</select>
+    <insert id="save" parameterType="com.msk.core.entity.PdClassestree">
+	INSERT INTO PD_CLASSESTREE (
+	CLASSESTREE_ID,
+	CLASSESTREE_CODE,
+	LEVEL_CODE,
+	LEVEL_NAME,
+	PARENT_CODE,
+	PARENT_NAME,
+	TREE_LEVEL,
+	DEL_FLG,
+	CRT_ID,
+	CRT_TIME,
+	UPD_ID,
+	UPD_TIME,
+	ACT_ID,
+	ACT_TIME,
+	VER)
+VALUES
+	(
+		#{classestreeId},
+		#{classestreeCode},
+		#{levelCode},
+		#{levelName},
+		#{parentCode},
+		#{parentName},
+		#{treeLevel},
+		'0',
+		#{crtId},
+		NOW(),
+		#{updId},
+		NOW(),
+		NULL,
+		NOW(),
+		'1'
+	);
+	</insert>
+
+    <select id="findClassesByParentCode" parameterType="BaseParam" resultType="int">
+		SELECT COUNT(1)
+		FROM PD_CLASSESTREE A
+		WHERE A.PARENT_CODE = #{filterMap.parentCode}
+		AND A.LEVEL_NAME = #{filterMap.levelName}
+	</select>
+    <!--二级分类修改操作-->
+    <update id="modify" parameterType="com.msk.core.entity.PdClassestree">
+		  UPDATE PD_CLASSESTREE AS A SET
+			 A.LEVEL_NAME = #{levelName}
+			,A.UPD_ID = #{updId}
+			,A.UPD_TIME = NOW()
+		  WHERE A.CLASSESTREE_CODE =#{classestreeCode}
+	</update>
+
+
+    <select id="findMacExist" parameterType="BaseParam" resultType="int">
+		SELECT COUNT(1)
+		FROM PD_MACHINING A
+		WHERE A.CLASSES_CODE = #{filterMap.classesCode}
+		AND A.MACHINING_NAME = #{filterMap.machiningName}
+	</select>
+
+
+    <select id="findMaxCode" parameterType="BaseParam" resultType="com.msk.core.entity.PdMachining">
+		SELECT
+		CASE
+		WHEN MAX(MACHINING_CODE) IS NULL THEN 1
+		ELSE MAX(MACHINING_CODE)+1 END AS machiningCode
+		FROM PD_MACHINING
+		WHERE CLASSES_CODE = #{filterMap.classesCode}
+	</select>
+
+    <insert id="saveMac" parameterType="com.msk.core.entity.PdMachining">
+	INSERT INTO PD_MACHINING (
+	CLASSES_CODE,
+	MACHINING_CODE,
+	MACHINING_NAME,
+	CLASSESTREE_CODE,
+	DEL_FLG,
+	CRT_ID,
+	CRT_TIME,
+	UPD_ID,
+	UPD_TIME,
+	ACT_ID,
+	ACT_TIME,
+	VER
+	)
+	VALUES
+	(
+	#{classesCode},
+	#{machiningCode},
+	#{machiningName},
+	#{classestreeCode},
+	'0',
+	#{crtId},
+	NOW(),
+	#{updId},
+	NOW(),
+	NULL,
+	NOW(),
+	'1'
+	);
+	</insert>
+
+    <!--二级分类修改操作 mac表中修改操作-->
+    <update id="modifyMacName" parameterType="com.msk.core.entity.PdMachining">
+		UPDATE PD_MACHINING AS A SET
+		A.MACHINING_NAME = #{machiningName}
+		,A.UPD_ID = #{updId}
+		,A.UPD_TIME = NOW()
+		WHERE A.CLASSES_CODE = #{classesCode}
+		AND A.MACHINING_CODE = #{machiningCode}
+	</update>
+
+    <select id="findListMac" parameterType="BaseParam" resultType="com.msk.core.entity.PdClassestree">
+		SELECT
+		PARENT_NAME AS parentName,
+		CLASSESTREE_CODE AS classestreeCode
+		FROM PD_CLASSESTREE
+		WHERE PARENT_CODE = #{filterMap.parentMac}
+	</select>
+
+    <update id="modifyParentName" parameterType="com.msk.core.entity.PdClassestree">
+		UPDATE PD_CLASSESTREE AS A SET
+		 A.PARENT_NAME = #{parentName}
+		,A.UPD_ID = #{updId}
+		,A.UPD_TIME = NOW()
+		WHERE A.CLASSESTREE_CODE =#{classestreeCode}
+	</update>
+    <!--查询当前节点下是否存在子节点-->
+    <select id="findList" parameterType="BaseParam" resultType="com.msk.core.entity.PdClassestree">
+		 SELECT CLASSESTREE_CODE
+        FROM PD_CLASSESTREE
+        WHERE PARENT_CODE = #{filterMap.classestreeCode}
+	</select>
+
+    <!-- 删除classes产品类别信息表中数据-->
+    <delete id="removePdMachining" parameterType="BaseParam">
+		DELETE FROM PD_MACHINING
+		WHERE CLASSESTREE_CODE = #{filterMap.classestreeCode}
+	</delete>
+
+    <!-- 删除classes产品类别信息表中数据-->
+    <delete id="remove" parameterType="BaseParam">
+		DELETE FROM PD_CLASSESTREE
+		WHERE CLASSESTREE_CODE = #{filterMap.classestreeCode}
+	</delete>
+
+	<!-- 删除classes产品类别信息表中数据-->
+	<delete id="removePdGnq" parameterType="BaseParam">
+		DELETE FROM pd_classestree_mat
+		WHERE CLASSESTREE_CODE = #{filterMap.classestreeCode}
+	</delete>
+</mapper>

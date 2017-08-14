@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL241120Logic">
+    <sql id="whereSql">
+        <where>
+            <if test="filterMap.slContact!=null and filterMap.slContact!=''">
+                AND C.SL_CONTACT LIKE #{filterMap.slContact}
+            </if>
+            <if test="filterMap.epName!=null and filterMap.epName!=''">
+                AND D.EP_NAME LIKE #{filterMap.epName}
+            </if>
+            <if test="filterMap.slTel!=null and filterMap.slTel!=''">
+                AND C.SL_TEL LIKE #{filterMap.slTel}
+            </if>
+            <if test="filterMap.chapClass!=null and filterMap.chapClass!=''">
+                AND A.CHAP_CLASS = #{filterMap.chapClass}
+            </if>
+        </where>
+    </sql>
+    <select id="findPageList" parameterType="BasePageParam" resultType="com.msk.sl.bean.SL241120Bean">
+        SELECT A.SL_CODE AS slCode,
+        CONCAT('同意（',A.agreeNum,'） 不同意（',A.notAgreeNum,'）') AS affirmResult,
+        C.SL_CONTACT AS slContact ,
+        C.SL_TEL AS slTel,D.EP_NAME AS epName  FROM(
+        SELECT
+        SL_CODE,
+        SUM(CASE AGREE_FLG when 1 then 1 else 0 END) agreeNum,
+        SUM(CASE AGREE_FLG when 0 then 1 else 0 END) notAgreeNum,
+        CHAP_CLASS
+        FROM
+        sl_dist_regu_sug
+        group by SL_CODE,CHAP_CLASS) A
+        INNER JOIN sl_seller AS B ON A.SL_CODE = B.SL_CODE
+        INNER JOIN sl_account AS C ON B.SL_ACCOUNT = C.SL_ACCOUNT
+        INNER JOIN sl_enterprise AS D ON B.EP_ID = D.EP_ID
+        <include refid="whereSql"/>
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+    <select id="getPageCount" resultType="Integer" parameterType="BasePageParam">
+        SELECT COUNT(1) FROM(
+        SELECT
+        SL_CODE,
+        SUM(CASE AGREE_FLG when 1 then 1 else 0 END) agreeNum,
+        SUM(CASE AGREE_FLG when 0 then 1 else 0 END) notAgreeNum,
+        CHAP_CLASS
+        FROM
+        sl_dist_regu_sug
+        group by SL_CODE,CHAP_CLASS) A
+        INNER JOIN sl_seller AS B ON A.SL_CODE = B.SL_CODE
+        INNER JOIN sl_account AS C ON B.SL_ACCOUNT = C.SL_ACCOUNT
+        INNER JOIN sl_enterprise AS D ON B.EP_ID = D.EP_ID
+        <include refid="whereSql"/>
+    </select>
+</mapper>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.ISL231134RsLogic">
+	<select id="findSlSeller" resultType="com.msk.core.entity.SlSeller" parameterType="BaseParam">
+		SELECT SL_CODE AS slCode FROM SL_SELLER WHERE SL_CODE=#{filterMap.slCode}
+	</select>
+	<select id="findSlEnterprise" parameterType="BaseParam" resultType="com.msk.core.entity.SlEnterprise">
+		SELECT EP_ID AS epId FROM SL_ENTERPRISE WHERE EP_ID=#{filterMap.epId}
+	</select>
+	<insert id="saveSlEpAgentAuth" parameterType="com.msk.core.entity.SlEpAgentAuth">
+		INSERT INTO SL_EP_AGENT_AUTH
+		(
+		SL_CODE,
+		PRODUCER_EP_ID,
+		CONTRACT_NO,
+		AUTH_EP_NAME,
+		AUTH_TERM_BEGIN,
+		AUTH_TERM_END,
+		AUTH_TERM_UNLIIMITED,
+		CRT_ID,
+		CRT_TIME,
+		DEL_FLG,
+		VER
+		)
+		VALUES
+		(
+		#{slCode},
+		#{producerEpId},
+		#{contractNo},
+		#{authEpName},
+		#{authTermBegin},
+		#{authTermEnd},
+		#{authTermUnliimited},
+		#{crtId},
+		SYSDATE(),
+		#{delFlg},
+		#{ver}
+		)
+	</insert>
+	<insert id="saveSlEpOemAuth" parameterType="com.msk.core.entity.SlEpOemAuth">
+		INSERT INTO SL_EP_OEM_AUTH
+		(
+		SL_CODE,
+		PRODUCER_EP_ID,
+		CONTRACT_NO,
+		AUTH_EP_NAME,
+		AUTH_TERM_BEGIN,
+		AUTH_TERM_END,
+		AUTH_TERM_UNLIIMITED,
+		CRT_ID,
+		CRT_TIME,
+		DEL_FLG,
+		VER
+		)
+		VALUES
+		(
+		#{slCode},
+		#{producerEpId},
+		#{contractNo},
+		#{authEpName},
+		#{authTermBegin},
+		#{authTermEnd},
+		#{authTermUnliimited},
+		#{crtId},
+		SYSDATE(),
+		#{delFlg},
+		#{ver}
+		)
+	</insert>
+	<select id="findSlEpAgentAuth" parameterType="BaseParam" resultType="com.msk.core.entity.SlEpAgentAuth">
+		SELECT SL_CODE AS slCode FROM SL_EP_AGENT_AUTH WHERE SL_CODE=#{filterMap.slCode} AND PRODUCER_EP_ID=#{filterMap.epId}
+	</select>
+	<select id="findSlEpOemAuth" parameterType="BaseParam" resultType="com.msk.core.entity.SlEpOemAuth">
+		SELECT SL_CODE AS slCode FROM sl_ep_oem_auth WHERE SL_CODE=#{filterMap.slCode} AND PRODUCER_EP_ID=#{filterMap.epId}
+	</select>
+</mapper>

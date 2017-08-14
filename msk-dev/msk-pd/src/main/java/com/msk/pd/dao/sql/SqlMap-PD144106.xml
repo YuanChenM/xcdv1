@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pd.logic.PD144106Logic">
+
+    <select id="findPageList" parameterType="BaseParam" resultType="com.msk.pd.bean.PD144106Bean">
+        SELECT
+        CONCAT(a.pdCode,h.GRADE_CODE) AS pdCode,
+        CONCAT(a.pdName,'/',h.GRADE_NAME) AS pdName,
+        a.lgcsCoe as lgcsCode,
+        a.lgcsName as lgcsName,
+        a.pdLabel as pdLabel,
+        case a.status when '0' then '已上架'
+                       when '1' then '已下架' else '未发布' END  as status
+        <include refid="fromTable"/>
+
+        <include refid="whereCondition"/>
+        ORDER BY
+        a.lgcsCoe,
+        a.pdCode,
+        h.GRADE_CODE
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize}
+        </if>
+
+    </select>
+
+
+
+
+    <sql id="whereCondition">
+        <where>
+            <if test="filterMap.lgcsCode!=null and filterMap.lgcsCode!=''">
+                AND a.lgcsCoe = #{filterMap.lgcsCode}
+            </if>
+            <if test="filterMap.pdName!=null and filterMap.pdName!=''">
+                AND CONCAT(a.pdName,h.GRADE_NAME) like #{filterMap.pdName}
+            </if>
+        </where>
+    </sql>
+
+    <sql id="fromTable">
+        FROM
+        (
+        SELECT
+        CONCAT(a.CLASSES_CODE,b.MACHINING_CODE,c.BREED_CODE,d.FEATURE_CODE,e.WEIGHT_CODE) as pdCode,
+        CONCAT(a.CLASSES_NAME,'/',b.MACHINING_NAME,'/',c.BREED_NAME,'/',d.FEATURE_NAME,'/',e.WEIGHT_NAME) as pdName,
+        g.LGCS_CODE as lgcsCoe,
+        g.LGCS_NAME as lgcsName,
+        g.status as status,
+        g.pd_label as pdLabel,
+        g.GRADE_CODE as gradeCode
+        FROM
+        pd_classes a
+        INNER JOIN pd_machining b ON b.CLASSES_CODE = a.CLASSES_CODE AND a.DEL_FLG = 0 AND b.DEL_FLG = 0
+        INNER JOIN pd_breed c ON c.CLASSES_CODE = a.CLASSES_CODE
+        AND c.MACHINING_CODE = b.MACHINING_CODE AND c.DEL_FLG = 0
+        INNER JOIN pd_feature d ON d.CLASSES_CODE = a.CLASSES_CODE
+        AND d.MACHINING_CODE = b.MACHINING_CODE
+        AND d.BREED_CODE = c.BREED_CODE AND d.DEL_FLG = 0
+        INNER JOIN pd_weight e ON e.CLASSES_CODE = a.CLASSES_CODE
+        AND e.MACHINING_CODE = b.MACHINING_CODE
+        AND e.BREED_CODE = c.BREED_CODE
+        AND e.FEATURE_CODE = d.FEATURE_CODE AND e.DEL_FLG = 0
+        INNER JOIN pd_logiarea g ON g.CLASSES_CODE = a.CLASSES_CODE and
+        g.MACHINING_CODE = b.MACHINING_CODE  and
+        g.BREED_CODE = c.BREED_CODE and
+        g.FEATURE_CODE = d.FEATURE_CODE AND
+        g.WEIGHT_CODE = e.WEIGHT_CODE AND g.DEL_FLG = 0
+        <if test="filterMap.status!=null and filterMap.status!=''">
+            <choose>
+                <when test="filterMap.status == 9">
+                     AND (g.status = #{filterMap.status} OR g.status IS NULL)
+                </when>
+                <otherwise>
+                     AND g.status = #{filterMap.status}
+                </otherwise>
+            </choose>
+        </if>
+        GROUP BY a.CLASSES_CODE,
+        b.MACHINING_CODE,
+        c.BREED_CODE
+        ORDER BY
+        a.CLASSES_CODE,
+        b.MACHINING_CODE,
+        c.BREED_CODE,
+        d.FEATURE_CODE,
+        e.WEIGHT_CODE
+        )a inner JOIN
+        pd_grade h on h.GRADE_CODE = a.gradeCode AND h.DEL_FLG = 0
+
+    </sql>
+
+    <select id="getPageCount" parameterType="BaseParam" resultType="int">
+        SELECT
+        count(1)
+        <include refid="fromTable"/>
+
+        <include refid="whereCondition"/>
+        ORDER BY
+        a.lgcsCoe,
+        a.pdCode,
+        h.GRADE_CODE
+    </select>
+
+
+    <update id="modify" parameterType="com.msk.pd.bean.PD144106Param">
+        UPDATE pd_logiarea p
+         set
+            p.pd_label = #{pdLabel},
+            <if test="status != null and status != ''">
+                p.status = #{status},
+            </if>
+            <if test="delFlg != null and delFlg != ''">
+                p.del_flg = #{delFlg},
+            </if>
+                p.ver = p.ver + 1,
+                p.upd_time = #{updTime},
+                p.upd_id = #{updId}
+         where  CONCAT(p.CLASSES_CODE,p.MACHINING_CODE,p.BREED_CODE) = LEFT(#{pdCode},5) AND p.LGCS_CODE = #{lgcsCode}
+    </update>
+</mapper>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.batch.so.logic.BSO152404Logic">
+    <!-- 获取订单供货明细信息表(订单状态:已确认,订单类型:买手囤货订单,第三方买手囤货订单) -->
+    <select id="selectOrderNeedsTransfer" parameterType="BaseParam" resultType="com.msk.batch.so.bean.BSO152404Bean">
+        SELECT  t3.ORDER_ID orderId,
+                t3.ORDER_CODE orderCode,
+                t1.SUPPLIER_CODE supplierCode,
+                t1.SUPPLIER_NAME supplierName,
+                t3.SELLER_CODE sourceSellerCode,
+                t3.SELLER_NAME sourceSellerName,
+                t3.BUYERS_ID sellerCode,
+                t3.BUYERS_NAME sellerName,
+                t3.ORDER_SOURCE orderSource,
+                t3.DISTRICT_CODE districtCode,
+                t1.CLASSES_CODE classCode,
+                t1.CLASSES_NAME className,
+                t1.BREED_CODE breedCode,
+                t1.BREED_NAME breedName,
+                t1.FEATURE_CODE featureCode,
+                t1.FEATURE_NAME featureName,
+                t1.NORMS_CODE normsCode,
+                t1.NORMS_NAME normsName,
+                t1.PD_CODE pdCode,
+                t1.PD_NAME pdName,
+                t1.PD_LEVEL pdLevel,
+                t1.PD_GRADE_CODE pdGradeCode,
+                t1.PD_GRADE_NAME pdGradeName,
+                t1.UNIT unit,
+                t1.PACKING_VOLUME packingVolume,
+                t1.WEIGHT weight,
+                t1.VOLUME volume,
+                t1.SUPP_QTY suppQty
+        FROM   so_order_detail_availability t1
+        LEFT JOIN so_order_detail t2
+        ON (t1.ORDER_DETAIL_ID = t2.ORDER_DETAIL_ID)
+        LEFT JOIN so_order t3
+        ON (t2.ORDER_ID = t3.ORDER_ID)
+        WHERE  t3.ORDER_STATUS = #{filterMap.status}
+        AND  (t3.ORDER_TYPE = #{filterMap.orderType1}
+        OR  t3.ORDER_TYPE = #{filterMap.orderType2})
+    </select>
+    <!-- 更新订单供货明细信息表状态 -->
+    <update id="modifyDetailAvailabilityStatus" parameterType="BaseParam">
+        UPDATE so_order_detail_availability
+        SET SEND_QTY = SUPP_QTY,
+        RECEIVE_QTY = SUPP_QTY,
+        CANCEL_QTY = 0,
+        RETURN_QTY = 0,
+        STATUS = #{filterMap.status},
+        UPD_ID = #{updId},
+        UPD_TIME = #{updTime},
+        VER = VER + 1
+        WHERE ORDER_ID = #{orderId}
+    </update>
+    <!-- 更新订单明细表状态 -->
+    <update id="modifyDetailStatus" parameterType="BaseParam">
+        UPDATE so_order_detail
+        SET  DETAIL_STATUS = #{filterMap.status},
+        <!--   -->
+        SEND_QTY=ORDER_QTY,
+        RECEIVE_QTY= ORDER_QTY,
+        CANCEL_QTY= 0,
+        RETURN_QTY= 0,
+
+        UPD_ID = #{updId},
+        UPD_TIME = #{updTime},
+        VER = VER + 1
+        WHERE ORDER_ID = #{orderId}
+        AND DEL_FLG = 0
+    </update>
+    <!-- 更新订单主表状态 -->
+    <update id="modifyStatus" parameterType="BaseParam">
+        UPDATE so_order
+        SET  ORDER_STATUS = #{filterMap.status},
+        UPD_ID = #{updId},
+        UPD_TIME = #{updTime},
+        VER = VER + 1
+        WHERE ORDER_ID = #{orderId}
+        AND DEL_FLG = 0
+    </update>
+
+</mapper>
+

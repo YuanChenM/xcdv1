@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.msk.so.logic.OrderStatusLogic">
+    <insert id="save" parameterType="BaseEntity">
+        INSERT INTO SO_ORDER_STATUS (
+                                ORDER_ID
+                                ,ORDER_CODE
+                                ,ID
+                                ,ORDER_STATUS
+                                ,DEL_FLG
+                                ,CRT_ID
+                                ,CRT_TIME
+                                ,UPD_ID
+                                ,UPD_TIME
+                                ,ACT_ID
+                                ,ACT_TIME
+                                ,VER
+                                )
+        VALUES (
+        #{orderId}
+        ,#{orderCode}
+        ,#{id}
+        ,#{orderStatus}
+        ,0
+        ,#{crtId}
+        ,#{crtTime}
+        ,null
+        ,null
+        ,null
+        ,null
+        ,1
+        )
+    </insert>
+    <update id="modify" parameterType="BaseParam">
+        UPDATE
+        SO_ORDER_STATUS
+        SET
+        DEL_FLG=1
+        ,UPD_ID=#{updId}
+        ,UPD_TIME=#{updTime}
+        ,VER = VER + 1
+        <if test="filterMap.orderStatus != null">
+            ,ORDER_STATUS = #{filterMap.orderStatus}
+        </if>
+        WHERE
+        ORDER_ID=#{orderId}
+        AND ORDER_CODE=#{orderCode}
+        AND DEL_FLG = 0
+    </update>
+
+    <update id="modifyOrderStatus" parameterType="BaseParam">
+        UPDATE
+        SO_ORDER
+        SET
+        UPD_ID=#{updId}
+        ,UPD_TIME=#{updTime}
+        ,VER = VER + 1
+        <if test="filterMap.cancelType != null">
+            ,CANCEL_TYPE = #{filterMap.cancelType}
+        </if>
+        <if test="filterMap.cancelReason != null">
+            ,CANCEL_REASON = #{filterMap.cancelReason}
+        </if>
+        <if test="filterMap.orderStatus != null">
+            ,ORDER_STATUS = #{filterMap.orderStatus}
+        </if>
+        WHERE
+        ORDER_ID=#{orderId}
+        AND VER = #{ver}
+        AND DEL_FLG = 0
+    </update>
+
+    <update id="modifyOrderDetailStatus" parameterType="BaseParam">
+        UPDATE
+        SO_ORDER_DETAIL
+        SET
+        UPD_ID=#{updId}
+        ,UPD_TIME=#{updTime}
+        ,VER = VER + 1
+        ,CANCEL_QTY = ORDER_QTY
+        <if test="filterMap.cancelReason != null">
+            ,CANCEL_REASON =#{filterMap.cancelReason}
+        </if>
+        <if test="filterMap.detailStatus != null">
+            ,DETAIL_STATUS = #{filterMap.detailStatus}
+        </if>
+        WHERE
+        ORDER_ID=#{orderId}
+        <!--Delete for Bug#2677 at 2016/09/18 by sun_jiaju Start-->
+        <!--AND VER = #{ver}-->
+        <!--Delete for Bug#2677 at 2016/09/18 by sun_jiaju End-->
+        AND DEL_FLG = 0
+    </update>
+
+    <update id="modifyOrderAvailabilityStatus" parameterType="BaseParam">
+        UPDATE
+        SO_ORDER_DETAIL_AVAILABILITY
+        SET
+        UPD_ID=#{updId}
+        ,UPD_TIME=#{updTime}
+        ,VER = VER + 1
+        ,CANCEL_QTY = SUPP_QTY
+        <if test="filterMap.status != null">
+            ,STATUS = #{filterMap.status}
+        </if>
+        WHERE
+        ORDER_ID=#{orderId}
+        <!--Delete for Bug#2677 at 2016/09/18 by sun_jiaju Start-->
+        <!--AND VER = #{ver}-->
+        <!--Delete for Bug#2677 at 2016/09/18 by sun_jiaju End-->
+        AND DEL_FLG = 0
+    </update>
+
+
+    <select id="findOne" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderStatus">
+        SELECT
+              ORDER_ID
+              ,ORDER_CODE
+              ,ID
+              ,ORDER_STATUS
+              ,DEL_FLG
+              ,CRT_ID
+              ,CRT_TIME
+              ,UPD_ID
+              ,UPD_TIME
+              ,ACT_ID
+              ,ACT_TIME
+              ,VER
+        FROM SO_ORDER_STATUS
+        WHERE ORDER_ID=#{orderId} AND ORDER_CODE=#{orderCode}
+        AND DEL_FLG = 0
+
+    </select>
+    <select id="getOrdersByStatus" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrder">
+        SELECT
+            ORDER_ID AS orderId,
+            ORDER_CODE AS orderCode,
+            ORDER_STATUS AS orderStatus,
+            CRT_TIME AS crtTime
+        FROM
+            so_order
+        WHERE
+            ORDER_STATUS = #{orderStatus} OR ORDER_STATUS = #{filterMap.failStatus}
+        AND DEL_FLG = 0
+    </select>
+    <select id="getCurrentId" parameterType="BaseParam" resultType="java.lang.Long">
+        SELECT
+            ID AS MAXID
+        FROM
+            SO_ORDER_STATUS
+        WHERE
+            ORDER_ID=#{orderId} 
+            AND ORDER_CODE=#{orderCode}
+            AND DEL_FLG = 0
+    </select>
+
+    <select id="findRelation" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderRelation">
+        SELECT MAIN_ORDER_ID AS mainOrderId,
+        CHILD_ORDER_ID AS childOrderId
+        FROM SO_ORDER_RELATION
+        WHERE MAIN_ORDER_ID = #{orderId}
+    </select>
+
+    <select id="findOrderShip" parameterType="BaseParam" resultType="com.msk.core.entity.SoOrderShip">
+        SELECT SHIP_STATUS AS shipStatus
+        FROM SO_ORDER_SHIP
+        WHERE SHIP_ID = #{shipId}
+    </select>
+
+    <select id="findCount" parameterType="BaseParam" resultType="com.msk.so.bean.ModifyStatusBean">
+        SELECT COUNT(1) AS allCount,
+				A.allCount AS cancelCount,
+                B.allCount AS allReceiptCount,
+                C.allCount AS allShipmentCount,
+                D.allCount AS partialReceiptCount,
+                E.allCount AS partialShipmentCount,
+                F.allCount AS waitSendCount,
+                G.allCount AS waitDisCount
+        FROM SO_ORDER_DETAIL SOD
+        INNER JOIN (
+				SELECT
+				COUNT(1) AS allCount
+                FROM SO_ORDER_DETAIL
+                <include refid="whereCondition"/>
+				AND DETAIL_STATUS =99
+        )A ON 1=1
+        INNER JOIN (
+                SELECT
+                COUNT(1) AS allCount
+                FROM SO_ORDER_DETAIL
+                <include refid="whereCondition"/>
+                AND DETAIL_STATUS = 7
+        )B ON 1=1
+        INNER JOIN (
+                SELECT
+                COUNT(1) AS allCount
+                FROM SO_ORDER_DETAIL
+                <include refid="whereCondition"/>
+                AND DETAIL_STATUS = 6
+        )C ON 1=1
+        INNER JOIN (
+                SELECT
+                COUNT(1) AS allCount
+                FROM SO_ORDER_DETAIL
+                <include refid="whereCondition"/>
+                AND DETAIL_STATUS = 5
+        )D ON 1=1
+        INNER JOIN (
+                SELECT
+                COUNT(1) AS allCount
+                FROM SO_ORDER_DETAIL
+                <include refid="whereCondition"/>
+                AND DETAIL_STATUS = 4
+        )E ON 1=1
+        INNER JOIN (
+                SELECT
+                COUNT(1) AS allCount
+                FROM SO_ORDER_DETAIL
+                <include refid="whereCondition"/>
+                AND DETAIL_STATUS = 3
+        )F ON 1=1
+        INNER JOIN (
+                SELECT
+                COUNT(1) AS allCount
+                FROM SO_ORDER_DETAIL
+                <include refid="whereCondition"/>
+                AND DETAIL_STATUS = 1
+        )G ON 1=1
+        <include refid="whereCondition"/>
+    </select>
+
+    <sql id="whereCondition">
+        WHERE
+        <if test="childId == null">
+            ORDER_ID = #{orderId}
+        </if>
+        <if test="childId != null">
+            (ORDER_ID = #{orderId} OR ORDER_ID = #{childId})
+        </if>
+    </sql>
+
+    <update id="modifyOrderStatusByDetailStatus" parameterType="BaseParam">
+        UPDATE
+        SO_ORDER
+        SET
+        ORDER_STATUS = #{orderStatus},
+        UPD_ID = #{updId},
+        UPD_TIME = #{updTime},
+        VER = VER + 1
+        WHERE ORDER_ID = #{orderId}
+    </update>
+
+    <select id="findShipCount" parameterType="BaseParam" resultType="com.msk.so.bean.ModifyStatusBean">
+        SELECT COUNT(1) AS allCount,
+        A.allCount AS cancelCount,
+        B.allCount AS allReceiptCount,
+        C.allCount AS allShipmentCount,
+        D.allCount AS partialReceiptCount,
+        E.allCount AS partialShipmentCount
+        FROM SO_ORDER_DETAIL_AVAILABILITY SODA
+        INNER JOIN (
+        SELECT
+        COUNT(1) AS allCount
+        FROM SO_ORDER_DETAIL_AVAILABILITY
+        WHERE SHIP_ID = #{shipId}
+        AND STATUS =99
+        )A ON 1=1
+        INNER JOIN (
+        SELECT
+        COUNT(1) AS allCount
+        FROM SO_ORDER_DETAIL_AVAILABILITY
+        WHERE SHIP_ID = #{shipId}
+        AND STATUS = 6
+        )B ON 1=1
+        INNER JOIN (
+        SELECT
+        COUNT(1) AS allCount
+        FROM SO_ORDER_DETAIL_AVAILABILITY
+        WHERE SHIP_ID = #{shipId}
+        AND STATUS = 5
+        )C ON 1=1
+        INNER JOIN (
+        SELECT
+        COUNT(1) AS allCount
+        FROM SO_ORDER_DETAIL_AVAILABILITY
+        WHERE SHIP_ID = #{shipId}
+        AND STATUS = 4
+        )D ON 1=1
+        INNER JOIN (
+        SELECT
+        COUNT(1) AS allCount
+        FROM SO_ORDER_DETAIL_AVAILABILITY
+        WHERE SHIP_ID = #{shipId}
+        AND STATUS = 3
+        )E ON 1=1
+        WHERE SHIP_ID = #{shipId}
+    </select>
+
+    <update id="modifyShipStatus" parameterType="BaseParam">
+        UPDATE
+        SO_ORDER_SHIP
+        SET
+        SHIP_STATUS = #{shipStatus},
+        UPD_ID = #{updId},
+        UPD_TIME = #{updTime},
+        VER = VER + 1
+        WHERE SHIP_ID = #{shipId}
+    </update>
+
+
+<!-- Modify for bug#1506 at 2016/07/29 by wang_jianzhou Start.-->
+    <!-- 查询子订单ID-->
+    <select id="getChildOrdersById" parameterType="com.msk.so.bean.BaseOrderParam" resultType="com.msk.core.entity.SoOrderRelation">
+      SELECT
+      CHILD_ORDER_ID AS childOrderId
+      FROM
+      SO_ORDER_RELATION
+      WHERE
+      MAIN_ORDER_ID = #{orderId}
+    </select>
+
+    <!-- 更新子订单-->
+    <update id="modifyChildOrderStatus" parameterType="com.msk.so.bean.BaseOrderParam">
+        UPDATE
+        SO_ORDER
+        SET
+        UPD_ID = #{updId}
+        ,UPD_TIME = #{updTime}
+        ,VER = VER + 1
+        <if test="filterMap.cancelType != null">
+            ,CANCEL_TYPE = #{filterMap.cancelType}
+        </if>
+        <if test="filterMap.cancelReason != null">
+            ,CANCEL_REASON = #{filterMap.cancelReason}
+        </if>
+        <if test="filterMap.orderStatus != null">
+            ,ORDER_STATUS = #{filterMap.orderStatus}
+        </if>
+        WHERE
+        ORDER_ID = #{filterMap.childId}
+        AND DEL_FLG = 0
+    </update>
+
+    <!-- 更新子订单明细信息 -->
+    <update id="modifyOrderChildDetailStatus" parameterType="com.msk.so.bean.BaseOrderParam">
+        UPDATE
+        SO_ORDER_DETAIL
+        SET
+        UPD_ID = #{updId}
+        ,UPD_TIME = #{updTime}
+        ,VER = VER + 1
+        ,CANCEL_QTY = ORDER_QTY
+        <if test="filterMap.cancelReason != null">
+            ,CANCEL_REASON = #{filterMap.cancelReason}
+        </if>
+        <if test="filterMap.detailStatus != null">
+            ,DETAIL_STATUS = #{filterMap.detailStatus}
+        </if>
+        WHERE
+        ORDER_ID = #{filterMap.childId}
+        AND DEL_FLG = 0
+    </update>
+
+    <!-- 更新子订单供货明细信息 -->
+    <update id="modifyChildOrderAvailabilityStatus" parameterType="com.msk.so.bean.BaseOrderParam">
+        UPDATE
+        SO_ORDER_DETAIL_AVAILABILITY
+        SET
+        UPD_ID = #{updId}
+        ,UPD_TIME = #{updTime}
+        ,VER = VER + 1
+        ,CANCEL_QTY = SUPP_QTY
+        <if test="filterMap.status != null">
+            ,STATUS = #{filterMap.status}
+        </if>
+        WHERE
+        ORDER_ID = #{filterMap.childId}
+        AND DEL_FLG = 0
+    </update>
+    <!-- Modify for bug#1506 at 2016/07/29 by wang_jianzhou end.-->
+</mapper>

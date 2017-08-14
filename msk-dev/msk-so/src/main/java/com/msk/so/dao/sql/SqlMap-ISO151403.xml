@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151403Logic">
+    <select id = "findSellerList" resultType = "com.msk.so.bean.SellerListResult" parameterType = "BaseParam">
+        SELECT so.SELLER_CODE AS userId,
+				sbbi.SL_CODE_DIS AS userNo,
+				sa.SL_SHOW_NAME AS userName,
+                4 AS userRole
+        FROM so_order so
+        INNER JOIN sl_bs_basic_info sbbi
+        ON sbbi.SL_CODE = so.SELLER_CODE
+        INNER JOIN sl_account sa
+        ON sbbi.SL_ACCOUNT = sa.SL_ACCOUNT
+        WHERE order_code = (
+        SELECT CHILD_ORDER_CODE
+        FROM so_order_relation
+        WHERE MAIN_ORDER_CODE = #{transCode}
+        )
+        UNION ALL
+        SELECT DISTINCT soda.SUPPLIER_CODE AS userId,
+				ss.SL_CODE_DIS AS userNo,
+				sa.SL_SHOW_NAME AS userName,
+                3 AS userRole
+        FROM so_order_detail_availability soda
+        INNER JOIN sl_seller ss
+        ON ss.SL_CODE = soda.SUPPLIER_CODE
+        INNER JOIN sl_account sa
+        ON ss.SL_ACCOUNT = sa.SL_ACCOUNT
+        WHERE ORDER_CODE = #{transCode}
+    </select>
+</mapper>

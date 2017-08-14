@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.ms.logic.IMS112102Logic">
+<select id="searchMsCardNoByBuyerCode" parameterType="BaseParam" resultType="com.msk.core.entity.MsCardmanager">
+    SELECT 
+        MS_ID AS msId,
+        MS_CARDNO AS msCardno,
+        BUYER_NAME AS buyerName,
+        EXPIRE_DATE AS expireDate,
+        MS_NOWPW AS msNowpw
+    FROM 
+        MS_CARDMANAGER
+    WHERE 
+        BUYER_CODE=#{filterMap.userId}
+        AND
+        IS_PROVIDE IN ('1','2')
+ </select>
+ </mapper>

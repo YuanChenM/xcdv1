@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.batch.so.logic.BSO152407Logic">
+    <sql id="selectResultSql">
+        so.ORDER_ID as orderId,
+        so.ORDER_CODE as orderCode,
+        so.ORDER_TYPE as orderType,
+        so.BUYERS_ID as buyersId,
+        so.BUYERS_CODE as buyersCode,
+        so.BUYERS_TYPE as buyersType,
+        IFNULL(so.BUYERS_NAME,'') as buyersName,
+        so.ORDER_SOURCE as orderSource,
+        so.ORDER_STATUS as orderStatus,
+        so.DISTRICT_CODE as districtCode,
+        so.VER as ver,
+        so.SELLER_CODE as sellerCode,
+        so.PAYMENT_TYPE as paymentType,
+        sord.FORECAST_SEND_TIME as forecastSendTime,
+        sord.FORECAST_RECEIVE_TIME as forecastReceiveTime,
+        IFNULL(sord.RECEIVER_NAME,'') as receiverName,
+        IFNULL(sord.RECEIVER_TEL,'') as receiverTel,
+        IFNULL(sord.RECEIVER_QQ,'') as receiverQq,
+        IFNULL(sord.RECEIVER_WEIXIN,'') as receiverWeixin,
+        IFNULL(sord.RECEIVER_MAIL,'') as receiverMail,
+        IFNULL(sord.RECEIVER_PROVINCE,'') as receiverProvince,
+        IFNULL(sord.RECEIVER_CITY,'') as receiverCity,
+        IFNULL(sord.RECEIVER_DISTRICT,'') as receiverDistrict,
+        IFNULL(sord.RECEIVER_ADDR,'') as receiverAddr,
+        sord.DELIVERY_TYPE as receiverDeType,
+        sord.ADVANCE_NOTICE_TIME as receiverAdTime,
+        IFNULL(sord.RECEIVER_ADDR2,'') as receiverAddr2,
+        IFNULL(sord.RECEIVER_ADDR_KEY,'') as receiverAddrKey,
+        sord.RECEIVE_TIME AS receiveTime,
+        sord.RECEIVE_EARLIEST AS receiveEarliest,
+        sord.RECEIVE_LAST AS receiveLast,
+        sp.PAY_AMOUNT as payAmount,
+        so.SHIP_SUBSEQUENT AS shipSubsequent
+    </sql>
+
+    <select id="findOrderList" parameterType="BaseParam" resultType="com.msk.batch.so.bean.BSO152407Result">
+        SELECT
+        <include refid="selectResultSql"/>
+        FROM
+            so_order so
+        LEFT JOIN so_order_receive_demand sord ON sord.ORDER_ID = so.ORDER_ID
+        LEFT JOIN so_payment sp on so.ORDER_ID = sp.ORDER_ID
+        WHERE
+            (
+                EXISTS (
+                    SELECT
+                        1
+                    FROM
+                        so_order_relation sor
+                    LEFT JOIN so_order_detail sod ON sod.ORDER_ID = sor.CHILD_ORDER_ID
+                    WHERE
+                        sor.MAIN_ORDER_ID = so.order_id
+                    AND (
+                        sod.PRO_DATE <![CDATA[<=]]> DATE_FORMAT(
+                            DATE_ADD(#{nowDate}, INTERVAL 1 DAY),
+                            "%Y-%m-%d"
+                        )
+                        OR sod.PRO_DATE IS NULL
+                    )
+                    AND sod.DETAIL_STATUS = #{orderStatus}
+                    AND so.ORDER_STATUS NOT IN(2,6)
+                )
+                OR EXISTS (
+                    SELECT
+                        1
+                    FROM
+                        so_order_detail sodd
+                    WHERE
+                        (
+                            sodd.PRO_DATE <![CDATA[<=]]>  DATE_FORMAT(
+                                DATE_ADD(#{nowDate}, INTERVAL 1 DAY),
+                                "%Y-%m-%d"
+                            )
+                            OR sodd.PRO_DATE IS NULL
+                        )
+                    AND NOT EXISTS (
+                        SELECT
+                            1
+                        FROM
+                            so_order_relation sorr
+                        WHERE
+                            sorr.CHILD_ORDER_ID = sodd.ORDER_ID
+                    )
+                    AND sodd.DETAIL_STATUS = #{orderStatus}
+                    AND sodd.order_id = so.order_id
+                )
+            )
+            <if test="orderType1!=null and orderType1!=''">
+                AND so.ORDER_TYPE <![CDATA[<> #{orderType1}]]>
+            </if>
+            <if test="orderType2!=null and orderType2!=''">
+                AND so.ORDER_TYPE <![CDATA[<> #{orderType2}]]>
+            </if>
+    </select>
+
+    <select id="findOrderDetailList" parameterType="BaseParam" resultType="com.msk.batch.so.bean.BSO152407DetailResult">
+        SELECT
+            sod.PD_CODE as pdCode,
+            sod.PD_PRICE as pdPrice,
+            sod.UNIT as unit,
+            soda.SUPP_QTY as suppQty,
+            soda.SUPPLIER_CODE as supplierCode,
+            soda.ORDER_DETAIL_AVAILABILITY_ID AS shipDetailId,
+            '' as inventoryStatus,
+            '' as inboundBatch
+        FROM
+            so_order_detail sod
+        LEFT JOIN so_order_detail_availability soda ON soda.order_detail_id = sod.order_detail_id
+        WHERE
+            (
+                sod.PRO_DATE <![CDATA[<=]]> DATE_FORMAT(
+                    DATE_ADD(#{nowDate}, INTERVAL 1 DAY),
+                    "%Y-%m-%d"
+                )
+                OR sod.PRO_DATE IS NULL
+            )
+        AND (
+            sod.order_id = #{orderId}
+            OR EXISTS (
+                SELECT
+                    1
+                FROM
+                    so_order_relation sor
+                WHERE
+                    sor.CHILD_ORDER_ID = sod.order_id
+                AND sor.main_order_id = #{orderId}
+            )
+        )
+        AND sod.detail_status = #{orderStatus}
+        AND soda.ORDER_DETAIL_AVAILABILITY_ID IS NOT NULL
+    </select>
+
+    <update id="updateOrderStatus" parameterType="com.msk.batch.so.bean.BSO152407Param">
+        UPDATE SO_ORDER so
+        SET so.ORDER_STATUS = #{orderStatus}
+        ,so.UPD_TIME = #{updTime}
+        ,so.DELIVERY_ORDER_CODE =#{deliveryCode}
+        ,so.VER = VER + 1
+        WHERE
+        so.ORDER_ID = #{orderId}
+    </update>
+    <update id="updateDetailOrderStatus" parameterType="com.msk.batch.so.bean.BSO152407Result">
+        UPDATE SO_ORDER_DETAIL sod
+        LEFT JOIN SO_ORDER_DETAIL_AVAILABILITY soda ON soda.ORDER_DETAIL_ID = sod.order_detail_id
+        SET sod.DETAIL_STATUS = #{orderStatus},
+            sod.UPD_TIME = #{updTime},
+            sod.VER = sod.VER + 1
+        WHERE
+            soda.ship_id = #{shipId}
+    </update>
+    <update id="updateOrderDetailAvailabilityStatus" parameterType="com.msk.batch.so.bean.BSO152407Result">
+        UPDATE SO_ORDER_DETAIL_AVAILABILITY soda
+        SET soda.STATUS = #{orderStatus}
+        ,soda.UPD_TIME = #{updTime}
+        ,soda.VER = VER + 1
+        WHERE
+        soda.ship_id = #{shipId}
+    </update>
+
+    <insert id="saveShipInfo" parameterType="com.msk.batch.so.bean.BSO152407Result">
+        INSERT INTO so_order_ship (
+          SHIP_ID,
+          SHIP_CODE,
+          ORDER_ID,
+          ORDER_CODE,
+          CHILD_ORDER_ID,
+          FORECAST_SEND_TIME,
+          FORECAST_RECEIVE_TIME,
+          PAYMENT_TYPE,
+          RECEIVER_NAME,
+          RECEIVER_TEL,
+          RECEIVER_QQ,
+          RECEIVER_WEIXIN,
+          RECEIVER_MAIL,
+          RECEIVER_PROVINCE,
+          RECEIVER_CITY,
+          RECEIVER_DISTRICT,
+          RECEIVER_ADDR,
+          RECEIVER_ADDR2,
+          RECEIVER_ADDR_KEY,
+          RECEIVE_TIME,
+          RECEIVE_EARLIEST,
+          RECEIVE_LAST,
+          DELIVERY_TYPE,
+          SHIP_STATUS,
+          DEL_FLG,
+          CRT_ID,
+          CRT_TIME,
+          UPD_ID,
+          UPD_TIME,
+          ver
+        ) VALUE (
+          #{shipId},
+          #{shipCode},
+          #{orderId},
+          #{orderCode},
+          #{childOrderId},
+          #{forecastSendTime},
+          #{forecastReceiveTime},
+          #{paymentType},
+          #{receiverName},
+          #{receiverTel},
+          #{receiverQq},
+          #{receiverWeixin},
+          #{receiverMail},
+          #{receiverProvince},
+          #{receiverCity},
+          #{receiverDistrict},
+          #{receiverAddr},
+          #{receiverAddr2},
+          #{receiverAddrKey},
+          #{receiveTime},
+          #{receiveEarliest},
+          #{receiveLast},
+          #{receiverDeType},
+          #{shipStatus},
+          0,
+          #{crtId},
+          #{crtTime},
+          #{crtId},
+          #{crtTime},
+          1
+        )
+    </insert>
+
+    <select id="getMaxOrderShipCode" parameterType="BaseParam" resultType="String">
+        SELECT
+            MAX(sos.SHIP_CODE)
+        FROM
+            so_order_ship sos
+        WHERE
+            sos.order_id = #{filterMap.orderId}
+    </select>
+
+    <update id="modifySuppShipId" parameterType="com.msk.batch.so.bean.BSO152407Result">
+        UPDATE
+          so_order_detail_availability soda
+          LEFT JOIN so_order_detail sod
+            ON soda.order_detail_id = sod.order_detail_id SET soda.ship_id = #{shipId}
+        WHERE (
+            sod.PRO_DATE <![CDATA[<=]]> DATE_FORMAT(
+              DATE_ADD(#{nowDate}, INTERVAL 1 DAY),
+              "%Y-%m-%d"
+            )
+            OR sod.PRO_DATE IS NULL
+          )
+          AND (
+            sod.order_id = #{orderId}
+            OR EXISTS
+            (SELECT
+              1
+            FROM
+              so_order_relation sor
+            WHERE sor.CHILD_ORDER_ID = sod.order_id
+              AND sor.main_order_id = #{orderId}
+            )
+          )
+          AND sod.detail_status = #{orderStatus}
+    </update>
+
+    <update id="modifySuppSku" parameterType="com.msk.batch.so.bean.BSO152407DetailResult">
+        UPDATE
+          so_order_detail_availability
+        SET
+          SKU_CODE = #{sku}
+        WHERE ORDER_DETAIL_AVAILABILITY_ID = #{shipDetailId}
+    </update>
+
+    <select id="findChildOrderId" parameterType="com.msk.batch.so.bean.BSO152407Result" resultType="com.msk.core.entity.SoOrder">
+        select DISTINCT sod.order_id as orderId
+        from so_order_detail sod
+        WHERE (
+        sod.PRO_DATE <![CDATA[<=]]> DATE_FORMAT(
+        DATE_ADD(#{nowDate}, INTERVAL 1 DAY),
+        "%Y-%m-%d"
+        )
+        OR sod.PRO_DATE IS NULL
+        )
+        AND (
+        sod.order_id = #{orderId}
+        OR EXISTS
+        (SELECT
+        1
+        FROM
+        so_order_relation sor
+        WHERE sor.CHILD_ORDER_ID = sod.order_id
+        AND sor.main_order_id = #{orderId}
+        )
+        )
+        AND sod.detail_status = #{orderStatus}
+        AND sod.order_id != #{orderId}
+    </select>
+
+    <select id="getShipCountByOrderId" parameterType="com.msk.batch.so.bean.BSO152407Param" resultType="int">
+        SELECT
+        COUNT(1)
+        FROM
+        so_order_ship sos
+        LEFT JOIN so_order so
+        ON sos.order_id = so.order_id
+        WHERE
+        sos.SHIP_STATUS NOT IN (97,98,99)
+        AND so.order_id = #{orderId}
+    </select>
+</mapper>

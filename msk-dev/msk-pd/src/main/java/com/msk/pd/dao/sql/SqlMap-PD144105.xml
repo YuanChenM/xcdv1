@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pd.logic.PD144105Logic">
+    <select id="findClassesCode" parameterType="BaseParam" resultType="com.msk.core.entity.PdClassestree">
+      select
+      a.CLASSESTREE_CODE AS classestreeCode
+     ,a.LEVEL_CODE AS levelCode
+     ,a.LEVEL_NAME AS levelName
+      from pd_classestree AS a where a.TREE_LEVEL=#{filterMap.treeLevel} AND DEL_FLG='0'
+    </select>
+    <select id="findMachingCode" parameterType="BaseParam" resultType="com.msk.core.entity.PdMachining">
+        select
+         MACHINING_CODE AS  machiningCode,
+         MACHINING_NAME AS machiningName
+        from pd_machining
+        where CLASSES_CODE=#{filterMap.classesCode}
+             AND DEL_FLG='0'
+    </select>
+    <select id="findBreed" parameterType="BaseParam" resultType="com.msk.core.entity.PdBreed">
+        SELECT  BREED_CODE AS breedCode,BREED_NAME AS breedName
+           FROM pd_breed
+           WHERE CLASSES_CODE = #{filterMap.classesCode} AND MACHINING_CODE = #{filterMap.machiningCode}
+           AND DEL_FLG='0'
+    </select>
+
+    <select id="findFeature" parameterType="BaseParam" resultType="com.msk.core.entity.PdFeature">
+        SELECT  FEATURE_CODE AS featureCode,FEATURE_NAME AS featureName
+        FROM pd_feature
+        WHERE CLASSES_CODE = #{filterMap.classesCode}
+             AND MACHINING_CODE = #{filterMap.machiningCode}
+             AND  BREED_CODE=#{filterMap.breedCode}
+             AND DEL_FLG='0'
+    </select>
+
+    <select id="findWeight" parameterType="BaseParam" resultType="com.msk.core.entity.PdWeight">
+        SELECT  WEIGHT_CODE AS weightCode,WEIGHT_NAME AS weightName
+        FROM pd_weight
+        WHERE CLASSES_CODE = #{filterMap.classesCode}
+         AND MACHINING_CODE = #{filterMap.machiningCode}
+         AND BREED_CODE=#{filterMap.breedCode}
+         AND FEATURE_CODE = #{filterMap.featureCode}
+         AND DEL_FLG='0'
+    </select>
+
+    <select id="findGrade" parameterType="BaseParam" resultType="com.msk.core.entity.PdGrade">
+        SELECT  GRADE_CODE AS gradeCode,GRADE_NAME AS gradeName
+        FROM pd_grade
+        WHERE DEL_FLG='0'
+    </select>
+
+    <sql id="selectFiled">
+         CONCAT(a.CLASSES_CODE,b.MACHINING_CODE,c.BREED_CODE,d.FEATURE_CODE,e.WEIGHT_CODE,h.grade_code) as pdCode,
+        CONCAT(a.CLASSES_NAME,b.MACHINING_NAME,c.BREED_NAME,d.FEATURE_NAME,e.WEIGHT_NAME,h.grade_NAME) as pdName,
+        g.LGCS_CODE as lgcsCode,
+        g.LGCS_NAME as lgcsName,
+        case when f.PD_CODE is null
+             then '0' else '1' end as checkFlag,
+        a.CLASSES_NAME AS classesName,
+        a.CLASSES_CODE AS classesCode,
+		b.MACHINING_NAME AS machiningName,
+        b.MACHINING_CODE AS machiningCode,
+		c.BREED_NAME AS breedName,
+        c.BREED_CODE AS breedCode,
+		d.FEATURE_NAME AS featureName,
+        d.FEATURE_CODE AS featureCode,
+		e.WEIGHT_NAME AS weightName,
+        e.WEIGHT_CODE AS weightCode,
+        h.GRADE_NAME AS gradeName,
+        h.GRADE_CODE AS gradeCode
+    </sql>
+
+    <select id="findPageList" parameterType="com.msk.pd.bean.PD144104Param" resultType="com.msk.pd.bean.PD144104Bean">
+        SELECT
+        b.pdCode as pdCode,b.pdName as pdName
+        from (
+        SELECT
+        CONCAT(a.CLASSES_CODE,b.MACHINING_CODE,c.BREED_CODE,d.FEATURE_CODE,e.WEIGHT_CODE,h.GRADE_CODE) AS pdCode,
+        CONCAT(a.CLASSES_NAME,'/',b.MACHINING_NAME,'/',c.BREED_NAME,'/',d.FEATURE_NAME,'/',e.WEIGHT_NAME,'/',h.GRADE_NAME) AS pdName
+        FROM
+        <include refid="fromTable"/>
+        GROUP BY
+        a.CLASSES_CODE,
+        b.MACHINING_CODE,
+        c.BREED_CODE,
+        d.FEATURE_CODE,
+        e.WEIGHT_CODE,
+        g.LGCS_CODE
+        ORDER BY
+        a.CLASSES_CODE,
+        b.MACHINING_CODE,
+        c.BREED_CODE,
+        d.FEATURE_CODE,
+        e.WEIGHT_CODE)b
+        where
+        b.pdCode NOT IN ( SELECT f.pd_CODE FROM pd_app_floor_detail f WHERE f.del_flg = 0)
+        <if test="paging==true">
+            LIMIT #{startPos},#{pageSize};
+        </if>
+    </select>
+
+    <sql id="fromTable">
+        pd_classes a
+        INNER JOIN pd_machining b ON b.CLASSES_CODE = a.CLASSES_CODE
+        AND a.DEL_FLG = 0
+        AND b.DEL_FLG = 0
+        INNER JOIN pd_breed c ON c.CLASSES_CODE = a.CLASSES_CODE
+        AND c.MACHINING_CODE = b.MACHINING_CODE
+        AND c.DEL_FLG = 0
+        INNER JOIN pd_feature d ON d.CLASSES_CODE = a.CLASSES_CODE
+        AND d.MACHINING_CODE = b.MACHINING_CODE
+        AND d.BREED_CODE = c.BREED_CODE
+        AND d.DEL_FLG = 0
+        INNER JOIN pd_weight e ON e.CLASSES_CODE = a.CLASSES_CODE
+        AND e.MACHINING_CODE = b.MACHINING_CODE
+        AND e.BREED_CODE = c.BREED_CODE
+        AND e.FEATURE_CODE = d.FEATURE_CODE
+        AND e.DEL_FLG = 0
+        INNER JOIN pd_logiarea g ON g.CLASSES_CODE = a.CLASSES_CODE
+        AND g.MACHINING_CODE = b.MACHINING_CODE
+        AND g.BREED_CODE = c.BREED_CODE
+        AND g.FEATURE_CODE = d.FEATURE_CODE
+        AND g.WEIGHT_CODE = e.WEIGHT_CODE
+        AND g.DEL_FLG = 0
+        <if test="lgcsCode != null and lgcsCode != ''">
+            AND g.lgcs_code = #{lgcsCode}
+        </if>
+        INNER JOIN pd_grade h ON h.GRADE_CODE = g.grade_Code
+        AND h.DEL_FLG = 0
+
+        <if test="classesCode != null and classesCode != ''">
+            AND a.CLASSES_CODE = #{classesCode}
+        </if>
+        <if test="machiningCode != null and machiningCode != ''">
+            AND b.MACHINING_CODE = #{machiningCode}
+        </if>
+        <if test="breedCode != null and breedCode != ''">
+            AND c.BREED_CODE = #{breedCode}
+        </if>
+        <if test="featureCode != null and featureCode != ''">
+            AND d.FEATURE_CODE = #{featureCode}
+        </if>
+        <if test="weightCode != null and weightCode != ''">
+            AND e.WEIGHT_CODE = #{weightCode}
+        </if>
+        <if test="gradeCode != null and gradeCode != ''">
+            AND h.GRADE_CODE = #{gradeCode}
+        </if>
+    </sql>
+
+    <select  id="getPageCount" resultType="int" parameterType="com.msk.pd.bean.PD144104Param">
+        SELECT
+        count(1)
+        from (
+        SELECT
+        CONCAT(a.CLASSES_CODE,b.MACHINING_CODE,c.BREED_CODE,d.FEATURE_CODE,e.WEIGHT_CODE,h.GRADE_CODE) AS pdCode,
+        CONCAT(a.CLASSES_NAME,'/',b.MACHINING_NAME,'/',c.BREED_NAME,'/',d.FEATURE_NAME,'/',e.WEIGHT_NAME,'/',h.GRADE_NAME) AS pdName
+        FROM
+        <include refid="fromTable"/>
+        GROUP BY
+        a.CLASSES_CODE,
+        b.MACHINING_CODE,
+        c.BREED_CODE,
+        d.FEATURE_CODE,
+        e.WEIGHT_CODE,
+        g.LGCS_CODE
+        ORDER BY
+        a.CLASSES_CODE,
+        b.MACHINING_CODE,
+        c.BREED_CODE,
+        d.FEATURE_CODE,
+        e.WEIGHT_CODE)b
+        where
+        b.pdCode NOT IN ( SELECT f.pd_CODE FROM pd_app_floor_detail f WHERE f.del_flg = 0)
+
+
+    </select>
+
+    <select id="queryAppFloorDetailByPdCodes" parameterType="com.msk.core.entity.PdAppFloorDetail" resultType="com.msk.core.entity.PdAppFloorDetail">
+        SELECT
+            FLOOR_ID AS floorId , PD_CODE AS pdCode
+            FROM
+              pd_app_floor_detail
+            WHERE
+              DEL_FLG = '0'
+              AND FLOOR_ID = #{floorId}
+              AND PD_CODE in
+            <foreach collection ="queryList" item ="item" index ="index" separator =",">
+              #{item.pdCode}
+            </foreach>
+    </select>
+
+    <insert id="saveFloorDetail" parameterType="com.msk.core.entity.PdAppFloorDetail">
+        INSERT  INTO
+           pd_app_floor_detail
+           (
+              ID,
+              FLOOR_ID,
+              PD_CODE,
+              DEL_FLG,
+              CRT_ID,
+              CRT_TIME,
+              UPD_ID,
+              UPD_TIME,
+              ACT_ID,
+              ACT_TIME,
+              VER
+           )
+           VALUES
+           (
+              #{id},
+              #{floorId},
+              #{pdCode},
+              0,
+              #{crtId},
+              #{crtTime},
+              #{updId},
+              #{updTime},
+              #{actId},
+              #{actTime},
+              0
+           )
+    </insert>
+</mapper>

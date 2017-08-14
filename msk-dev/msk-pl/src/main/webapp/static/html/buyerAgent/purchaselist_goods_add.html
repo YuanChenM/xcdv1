@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>进货单产品保存</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <link rel="stylesheet" href="../css/sm.min.css">
+    <link rel="stylesheet" href="../css/sm-extend.min.css">
+
+    <style type="text/css">
+        div.pinch-zoom,
+        div.pinch-zoom img {
+            width: 100%;
+            -webkit-user-drag: none;
+        }
+
+        .rj-table {
+            /*padding:8px;*/
+            margin-bottom: 0 !important;
+            border-bottom: 1px solid #ddd;
+            border-collapse: collapse !important;
+            border-radius: 1px;
+            width: 100%;
+            font-size: 12px;
+        }
+
+        .rj-table td {
+            margin-bottom: 0 !important;
+            border-bottom: 1px solid #ddd;
+            border-collapse: collapse !important;
+            border-radius: 1px;
+        }
+
+        .rj-table thead td {
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .item-content {
+            height: 15px;
+            font-size: 14px;
+        }
+
+        .helpTable td {
+            border: 1px #b0bed9 solid;
+        }
+
+        /*Custom radio button*/
+
+
+    </style>
+
+    <link rel="stylesheet" href="../plugin/pinchzoom/style.css"/>
+
+</head>
+<body>
+<div class="page-group">
+    <div class="page page-current">
+
+        <!--标题栏-->
+        <header class="bar bar-nav">
+            <a class="button button-link button-nav pull-left back" id="back" href="#">
+                <span class="icon icon-left"></span>
+                <!--返回-->
+            </a>
+            <a class="button button-link button-nav pull-right back" href="buyer_agent_operations.html" id="home">
+                <span class="icon icon-home"></span>
+            </a>
+            <h1 class="title">进货单产品保存</h1>
+        </header>
+
+        <nav class="bar bar-tab">
+            <a class="tab-item external " href="#">
+                <span class="tab-label"></span>
+            </a>
+            <a class="tab-item external " href="#">
+                <span class="tab-label"></span>
+            </a>
+            <a class="tab-item external " href="#">
+                <span class="tab-label"></span>
+            </a>
+            <a class="tab-item external" href="#">
+                <!--<span class="icon icon-cart"></span>-->
+                <span class="tab-label"></span>
+            </a>
+            <a class="tab-item external active" href="#">
+                <!--<span class="icon icon-settings"></span>-->
+                <span class="tab-label" id="save">保存</span>
+
+
+            </a>
+        </nav>
+        <!--内容区-->
+        <div class="content">
+
+            <!--图片上传-->
+            <a href="javascript:void(0);">
+                <!--<form method="post" enctype="multipart/form-data" action="/upload" id="fileForm" target="id_iframe">-->
+                <!--<input type="file" id="file" name="file" accept="image/*" capture="camera" style="display: none!important;" onchange="document.getElementById('selectPic').src=getFullPath(this);document.getElementById('selectPic2').src=getFullPath(this);selectPictureEvent()"/>-->
+                <!--<input type="hidden" name="hehe" value="xiuxiu"/>-->
+                <!--</form>-->
+                <!--<iframe id="id_iframe" name="id_iframe" style="display:none;"></iframe>-->
+                <image src="../images/selectPic.jpg" alt="上传图片" id="selectPic"
+                       style="width: 100%;max-height: 300px"></image>
+            </a>
+
+            <div style="background-color: white">
+
+                <!--买家信息隔断栏-->
+                <div class="row" style="border:solid 1px black;background-color: #D5D5D5">
+                    <div class="col-60">
+                        <span style="margin-left: 5px">产品信息</span>
+                    </div>
+                    <!--<div class="col-40 pull-right" >-->
+                    <!--<a href="#" class="button button-dark pull-right" style="width:120px;border-radius: 0px;border-top:0px;border-bottom: 0px;" ></a>-->
+                    <!--</div>-->
+                </div>
+
+                <!--买家信息表单-->
+                <div class="list-block" style="margin:0px;">
+                    <input type="hidden" id="plId"/>
+                    <input type="hidden" id="plPdId"/>
+
+
+                    <ul>
+                        <li>
+                            <div class="item-content" id="produceChange">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <div class="searchbar row">
+                                        <div class="search-input col-60">
+                                            <input type="search" id='search' placeholder='品种 特征'/>
+                                        </div>
+                                        <a class="button button-fill button-primary col-20"><span
+                                                class="icon icon-search" id="searchButton"></span></a>
+                                        <a class="button button-fill button-primary col-20"><span
+                                                class="icon icon-browser" id="helpButton"></span></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <input hidden id="pdNameType" name="pdNameType">
+                        <li>
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <input type="radio" name="radio-pdname" style="width: 24px;height: 24px" checked
+                                           value="0"/>
+
+                                    <div class="item-title label">平台产品<span style="color: red">*</span></div>
+                                    <div class="item-input">
+                                        <input type="hidden" id="pdCode"/>
+                                        <input type="text" style="font-size:14px;" placeholder="" id="pdName">
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+
+                        </li>
+                        <li>
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <input type="radio" name="radio-pdname"
+                                           style="width: 24px;height: 24px;border-radius: 100%;border: 1px solid #ccc; background: rgb(255, 255, 255);"
+                                           value="1"/>
+
+                                    <div class="item-title label">非平台产品<span style="color: red">*</span></div>
+                                    <div class="item-input">
+                                        <input type="hidden" id="pdCode2"/>
+                                        <input type="text" style="font-size:14px;" placeholder="非平台产品" id="pdName2">
+                                    </div>
+                                </div>
+
+                            </div>
+                        </li>
+                        <!-- Text inputs -->
+                        <li>
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <div class="item-title label">品牌所有人<span style="color: red">*</span></div>
+                                    <div class="item-input">
+                                        <input type="text" style="font-size:14px;" placeholder="品牌" id="brandOwner">
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <div class="item-title label">产品等级需求<span style="color: red">*</span></div>
+                                    <div class="item-input">
+                                        <input type="text" style="font-size:14px;" placeholder="等级" id="pdNeedGrade">
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <div class="item-title label">生产商<span style="color: red">*</span></div>
+                                    <div class="item-input">
+                                        <input type="text" style="font-size:14px;" placeholder="生产商" id="manufacturer">
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!--单品品牌SKU特征描述隔断栏-->
+                <div class="row" style="border:solid 1px black;background-color: #D5D5D5">
+                    <div class="col-100">
+                        <span style="margin-left: 5px">单品品牌SKU特征描述</span>
+                    </div>
+                </div>
+
+
+                <!--单品品牌SKU特征描述-->
+                <div class="list-block" style="margin:0px;">
+                    <ul>
+                        <li>
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <div class="item-title label">小包装特征<span style="color: red">*</span></div>
+                                    <div class="item-input">
+                                        <input type="text" style="font-size:14px;" placeholder="小包装" id="smallPackFeature">
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <div class="item-title label">小包装件数<span style="color: red">*</span></div>
+                                    <div class="item-input">
+                                        <input type="text" style="font-size:14px;" placeholder="小包装件数/大包装个数"
+                                               id="smallPackNumber">
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li style="display: none;">
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <div class="item-title label">大包装个数<span style="color: red">*</span></div>
+                                    <div class="item-input">
+                                        <input type="text" style="font-size:14px;" placeholder="" id="bigPackNumber">
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <div class="item-title label">净重(kg)<span style="color: red">*</span></div>
+                                    <div class="item-input">
+                                        <input type="text" style="font-size:14px;" placeholder="净重" id="netweight">
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <div class="item-title label">毛重(kg)<span style="color: red">*</span></div>
+                                    <div class="item-input">
+                                        <input type="text" style="font-size:14px;" placeholder="毛重" id="grossweight">
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <div class="item-title label">纸箱尺寸(cm)</div>
+                                    <div class="item-input">
+                                        <input type="text" style="font-size:14px;" placeholder="尺寸" id="cartonSize">
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <div class="item-title label">产品等级</div>
+                                    <div class="item-input">
+                                        <input type="text" style="font-size:14px;" placeholder="产品等级" id="pdGrade">
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <div class="item-title label">托盘堆码数</div>
+                                    <div class="item-input">
+                                        <input type="text" style="font-size:14px;" placeholder="托盘堆码数(10*20)"
+                                               id="palletNumber">
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+
+                <div class="row" style="border:solid 1px black;background-color: #D5D5D5">
+                    <div class="col-100">
+                        <span style="margin-left: 5px">产品销售信息</span>
+                    </div>
+                </div>
+
+                <div class="list-block" style="margin:0px;">
+                    <ul>
+                        <li>
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <div class="item-title label">销售时间<span style="color: red">*</span></div>
+                                    <div class="item-input">
+                                        <input type="text" style="font-size:14px;" placeholder="" id="saleTime"
+                                               readonly>
+                                        <!--<input type="text" data-toggle='date'  id="saleTime"/>-->
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <div class="item-title label">价盘期<span style="color: red">*</span></div>
+                                    <div class="item-input">
+                                        <input type="text" style="font-size:14px;" placeholder="价盘期" id="pricePeriod">
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <div class="item-title label">对应价盘通道<span style="color: red">*</span></div>
+                                    <div class="item-input">
+                                        <input type="text" style="font-size:14px;" placeholder="价盘通道" id="priceChannel">
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <div class="item-title label">售价(元/箱)<span style="color: red">*</span></div>
+                                    <div class="item-input">
+                                        <input type="text" style="font-size:14px;" placeholder="售价" id="unitPrice">
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <div class="item-title label">销售量(箱)<span style="color: red">*</span></div>
+                                    <div class="item-input">
+                                        <input type="text" style="font-size:14px;" placeholder="销售量" id="salesVolume">
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="item-content">
+                                <div class="item-media"><i class="icon icon-form-name"></i></div>
+                                <div class="item-inner">
+                                    <div class="item-title label">渠道来源</div>
+                                    <div class="item-input col-80">
+                                        <!--<input type="text" style="font-size:14px;" placeholder="" id="clientObject">-->
+                                        <!--<input list="pifashichang" style="font-size:14px;" placeholder=""-->
+                                               <!--id="clientObject">-->
+                                        <input type="text" style="font-size:14px;" id='clientObject' placeholder='批发市场'/>
+
+                                    </div>
+                                    <a class="button button-fill button-primary col-20"><span
+                                            class="icon icon-browser" id="pifaListButton"></span></a>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <br/>
+            </div>
+
+            <!--<div class="content-block" style="margin: 0px;">-->
+            <!--<div class="row">-->
+            <!--<div class="col-100"><a href="#" class="button  button-primary button-fill pull-right">保存</a></div>-->
+            <!--</div>-->
+            <!--</div>-->
+        </div>
+
+    </div>
+
+    <div class="popup popup-about">
+        <div class="content-block">
+            <header class="bar bar-nav">
+                <a class="button button-link button-nav pull-left close-popup" href="#">
+                    <span class="icon icon-left"></span>
+                    <!--返回-->
+                </a>
+            </header>
+            <div class="pinch-zoom">
+
+                <img src="../plugin/pinchzoom/frog.jpg" id="selectPic2"/>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="popup popup-services">
+        <div class="content-block">
+            <header class="bar bar-nav">
+                <a class="button button-link button-nav pull-left close-popup" href="#">
+                    <span class="icon icon-left"></span>
+                    <!--返回-->
+                </a>
+                <h1 class="title">产品一览</h1>
+            </header>
+            <div style="margin-top:60px;">
+                <span style="font-size: 12px;">*复制功能仅限主流安卓手机，如果不支持按钮选择，请长按产品使用浏览器自带复制功能！</span>
+            </div>
+            <table style="width: 100%;font-size: 16px;" class="helpTable">
+                <tr>
+                    <td rowspan="2">测试产品</td>
+                    <td>白条肉鸡 1kg/只(10只)</td>
+                    <td><a href="#" onclick="Copy('白条肉鸡 1kg/只(10只)')">复制</a></td>
+                </tr>
+                <tr>
+                    <!--<td></td>-->
+                    <td>鸭脖 5脖(5根/kg)</td>
+                    <td><a href="#" onclick="Copy('鸭脖 5脖(5根/kg)')">复制</a></td>
+                </tr>
+            </table>
+            <span style="margin-top:10px;font-size: 12px;">*以下为正式产品</span>
+            <table style="width: 100%;font-size: 16px;" class="helpTable" id="productList">
+                <!--<tr>-->
+                <!--<td rowspan="2" >功能测试使用</td>-->
+                <!--<td >白条肉鸡 1kg/只(10只)</td>-->
+                <!--<td><a href="#" onclick="Copy('白条肉鸡 1kg/只(10只)')">复制</a></td>-->
+                <!--</tr>-->
+                <!--<tr>-->
+                <!--&lt;!&ndash;<td></td>&ndash;&gt;-->
+                <!--<td >鸭脖 5脖(5根/kg)</td>-->
+                <!--<td><a href="#" onclick="Copy('鸭脖 5脖(5根/kg)')">复制</a></td>-->
+                <!--</tr>-->
+            </table>
+        </div>
+    </div>
+
+    <div class="popup popup-pifashichang">
+        <div class="content-block">
+            <header class="bar bar-nav">
+                <a class="button button-link button-nav pull-left close-popup" href="#">
+                    <span class="icon icon-left"></span>
+                    <!--返回-->
+                </a>
+                <h1 class="title">批发市场一览</h1>
+            </header>
+            <div style="margin-top:60px;">
+                <span style="font-size: 12px;">*复制功能仅限主流安卓手机，如果不支持按钮选择，请长按产品使用浏览器自带复制功能！</span>
+            </div>
+            <table style="width: 100%;font-size: 16px;" class="helpTable">
+                <tr>
+
+                    <td>昆山天环物流市场</td>
+                    <td><a href="#" onclick="CopyPifa('昆山天环物流市场')">复制</a></td>
+                </tr>
+                <tr>
+                    <!--<td></td>-->
+                    <td>海台批发市场</td>
+                    <td><a href="#" onclick="CopyPifa('海台批发市场')">复制</a></td>
+                </tr>
+                <tr>
+                    <!--<td></td>-->
+                    <td>浦众农副产品批发市场</td>
+                    <td><a href="#" onclick="CopyPifa('浦众农副产品批发市场')">复制</a></td>
+                </tr>
+                <tr>
+                    <!--<td></td>-->
+                    <td>上海良兆南北货批发市场</td>
+                    <td><a href="#" onclick="CopyPifa('上海良兆南北货批发市场')">复制</a></td>
+                </tr>
+                <tr>
+                    <!--<td></td>-->
+                    <td>上海农产品中心批发市场</td>
+                    <td><a href="#" onclick="CopyPifa('上海农产品中心批发市场')">复制</a></td>
+                </tr>
+                <tr>
+                    <!--<td></td>-->
+                    <td>上海五洲农贸批发市场</td>
+                    <td><a href="#" onclick="CopyPifa('上海五洲农贸批发市场')">复制</a></td>
+                </tr>
+                <tr>
+                    <!--<td></td>-->
+                    <td>十八铺农产品批发市场</td>
+                    <td><a href="#" onclick="CopyPifa('十八铺农产品批发市场')">复制</a></td>
+                </tr>
+                <tr>
+                    <!--<td></td>-->
+                    <td>喜地农产品批发市场</td>
+                    <td><a href="#" onclick="CopyPifa('喜地农产品批发市场')">复制</a></td>
+                </tr>
+                <tr>
+                    <!--<td></td>-->
+                    <td>福太农产品批发市场</td>
+                    <td><a href="#" onclick="CopyPifa('福太农产品批发市场')">复制</a></td>
+                </tr>
+                <tr>
+                    <!--<td></td>-->
+                    <td>弘洲农产品批发市场</td>
+                    <td><a href="#" onclick="CopyPifa('弘洲农产品批发市场')">复制</a></td>
+                </tr>
+                <tr>
+                    <!--<td></td>-->
+                    <td>江阳农产品批发市场</td>
+                    <td><a href="#" onclick="CopyPifa('江阳农产品批发市场')">复制</a></td>
+                </tr>
+                <tr>
+                    <!--<td></td>-->
+                    <td>江杨农产品批发市场</td>
+                    <td><a href="#" onclick="CopyPifa('江杨农产品批发市场')">复制</a></td>
+                </tr>
+                <tr>
+                    <!--<td></td>-->
+                    <td>罗吉批发市场</td>
+                    <td><a href="#" onclick="CopyPifa('罗吉批发市场')">复制</a></td>
+                </tr>
+                <tr>
+                    <!--<td></td>-->
+                    <td>新安农产品批发市场</td>
+                    <td><a href="#" onclick="CopyPifa('新安农产品批发市场')">复制</a></td>
+                </tr>
+                <tr>
+                    <!--<td></td>-->
+                    <td>龙上批发市场</td>
+                    <td><a href="#" onclick="CopyPifa('龙上批发市场')">复制</a></td>
+                </tr>
+                <tr>
+                    <!--<td></td>-->
+                    <td>真北批发市场</td>
+                    <td><a href="#" onclick="CopyPifa('真北批发市场')">复制</a></td>
+                </tr>
+                <tr>
+                    <!--<td></td>-->
+                    <td>九州世贸农副批发市场</td>
+                    <td><a href="#" onclick="CopyPifa('九州世贸农副批发市场')">复制</a></td>
+                </tr>
+                <tr>
+                    <!--<td></td>-->
+                    <td>七宝蔬菜农副批发市场</td>
+                    <td><a href="#" onclick="CopyPifa('七宝蔬菜农副批发市场')">复制</a></td>
+                </tr>
+            </table>
+
+        </div>
+    </div>
+</div>
+
+<script type='text/javascript' src='../js/zepto.min.js' charset='utf-8'></script>
+<script type="text/javascript">
+    $.config = {router: false}
+</script>
+<script type='text/javascript' src='../js/touch.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type='text/javascript' src='../js/sm-extend.min.js' charset='utf-8'></script>
+<script type="text/javascript" src="../js/common.js"></script>
+<script type="text/javascript" src="../js/zepto.cookie.min.js"></script>
+<script type="text/javascript" src="../plugin/pinchzoom/pinchzoom.js"></script>
+<script type="text/javascript" src="../js/product_help_data.js"></script>
+<script type="text/javascript">
+    var isInitPage = false;
+    var plId = getUrlParam("plId");
+    var plPdId = getUrlParam("plPdId");
+    var isSelf = getUrlParam("isSelf");
+    var ftpUrl = getUrlParam("ftpUrl");
+    var partnerId = getUrlParam("partnerId");
+    var p_name = getUrlParam("p_name");
+    var id = $.fn.cookie("id");
+    var name = $.fn.cookie("name");
+
+
+    function loadProductList() {
+        var table = $("#productList");
+        var tr1 = $("<tr><td rowspan='71'>鸡产品</td><td>" + _chicken[0] + "</td><td><a href='#' onclick=\"Copy('" + _chicken[0] + "')\">复制</a></td></tr>");
+        table.append(tr1);
+        $.each(_chicken, function (index, item) {
+            if (index != 0) {
+                var tr11 = $("<tr><td>" + _chicken[index] + "</td><td><a href='#' onclick=\"Copy('" + _chicken[index] + "')\">复制</a></td></tr>");
+                table.append(tr11);
+            }
+        });
+
+        var tr2 = $("<tr><td rowspan='38'>鸭产品</td><td>" + _duck[0] + "</td><td><a href='#' onclick=\"Copy('" + _duck[0] + "')\">复制</a></td></tr>");
+        table.append(tr2);
+        $.each(_duck, function (index, item) {
+            if (index != 0) {
+                var tr21 = $("<tr><td>" + _duck[index] + "</td><td><a href='#' onclick=\"Copy('" + _duck[index] + "')\">复制</a></td></tr>");
+                table.append(tr21);
+            }
+        });
+
+
+    }
+
+
+    $(function () {
+
+        loadProductList();
+
+        $("#helpButton").click(function () {
+
+            $.popup('.popup-services');
+        });
+
+        $("#pifaListButton").click(function () {
+
+            $.popup('.popup-pifashichang');
+        });
+
+        $("#saleTime").calendar({
+            value: []
+        });
+
+
+        $("#pdName2").attr("readonly", "true");
+        $("input[name='radio-pdname']").click(function () {
+            if ($("input[name='radio-pdname']:checked").val() == "0") {
+                $("#produceChange").css("visibility", "visible");
+                $("#pdName").removeAttr("readonly");
+                $("#pdName2").val("").attr("readonly", "true");
+            }
+            if ($("input[name='radio-pdname']:checked").val() == "1") {
+                $("#produceChange").css("visibility", "hidden");
+                $("#pdName").val("").attr("readonly", "true");
+                $("#pdName2").removeAttr("readonly");
+            }
+        });
+
+        if (isSelf == "false") {
+            $("#back").attr("href", "purchaselist_save.html?plId=" + plId + "&isSelf=false&partnerId=" + partnerId + "&name=" + p_name);
+            $("#home").attr("href", "../platformPartner/partner_operations.html?id=" + partnerId + "&name=" + p_name);
+        } else {
+            $("#back").attr("href", "purchaselist_save.html?plId=" + plId);
+        }
+
+        if (plPdId) {
+            editInit(plPdId);
+        }
+
+
+        //默认销售时间为今日
+        var saleDate = $("#saleTime").val();
+        if (!saleDate) {
+            $("#saleTime").val(Format(new Date(), "yyyy-MM-dd"));
+        }
+
+        if (isSelf == "false") {
+            $("#save").hide();
+        }
+
+        $("#plId").val(plId);
+
+        if (ftpUrl) {
+            $("#selectPic").attr("src", ftpUrl);
+            $("#selectPic2").attr("src", ftpUrl);
+        }
+
+        $("#selectPic").singleTap(function () {
+            viewImage();
+        });
+
+        $("#searchButton").click(function () {
+            searchButtonEvent();
+        });
+
+
+        $("#save").click(function () {
+            $.showPreloader("玩命处理中....");
+            var pdName;
+            var pdNameType = $("input[name='radio-pdname']:checked").val();
+            if (pdNameType == "0") {
+                pdName = $("#pdName").val();
+            } else if (pdNameType == "1") {
+                pdName = $("#pdName2").val();
+            }
+
+            $.ajax({
+               url: "/" + _webroot + "/api/v1/pl/bs_task_pd_save",
+               // url: "http://localhost:8080/msk-pl/api/v1/pl/bs_task_pd_save",
+                type: "post",
+                data: JSON.stringify({
+                    "siteCode": "318",
+                    "auth": "pl",
+                    "loginId": id,
+                    "param": {
+                        "plPdId": $("#plPdId").val(),
+                        "plId": $("#plId").val(),
+                        "pdCode": $("#pdCode").val(),
+                        "pdName": pdName,
+                        "pdNameType": pdNameType,
+                        "smallPackFeature": $("#smallPackFeature").val(),
+                        "smallPackNumber": $("#smallPackNumber").val(),
+                        "bigPackNumber": $("#bigPackNumber").val(),
+                        "netweight": $("#netweight").val(),
+                        "grossweight": $("#grossweight").val(),
+                        "cartonSize": $("#cartonSize").val(),
+                        "pdGrade": $("#pdGrade").val(),
+                        "palletNumber": $("#palletNumber").val(),
+                        "saleTime": $("#saleTime").val(),
+                        "pricePeriod": $("#pricePeriod").val(),
+                        "salesVolume": $("#salesVolume").val(),
+                        "clientObject": $("#clientObject").val(),
+//                    "priceOfferPeriod":$("#priceOfferPeriod").val(),
+                        "priceChannel": $("#priceChannel").val(),
+                        "unitPrice": $("#unitPrice").val(),
+                        "brandOwner": $("#brandOwner").val(),
+                        "pdNeedGrade": $("#pdNeedGrade").val(),
+                        "manufacturer": $("#manufacturer").val()
+                    }
+                }),
+                contentType: "application/json",
+                success: function (data) {
+                    $.hidePreloader();
+                    if (data.status == "S") {
+                        $.alert("保存成功", function () {
+                            $("#plPdId").val(data.result.plPdId);
+//                            history.go(-1);
+                            location.href = "purchaselist_save.html?plId=" + plId;
+                        });
+
+                    } else {
+                        $.alert(data.message);
+                    }
+                }
+            });
+        });
+
+    });
+
+    function editInit(plPdId) {
+        $.ajax({
+           url: "/" + _webroot + "/api/v1/pl/bs_task_pd_query",
+          //  url: "http://localhost:8080/msk-pl/api/v1/pl/bs_task_pd_query",
+            type: "post",
+            contentType: "application/json",
+            data: JSON.stringify({
+                "siteCode": "318",
+                "auth": "pl",
+                "loginId": id,
+                "param": {
+                    "plPdId": plPdId
+                },
+            }),
+            success: function (data) {
+                if (data.status == "F" || !data.result) {
+                    $.alert(data.message);
+                    return;
+                }
+
+                var param = data.result;
+                setValue(param, 'plPdId');//$("#plPdId").val(param.plPdId);
+                setValue(param, 'plId');//$("#plId").val(param.plId);
+                setValue(param, 'pdCode');//$("#pdCode").val(param.pdCode);
+                setValue(param, 'pdNameType');
+                setValue(param, 'smallPackFeature');//$("#smallPackFeature").val(param.smallPackFeature);
+                setValue(param, 'smallPackNumber');//$("#smallPackNumber").val(param.smallPackNumber);
+                setValue(param, 'bigPackNumber');//$("#bigPackNumber").val(param.bigPackNumber);
+                setValue(param, 'netweight');//$("#netweight").val(param.netweight);
+                setValue(param, 'grossweight');//$("#grossweight").val(param.grossweight);
+                setValue(param, 'cartonSize');//$("#cartonSize").val(param.cartonSize);
+                setValue(param, 'pdGrade');//$("#pdGrade").val(param.pdGrade);
+                setValue(param, 'palletNumber');//$("#palletNumber").val(param.palletNumber);
+                setValue(param, 'saleTime');//$("#saleTime").val(param.saleTime);
+                setValue(param, 'pricePeriod');//$("#pricePeriod").val(param.pricePeriod);
+                setValue(param, 'priceChannel');//$("#priceChannel").val(param.priceChannel);
+                setValue(param, 'unitPrice');//$("#unitPrice").val(param.unitPrice);
+                setValue(param, 'salesVolume');//$("#salesVolume").val(param.salesVolume);
+                setValue(param, 'clientObject');//$("#clientObject").val(param.clientObject);
+                setValue(param, 'brandOwner');//$("#brandOwner").val(param.brandOwner);
+                setValue(param, 'pdNeedGrade');//$("#pdNeedGrade").val(param.pdNeedGrade);
+                setValue(param, 'manufacturer');//$("#manufacturer").val(param.manufacturer);
+//                $("#priceOfferPeriod").val(param.priceOfferPeriod);
+                pdNameRadioChecked(param);//用于检测radio是否选中
+            }
+        });
+    }
+
+    function setValue(param, key) {
+        if (param[key] != undefined) {
+            $("#" + key).val(param[key]);
+        }
+
+    }
+
+
+    function pdNameRadioChecked(param) {
+        if ($("#pdNameType").val() == null || $("#pdNameType").val() == "") {
+            $("#pdNameType").val("0");
+        }
+        if ($("#pdNameType").val() != null || $("#pdNameType").val() != "") {
+            if ($("#pdNameType").val() == $("input[name='radio-pdname']").eq(0).val()) {
+                $("input[name='radio-pdname']").eq(0).attr("checked", "true");
+                setValue(param, 'pdName');//$("#pdName").val(param.pdName);
+                $("#pdName").removeAttr("readonly");
+                $("#pdName2").attr("readonly", "true");
+                $("#produceChange").css("visibility", "visible");
+            }
+            if ($("#pdNameType").val() == $("input[name='radio-pdname']").eq(1).val()) {
+                $("input[name='radio-pdname']").eq(1).attr("checked", "true");
+                $("#pdName2").val(param['pdName']);
+                $("#pdName2").removeAttr("readonly");
+                $("#produceChange").css("visibility", "hidden");
+                $("#pdName").val("").attr("readonly", "true");
+
+            }
+        }
+
+
+    }
+
+
+    function viewImage() {
+        $.popup('.popup-about');
+        if (!isInitPage) {
+            $('div.pinch-zoom').each(function () {
+                isInitPage = true
+                new RTP.PinchZoom($(this), {});
+            });
+        }
+    }
+
+    function searchButtonEvent() {
+        $.ajax({
+            url: "/" + _webroot + "/api/v1/pl/pd_search",
+            data: JSON.stringify({
+                "siteCode": "318",
+                "loginId": id,
+                "auth": "pl",
+                "param": {
+                    "pdName": $("#search").val()
+                }
+            }),
+            type: "post",
+            contentType: "application/json",
+            success: function (data) {
+                if (data.status == "S" && data.result) {
+                    var result = data.result;
+                    $("#smallPackFeature").val(result.smallPackFeature);
+                    $("#smallPackNumber").val(result.smallPackNumber);
+                    $("#bigPackNumber").val(result.bigPackNumber);
+                    $("#netweight").val(result.netweight);
+                    $("#grossweight").val(result.grossweight);
+                    $("#cartonSize").val(result.cartonSize);
+                    $("#pdGrade").val(result.pdGrade);
+                    $("#pdName").val($("#search").val());
+                    $("#pdName2").attr("readonly", "true");
+                } else {
+                    $.alert(data.message);
+                }
+            }
+        });
+    }
+
+    function Copy(str) {
+        var save = function (e) {
+            e.clipboardData.setData('text/plain', str);
+            e.preventDefault();
+        }
+        document.addEventListener('copy', save);
+        document.execCommand('copy');
+        document.removeEventListener('copy', save);
+        $("#search").val(str);
+        $.closeModal(".popup-services")
+    }
+
+    function CopyPifa(str) {
+        var save = function (e) {
+            e.clipboardData.setData('text/plain', str);
+            e.preventDefault();
+        }
+        document.addEventListener('copy', save);
+        document.execCommand('copy');
+        document.removeEventListener('copy', save);
+        $("#clientObject").val(str);
+        $.closeModal(".popup-pifashichang")
+    }
+
+</script>
+
+</body>
+</html>

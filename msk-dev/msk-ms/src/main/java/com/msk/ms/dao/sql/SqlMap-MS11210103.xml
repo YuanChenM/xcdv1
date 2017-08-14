@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.ms.logic.MS11210103Logic">
+
+<select id="findOne" resultType="com.msk.core.entity.MsCardmanager"
+parameterType="com.msk.core.bean.BaseParam">
+select
+A.MS_CARDNO AS msCardno,
+A.BUYER_CODE AS buyerCode,
+A.BUYER_NAME AS buyerName
+from MS_CARDMANAGER AS A
+WHERE
+MS_ID=#{filterMap.msId}
+</select>
+
+</mapper>

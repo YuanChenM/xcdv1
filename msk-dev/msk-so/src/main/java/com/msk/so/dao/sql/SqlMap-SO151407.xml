@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.SO151407Logic">
+	<!-- 表字段 -->
+	<sql id="selectSql">
+         C.ORDER_ID as orderId,
+		 C.ORDER_DETAIL_ID as orderDetailId,
+		 A.PD_CODE AS pdCode,
+		 A.PD_NAME AS pdName,
+		 A.BREED_NAME AS breedName,
+		 A.FEATURE_NAME AS featureName,
+		 A.PACKING_VOLUME AS packingVolume,
+		 IFNULL(C.PD_PRICE, 0) AS pdPrice,
+		 IFNULL(C.ORDER_QTY, 0) AS orderQty,
+		 A.WEIGHT AS weight,
+		 A.VOLUME AS volume
+	</sql>
+	<!-- 订单明细列表 -->
+	<select id="findReturnOrderListByReturnId" parameterType="BaseParam"
+		resultType="com.msk.so.bean.SO15140704Bean">
+		SELECT
+		<include refid="selectSql" />
+		FROM
+		so_return_detail A
+		LEFT JOIN so_order_detail_availability B ON A.ORDER_DETAIL_AVAILABILITY_ID = B.ORDER_DETAIL_AVAILABILITY_ID
+		LEFT JOIN so_order_detail C on B.ORDER_DETAIL_ID=C.ORDER_DETAIL_ID
+		WHERE B.ORDER_ID = #{filterMap.orderId}
+	</select>
+
+	<select id="findOrderDateilList" parameterType="BaseParam"
+		resultType="com.msk.core.entity.SoOrderDetailAvailability">
+		SELECT
+		A.ORDER_DETAIL_AVAILABILITY_ID AS
+		orderDetailAvailabilityId
+		,A.ORDER_DETAIL_ID AS orderDetailId
+		,A.ORDER_ID AS orderId
+		,A.RETURN_QTY AS returnQty
+		,A.SUPPLIER_CODE AS supplierCode
+		,A.SUPPLIER_NAME AS supplierName
+		FROM
+		so_order_detail_availability AS A
+		WHERE
+		A.ORDER_ID =
+		#{filterMap.orderId} AND A.ORDER_DETAIL_ID =
+		#{filterMap.orderDetailId}
+	</select>
+
+
+	<!-- 退货单明细列表 -->
+	<select id="findGoodsDateilList" parameterType="BaseParam" resultType="com.msk.so.bean.SO15140701Bean">
+		SELECT
+			A.RETURN_ID AS returnId,
+			B.RETURN_CODE AS returnCode,
+			A.DETAIL_ID AS returnDetailId,
+			A.PD_CODE AS pdCode,
+			A.PD_NAME AS pdName,
+			A.BREED_NAME AS breedName,
+			A.FEATURE_NAME AS featureName,
+			<!--Modify by wang_jianzhou for Bug#3784 at 2016/11/18 Start.-->
+			A.NORMS_NAME AS normsName,
+			A.PACKING_VOLUME AS packingVolume,
+			(CAST(ROUND(A.RETURN_QTY,2) AS DECIMAL (18,0))) AS returnQty,
+			A.WEIGHT AS weight,
+			A.VOLUME AS volume,
+        	<!--Modify by wang_jianzhou for Bug#3784 at 2016/11/18 end.-->
+			D.PD_PRICE AS pdPrice
+		FROM
+			so_return_detail A
+		LEFT JOIN so_return B ON A.RETURN_ID = B.RETURN_ID
+		LEFT JOIN so_order_detail_availability C ON A.ORDER_DETAIL_AVAILABILITY_ID=C.ORDER_DETAIL_AVAILABILITY_ID
+		LEFT JOIN so_order_detail D ON C.ORDER_DETAIL_ID=D.ORDER_DETAIL_ID
+		WHERE
+			A.RETURN_ID = #{filterMap.returnId}
+	</select>
+
+	<!-- 单个退货明细查询 -->
+	<select id="findOneDatailOne" parameterType="BaseParam"
+		resultType="com.msk.so.bean.SO15140701Bean">
+		SELECT
+		A.RETURN_QTY AS returnQty
+		FROM so_return_detail AS A
+		WHERE A.RETURN_DETAIL_ID = #{filterMap.returnDetailId}
+	</select>
+	<!-- 修改退货明细数量 -->
+	<update id="modifyReturnDetail" parameterType="BaseParam">
+		update
+		so_return_detail set
+		RETURN_QTY = #{filterMap.returnQty},
+		UPD_TIME = #{updTime},
+		UPD_ID = #{updId},
+		VER = VER + 1
+		WHERE
+		DETAIL_ID= #{filterMap.returnDetailId}
+	</update>
+</mapper>

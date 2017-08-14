@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL24112801Logic">
+    <!--根据classestreeCode查询原料描述-->
+    <select id="findClassData" parameterType="BaseParam" resultType="com.msk.core.entity.PdClassestreeMat">
+        select
+         SCIENTIFIC_NAME AS scientificName
+        ,LOCAL_NAME AS localName
+        ,SALES_NAME AS salesName
+        ,PLACE_ORIGIN AS placeOrigin
+        ,PLACE_CURRENT AS placeCurrent
+        ,SOURCE AS source
+        ,CHILD_TYPE AS childType
+        ,FEED_TYPE AS feedType
+        ,FEED_PERIOD AS feedPeriod
+        from pd_classestree_mat
+        <where>
+            <if test="filterMap.classCode!=null and filterMap.classCode!=''">
+                AND CLASSESTREE_CODE=#{filterMap.classCode}
+            </if>
+            <if test="filterMap.delFlg!=null and filterMap.delFlg!=''">
+                AND DEL_FLG=#{filterMap.delFlg}
+            </if>
+        </where>
+    </select>
+
+    <!--根据二级分类编码查询三级分类编码-->
+    <select id="findThreeCodeData" parameterType="BaseParam" resultType="com.msk.core.entity.PdClassestree">
+     SELECT
+	A.CLASSESTREE_CODE AS classestreeCode
+    FROM
+	pd_classestree AS A
+	WHERE A.PARENT_CODE=#{filterMap.classCode}
+	AND A.TREE_LEVEL=#{filterMap.treeLevel}
+	AND A.DEL_FLG=#{filterMap.delFlg}
+    </select>
+
+    <!--查询总控目录管理表-->
+    <select id="findData" parameterType="BaseParam" resultType="com.msk.sl.bean.SL24112801Param">
+      SELECT
+      A.LEVEL_CODE AS levelCode,
+	  A.LEVEL_NAME AS levelName,
+	  B.SCIENTIFIC_NAME AS scientificName,
+	  B.LOCAL_NAME AS localName,
+	  A.CLASSESTREE_CODE AS classestreeCode
+      FROM
+	  pd_classestree AS A
+      LEFT JOIN pd_classestree_mat AS B ON (
+	  A.CLASSESTREE_CODE = B.CLASSESTREE_CODE
+      )
+      WHERE
+	  A.CLASSESTREE_CODE = #{filterMap.classestreeCode}
+	  AND A.DEL_FLG=#{filterMap.delFlg}
+    </select>
+
+    <!--查询市场需求审核注册-->
+    <select id="findMarket" parameterType="BaseParam" resultType="com.msk.sl.bean.SL241128Param">
+        SELECT
+        A.TC_ONLINE_ID AS tcOnlineId,
+        A.FEATURE_FLG AS featureFlg,
+        A.FEATURE_NAME AS featureName
+        FROM
+        pd_tc_market AS A
+        <where>
+            <if test="filterMap.classesCode!=null and filterMap.classesCode!=''">
+                AND A.CLASSES_CODE=#{filterMap.classesCode}
+            </if>
+            <if test="filterMap.machiningCode!=null and filterMap.machiningCode!=''">
+                AND A.MACHINING_CODE=#{filterMap.machiningCode}
+            </if>
+            <if test="filterMap.breedCode!=null and filterMap.breedCode!=''">
+                AND A.BREED_CODE=#{filterMap.breedCode}
+            </if>
+            <if test="filterMap.delFlg!=null and filterMap.delFlg!=''">
+                AND A.DEL_FLG=#{filterMap.delFlg}
+            </if>
+        </where>
+    </select>
+
+
+
+    <!--查询卖家供应备案注册-->
+    <select id="queryProvider" parameterType="BaseParam" resultType="com.msk.sl.bean.PdTcProviderPackageParam">
+        SELECT
+        A.TC_PROVIDER_ID AS tcProviderId,
+        A.FEATURE_NAME AS featureName,
+        A.FEATURE_FLG AS featureFlg,
+        A.SALES_TARGET AS salesTarget,
+        A.MACHINING_WAY AS machiningWay
+        FROM
+        pd_tc_provider_package AS A
+        <where>
+            <if test="filterMap.classesCode!=null and filterMap.classesCode!=''">
+                AND A.CLASSES_CODE=#{filterMap.classesCode}
+            </if>
+            <if test="filterMap.machiningCode!=null and filterMap.machiningCode!=''">
+                AND A.MACHINING_CODE=#{filterMap.machiningCode}
+            </if>
+            <if test="filterMap.breedCode!=null and filterMap.breedCode!=''">
+                AND A.BREED_CODE=#{filterMap.breedCode}
+            </if>
+            <if test="filterMap.delFlg!=null and filterMap.delFlg!=''">
+                AND A.DEL_FLG=#{filterMap.delFlg}
+            </if>
+        </where>
+    </select>
+
+
+    <!--查询正式上线-->
+    <select id="queryOnLine" parameterType="BaseParam" resultType="com.msk.sl.bean.PdTcOnlineParam">
+        SELECT
+        A.TC_ONLINE_ID AS tcOnlineId,
+        A.FEATURE_NAME AS featureName,
+        A.FEATURE_FLG AS featureFlg
+        FROM
+        pd_tc_online AS A
+        <where>
+            <if test="filterMap.classesCode!=null and filterMap.classesCode!=''">
+                AND A.CLASSES_CODE=#{filterMap.classesCode}
+            </if>
+            <if test="filterMap.machiningCode!=null and filterMap.machiningCode!=''">
+                AND A.MACHINING_CODE=#{filterMap.machiningCode}
+            </if>
+            <if test="filterMap.breedCode!=null and filterMap.breedCode!=''">
+                AND A.BREED_CODE=#{filterMap.breedCode}
+            </if>
+            <if test="filterMap.delFlg!=null and filterMap.delFlg!=''">
+                AND A.DEL_FLG=#{filterMap.delFlg}
+            </if>
+        </where>
+    </select>
+
+
+    <!--查询卖家供应商注册标准目录-->
+    <select id="queryProviderContent" parameterType="BaseParam" resultType="com.msk.sl.bean.PdTcProviderContentParam">
+        SELECT
+        A.TC_CONTENT_ID AS tcContentId,
+        A.FEATURE_NAME AS featureName,
+        A.FEATURE_FLG AS featureFlg,
+        A.SALES_TARGET AS salesTarget,
+        A.MACHINING_WAY AS machiningWay
+        FROM
+        pd_tc_provider_content AS A
+        <where>
+            <if test="filterMap.classesCode!=null and filterMap.classesCode!=''">
+                AND A.CLASSES_CODE=#{filterMap.classesCode}
+            </if>
+            <if test="filterMap.machiningCode!=null and filterMap.machiningCode!=''">
+                AND A.MACHINING_CODE=#{filterMap.machiningCode}
+            </if>
+            <if test="filterMap.breedCode!=null and filterMap.breedCode!=''">
+                AND A.BREED_CODE=#{filterMap.breedCode}
+            </if>
+            <if test="filterMap.delFlg!=null and filterMap.delFlg!=''">
+                AND A.DEL_FLG=#{filterMap.delFlg}
+            </if>
+        </where>
+    </select>
+
+
+
+    <!--查询OEM上现场产品-->
+    <select id="queryOnlineOem" parameterType="BaseParam" resultType="com.msk.sl.bean.PdTcOnlineOemParam">
+        SELECT
+        A.TC_OEM_ID AS tcOemId,
+        A.FEATURE_NAME AS featureName,
+        A.FEATURE_FLG AS featureFlg
+        FROM
+        pd_tc_online_oem AS A
+        <where>
+            <if test="filterMap.classesCode!=null and filterMap.classesCode!=''">
+                AND A.CLASSES_CODE=#{filterMap.classesCode}
+            </if>
+            <if test="filterMap.machiningCode!=null and filterMap.machiningCode!=''">
+                AND A.MACHINING_CODE=#{filterMap.machiningCode}
+            </if>
+            <if test="filterMap.breedCode!=null and filterMap.breedCode!=''">
+                AND A.BREED_CODE=#{filterMap.breedCode}
+            </if>
+            <if test="filterMap.delFlg!=null and filterMap.delFlg!=''">
+                AND A.DEL_FLG=#{filterMap.delFlg}
+            </if>
+        </where>
+    </select>
+
+
+    <!--查询分类!-->
+    <select id="findListLevel4List" parameterType="BaseParam" resultType="com.msk.sl.bean.SL24112801Bean">
+        SELECT
+        CONCAT(A.CLASSESTREE_CODE,2) AS attributeCode,
+        A.LEVEL_CODE AS featureCode,
+        A.LEVEL_NAME AS featureName,
+        B.LEVEL_CODE AS normsCode,
+        B.LEVEL_NAME AS normsOut,
+        A.PARENT_CODE AS parentCode,
+        CONCAT(A.LEVEL_CODE,B.LEVEL_CODE) AS pdNormCode
+        FROM
+        pd_classestree AS A
+        INNER JOIN pd_classestree AS B ON A.CLASSESTREE_CODE = B.PARENT_CODE
+        <where>
+            <if test="filterMap.parentCode!=null and filterMap.parentCode!=''">
+                AND A.PARENT_CODE=#{filterMap.parentCode}
+            </if>
+            <if test="filterMap.treeLevel!=null and filterMap.treeLevel!=''">
+                AND A.TREE_LEVEL=#{filterMap.treeLevel}
+            </if>
+        </where>
+    </select>
+
+
+    <!--查询禁止准入产品-->
+    <select id="queryTcForBid" parameterType="BaseParam" resultType="com.msk.sl.bean.PdTcForbidParam">
+        SELECT
+        A.TC_FORBID_ID AS tcForbidId,
+        A.FEATURE_NAME AS featureName,
+        A.FEATURE_FLG AS featureFlg
+        FROM
+        pd_tc_forbid AS A
+        <where>
+            <if test="filterMap.classesCode!=null and filterMap.classesCode!=''">
+                AND A.CLASSES_CODE=#{filterMap.classesCode}
+            </if>
+            <if test="filterMap.machiningCode!=null and filterMap.machiningCode!=''">
+                AND A.MACHINING_CODE=#{filterMap.machiningCode}
+            </if>
+            <if test="filterMap.breedCode!=null and filterMap.breedCode!=''">
+                AND A.BREED_CODE=#{filterMap.breedCode}
+            </if>
+            <if test="filterMap.delFlg!=null and filterMap.delFlg!=''">
+                AND A.DEL_FLG=#{filterMap.delFlg}
+            </if>
+        </where>
+    </select>
+
+    <!--查询省级卖家池卖家目录-->
+    <select id="querySlProduct" parameterType="BaseParam" resultType="com.msk.sl.bean.SL24112801Bean">
+        SELECT
+        A.SL_CODE AS zz,
+        A.PROVINCE_CODE AS provinceCode,
+        A.CITY_CODE AS cityCode,
+        B.EP_NAME AS epName,
+        B.LIC_ADDR AS licAddr,
+        C.BRAND_NAME AS brandName,
+        A.SL_CODE_DIS AS slCodeDis,
+        A.SL_CODE_MANUFACTURE AS slCodeManufacture
+        FROM
+        SL_PRODUCT AS D
+        INNER JOIN SL_SELLER AS A ON A.SL_CODE = D.SL_CODE
+        INNER JOIN SL_ENTERPRISE AS B ON A.EP_ID = B.EP_ID
+        INNER JOIN SL_EP_BRAND AS C ON C.BRAND_ID = D.BRAND_ID
+        AND C.EP_ID = D.BRAND_EP_ID
+        <where>
+            <if test="filterMap.classCode!=null and filterMap.classCode!=''">
+                AND D.PD_CLASSES_CODE=#{filterMap.classCode}
+            </if>
+            <if test="filterMap.machingCode!=null and filterMap.machingCode!=''">
+                AND D.MACHINING_CODE=#{filterMap.machingCode}
+            </if>
+            <if test="filterMap.breedCode!=null and filterMap.breedCode!=''">
+                AND D.PD_BREED_CODE=#{filterMap.breedCode}
+            </if>
+            AND (D.STATUS=#{filterMap.status} OR D.STATUS=#{filterMap.statusTwo})
+            GROUP BY A.CITY_CODE
+            ORDER BY A.PROVINCE_CODE
+        </where>
+    </select>
+    <!--查询根据省，区code查询对应的名称-->
+    <select id="queryRegion" parameterType="BaseParam" resultType="com.msk.sl.bean.SL24112801Bean">
+    SELECT
+    md_city.CITY_NAME AS cityName,
+    md_province.PROVINCE_NAME AS provinceName
+    FROM
+    md_city
+    INNER JOIN md_province ON md_city.PROVINCE_ID = md_province.PROVINCE_ID
+    WHERE CITY_CODE=#{filterMap.cityCode} And PROVINCE_CODE=#{filterMap.provinceCode}
+    </select>
+
+</mapper>

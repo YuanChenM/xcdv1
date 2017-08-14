@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.sl.logic.SL24110300401Logic">
+    <insert id="saveSlEpHonor" parameterType="com.msk.core.entity.SlEpHonor">
+        INSERT INTO SL_EP_HONOR
+        (EP_ID,HONOR_ID,HONOR_DESC,CERT_DATE,CERT_ISSUER,DEL_FLG,CRT_ID,CRT_TIME,VER)
+        VALUES (#{epId},#{honorId},#{honorDesc},#{certDate},#{certIssuer},#{delFlg},#{crtId},SYSDATE(),#{ver})
+    </insert>
+    <select id="selectHonorDes" resultType="com.msk.core.entity.SlEpHonor" parameterType="BaseParam">
+        SELECT
+        slEpHonor.EP_ID AS epId
+        FROM  SL_EP_HONOR slEpHonor
+        WHERE slEpHonor.EP_ID=#{filterMap.epId}
+        AND slEpHonor.HONOR_DESC=#{filterMap.honorDes}
+    </select>
+</mapper>

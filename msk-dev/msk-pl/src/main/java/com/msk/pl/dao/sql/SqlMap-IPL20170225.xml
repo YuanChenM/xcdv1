@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170225Logic">
+
+
+	<select id="findOne" parameterType="BaseParam" resultType="com.msk.pl.bean.IPL20170225Result">
+		SELECT
+		REPAY_DAY AS repayDay
+		FROM PL_RULER
+		WHERE
+		 (PARTNER_ID = #{filterMap.partnerId} AND DATE_FORMAT(NOW(),'%Y-%m-%d') >= EFFECTIVE_TIME AND IFNULL(OVER_TIME,NOW()) > DATE_FORMAT(NOW(),'%Y-%m-%d') AND DEL_FLG = 0 )  OR (PARTNER_ID = #{filterMap.partnerId} AND TERMINAL_ID =#{filterMap.terminalId} AND DATE_FORMAT(NOW(),'%Y-%m-%d') >= EFFECTIVE_TIME AND IFNULL(OVER_TIME,NOW()) > DATE_FORMAT(NOW(),'%Y-%m-%d') AND DEL_FLG = 0)
+		OR (PARTNER_ID = #{filterMap.partnerId} AND TERMINAL_ID =#{filterMap.terminalId} AND BS_CODE =#{bsCode} AND DATE_FORMAT(NOW(),'%Y-%m-%d') >= EFFECTIVE_TIME AND IFNULL(OVER_TIME,NOW()) > DATE_FORMAT(NOW(),'%Y-%m-%d') AND DEL_FLG = 0)
+		ORDER BY USER_ROLE DESC  limit 1
+	</select>
+
+	<select id="findPlInfoId" parameterType="BaseParam" resultType="com.msk.pl.bean.PLInfo">
+		SELECT
+		A.TERMINAL_ID AS terminalId,
+		B.PARTNER_ID AS partnerId
+		FROM PL_DOMAIN_BS A
+		INNER JOIN PL_TERMINAL_PARTNER B ON B.TERMINAL_ID = A.TERMINAL_ID
+		WHERE A.BS_CODE = #{bsCode} AND A.DEL_FLG = 0
+	</select>
+
+</mapper>

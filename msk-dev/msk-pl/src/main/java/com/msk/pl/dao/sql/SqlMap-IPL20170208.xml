@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.pl.logic.IPL20170208Logic">
+
+
+    <!--获取每日任务最大id-->
+    <select id="findBsTaskMaxId" parameterType="BaseParam" resultType="com.msk.pl.bean.PlBsTask">
+		SELECT
+		CASE
+		WHEN MAX(TASK_ID) IS NULL THEN 1
+		ELSE MAX(TASK_ID)+1 END AS taskId
+		FROM PL_BS_TASK
+	</select>
+
+    <select id="findPlInfoMaxId" parameterType="BaseParam" resultType="com.msk.pl.bean.PLInfo">
+        SELECT
+        CASE
+        WHEN MAX(PL_ID) IS NULL THEN 1
+        ELSE MAX(PL_ID)+1 END AS plId,
+        VER AS ver
+        FROM PL_INFO
+    </select>
+
+    <select id="findBsTaskNumber" parameterType="BaseParam" resultType="com.msk.pl.bean.PlBsTask">
+        SELECT
+        TASK_ID AS taskId,
+        ALREADY_RECORD_NUMBER AS alreadyRecordNumber,
+        NEED_RECORD_NUMBER AS needRecordNumber,
+        VER AS ver
+        FROM PL_BS_TASK
+        WHERE
+        PARTNER_ID = #{filterMap.partnerId}  AND TERMINAL_ID =#{filterMap.terminalId} AND BS_CODE =#{bsCode}
+        AND REPORT_DATE = #{filterMap.startTime} AND DEL_FLG = 0
+    </select>
+
+    <select id="findPlRulerInfo" parameterType="BaseParam" resultType="com.msk.pl.bean.PLRuler">
+        SELECT
+        STATEMENT_NUMBER AS statementNumber
+        FROM PL_RULER
+        WHERE
+        (PARTNER_ID = #{filterMap.partnerId} AND DATE_FORMAT(#{filterMap.startTime},'%Y-%m-%d') >= EFFECTIVE_TIME AND IFNULL(OVER_TIME,NOW()) > DATE_FORMAT(#{filterMap.startTime},'%Y-%m-%d') AND DEL_FLG = 0 )
+        OR (PARTNER_ID = #{filterMap.partnerId} AND TERMINAL_ID =#{filterMap.terminalId} AND DATE_FORMAT(#{filterMap.startTime},'%Y-%m-%d') >= EFFECTIVE_TIME AND IFNULL(OVER_TIME,NOW()) > DATE_FORMAT(#{filterMap.startTime},'%Y-%m-%d') AND DEL_FLG = 0)
+		OR (PARTNER_ID = #{filterMap.partnerId} AND TERMINAL_ID =#{filterMap.terminalId} AND BS_CODE =#{bsCode} AND DATE_FORMAT(#{filterMap.startTime},'%Y-%m-%d') >= EFFECTIVE_TIME AND IFNULL(OVER_TIME,NOW()) > DATE_FORMAT(#{filterMap.startTime},'%Y-%m-%d') AND DEL_FLG = 0)
+		ORDER BY USER_ROLE,CRT_TIME DESC  limit 1
+    </select>
+    <!--每日任务新增-->
+    <insert id="saveBsTaskInfo" parameterType="com.msk.pl.bean.PlBsTask">
+        INSERT INTO PL_BS_TASK (
+        TASK_ID,
+        PARTNER_ID,
+        TERMINAL_ID,
+        DOMAIN_ID,
+        BS_CODE,
+        NEED_RECORD_NUMBER,
+        ALREADY_RECORD_NUMBER,
+        REPORT_DATE,
+        STATUS,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER
+)
+VALUES
+	(
+		#{taskId},
+		#{partnerId},
+		#{terminalId},
+		#{domainId},
+		#{bsCode},
+		#{needRecordNumber},
+		#{alreadyRecordNumber},
+		#{nowTime},
+		0,
+		'0',
+        #{crtId},
+        NOW(),
+        #{updId},
+        NOW(),
+        #{actId},
+        NOW(),
+        '1'
+	);
+    </insert>
+    <insert id="savePlInfo" parameterType="com.msk.pl.bean.PLInfo">
+        INSERT INTO pl_info (
+        PL_ID,
+        TASK_ID,
+        PARTNER_ID,
+        TERMINAL_ID,
+        TERMINAL_NAME,
+        DOMAIN_ID,
+        BS_CODE,
+        BS_NAME,
+        BUYER_ID,
+        BUYER_NAME,
+        INCENTIVE_FEE,
+        STATUS,
+        FTP_URL,
+        DEL_FLG,
+        CRT_ID,
+        CRT_TIME,
+        UPD_ID,
+        UPD_TIME,
+        ACT_ID,
+        ACT_TIME,
+        VER
+    )
+    VALUES
+        (
+            #{plId},
+            #{filterMap.taskId},
+            #{filterMap.partnerId},
+            #{filterMap.terminalId},
+            #{terminalName},
+            #{domainId},
+            #{bsCode},
+            #{bsName},
+            #{buyerId},
+            #{buyerName},
+            #{filterMap.incentiveFee},
+            0,
+            #{ftpUrl},
+            0,
+            #{crtId},
+            NOW(),
+            #{updId},
+            NOW(),
+            #{actId},
+            NOW(),
+            '1'
+        );
+    </insert>
+
+    <update id="updatePlInfo" parameterType="BaseParam" >
+    UPDATE PL_INFO
+    SET
+    <if test="filterMap.terminalName!=null and filterMap.terminalName!=''">
+        TERMINAL_NAME =  #{filterMap.terminalName},
+    </if>
+    <if test="filterMap.terminalId!=null and filterMap.terminalId!=''">
+        TERMINAL_ID =  #{filterMap.terminalId},
+    </if>
+    <if test="domainId!=null and domainId!=''">
+    DOMAIN_ID = #{domainId},
+    </if>
+    <if test="bsCode!=null and bsCode!=''">
+        BS_CODE = #{bsCode},
+    </if>
+    <if test="bsName!=null and bsName!=''">
+    BS_NAME = #{bsName},
+    </if>
+    <if test="buyerId!=null and buyerId!=''">
+    BUYER_ID = #{buyerId},
+    </if>
+    <if test="buyerName!=null and buyerName!=''">
+        BUYER_NAME =  #{buyerName},
+    </if>
+    <if test="ftpUrl!=null and ftpUrl!=''">
+        FTP_URL = #{ftpUrl},
+    </if>
+    UPD_ID =  #{updId},
+    UPD_TIME = NOW(),
+    VER = VER+1
+    WHERE
+    PL_ID = #{plId} AND DEL_FLG = 0
+    </update>
+
+    <update id="updateBsTaskNumber" parameterType="BaseParam" >
+      UPDATE pl_bs_task
+      SET
+         ALREADY_RECORD_NUMBER = #{alreadyRecordNumber},
+         STATUS = #{status},
+         UPD_ID = #{updId},
+         UPD_TIME = NOW(),
+         VER = VER+1
+    WHERE
+        TASK_ID = #{taskId} AND DEL_FLG = 0
+    </update>
+
+    <select id="findPlInfoId" parameterType="BaseParam" resultType="com.msk.pl.bean.PLInfo">
+       SELECT
+        A.TERMINAL_ID AS terminalId,
+        B.PARTNER_ID AS partnerId
+        FROM PL_DOMAIN_BS A
+        INNER JOIN PL_TERMINAL_PARTNER B ON B.TERMINAL_ID = A.TERMINAL_ID
+        WHERE A.BS_CODE = #{filterMap.bsCode} AND A.DEL_FLG = 0
+    </select>
+
+    <select id="findOneIncentiveFee" parameterType="BaseParam" resultType="com.msk.pl.bean.PLIncentiveFeeSetting">
+      SELECT INCENTIVE_FEE AS incentiveFee FROM PL_INCENTIVE_FEE_SETTING
+      WHERE
+        (PARTNER_ID = #{filterMap.partnerId} AND DATE_FORMAT(#{filterMap.startTime},'%Y-%m-%d') >= EFFECTIVE_TIME AND IFNULL(OVER_TIME,NOW()) > DATE_FORMAT(#{filterMap.startTime},'%Y-%m-%d') AND DEL_FLG = 0 )
+        OR (PARTNER_ID = #{filterMap.partnerId} AND TERMINAL_ID =#{filterMap.terminalId} AND DATE_FORMAT(#{filterMap.startTime},'%Y-%m-%d') >= EFFECTIVE_TIME AND IFNULL(OVER_TIME,NOW()) > DATE_FORMAT(#{filterMap.startTime},'%Y-%m-%d') AND DEL_FLG = 0)
+		OR (PARTNER_ID = #{filterMap.partnerId} AND TERMINAL_ID =#{filterMap.terminalId} AND BS_CODE =#{bsCode} AND DATE_FORMAT(#{filterMap.startTime},'%Y-%m-%d') >= EFFECTIVE_TIME AND IFNULL(OVER_TIME,NOW()) > DATE_FORMAT(#{filterMap.startTime},'%Y-%m-%d') AND DEL_FLG = 0)
+		ORDER BY USER_ROLE,CRT_TIME DESC  limit 1
+    </select>
+
+
+    <select id="findOneBuyerExist" parameterType="BaseParam" resultType="com.msk.pl.bean.PLInfo">
+       SELECT
+		A.BUYER_ID AS buyerId
+	   ,A.BUYER_NAME AS buyerName
+	    FROM by_buyer_basic_info A
+        WHERE A.BUYER_NAME = #{buyerName} AND A.DEL_FLG = 0
+    </select>
+</mapper>

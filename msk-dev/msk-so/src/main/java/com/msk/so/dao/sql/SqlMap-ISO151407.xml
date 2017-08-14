@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.msk.so.logic.ISO151407Logic">
+<select id="findList" resultType="com.msk.so.bean.OrderCountBean" parameterType="com.msk.so.bean.ISO151407RsParam" >
+    SELECT so.ORDER_SOURCE AS orderPlatform,
+    COUNT(1) AS orderCount
+	FROM SO_ORDER so
+	WHERE
+	 so.BUYERS_ID = #{buyerId}
+	 AND so.ORDER_ID NOT IN (
+		SELECT CHILD_ORDER_ID
+		FROM so_order_relation)
+	<if test="startDate!=null and startDate!=''">
+		<![CDATA[AND so.ORDER_TIME >= #{startDate}]]>
+	</if>
+	<if test="endDate!=null and endDate!=''">
+		<![CDATA[AND so.ORDER_TIME <= #{endDate}]]>
+	</if>
+	 GROUP BY so.ORDER_SOURCE
+</select>
+</mapper>

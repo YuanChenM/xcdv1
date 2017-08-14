@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.msk.common.logic.DistrictLogic">
+<select id="findList" parameterType="BaseParam" resultType="com.msk.core.entity.MdDistrict">
+    SELECT
+          DISTRICT_ID AS districtId
+          ,DISTRICT_CODE AS districtCode
+          ,DISTRICT_NAME AS districtName
+    FROM MD_DISTRICT
+    WHERE 1=1
+    <if test="filterMap.cityId != null">
+        AND CITY_ID=#{filterMap.cityId}
+    </if>
+
+</select>
+</mapper>

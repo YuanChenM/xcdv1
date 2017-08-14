@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.msk.md.logic.DistrictAreaLogic">
+    <select id="findList" resultType="com.msk.md.bean.DistrictAreaBean">
+        SELECT areaCode,
+               areaName,
+               prLgcsCode,
+               prLgcsName,
+               cityCode,
+               cityName,
+               districtCode,
+               districtName,
+               fullCode,
+               fullName,
+               PR_LGCS_TYPE AS prLgcsType
+        FROM v_md_dist_area
+    </select>
+</mapper>
